@@ -1,12 +1,12 @@
 ---
-source: lib/src/scanner/extractor.rs
+source: lib/src/extraction/typescript_parser.rs
 expression: result
 ---
 File: fixtures/invalid/missing_catch.tsx
 GraphQL strings found: 1
 
 === GraphQL String 1 ===
-Line: 1
+BytePos: 59
 Content:
 
   query GetUserProfile($id: ID!) {
@@ -25,7 +25,7 @@ File: fixtures/invalid/partial_protection.ts
 GraphQL strings found: 3
 
 === GraphQL String 1 ===
-Line: 1
+BytePos: 61
 Content:
 
   fragment ProtectedFragment on User @catch {
@@ -35,7 +35,7 @@ Content:
 
 
 === GraphQL String 2 ===
-Line: 1
+BytePos: 200
 Content:
 
   fragment UnprotectedFragment on User {
@@ -45,7 +45,7 @@ Content:
 
 
 === GraphQL String 3 ===
-Line: 1
+BytePos: 324
 Content:
 
   query MixedQuery($id: ID!) {
@@ -63,7 +63,7 @@ File: fixtures/invalid/unprotected_nested.ts
 GraphQL strings found: 4
 
 === GraphQL String 1 ===
-Line: 1
+BytePos: 58
 Content:
 
   fragment UserBasicInfo on User {
@@ -74,7 +74,7 @@ Content:
 
 
 === GraphQL String 2 ===
-Line: 1
+BytePos: 152
 Content:
 
   fragment UserAvatar on User @throwOnFieldError {
@@ -84,7 +84,7 @@ Content:
 
 
 === GraphQL String 3 ===
-Line: 1
+BytePos: 262
 Content:
 
   fragment UserDetails on User {
@@ -95,7 +95,7 @@ Content:
 
 
 === GraphQL String 4 ===
-Line: 1
+BytePos: 377
 Content:
 
   query GetFullUser($id: ID!) {

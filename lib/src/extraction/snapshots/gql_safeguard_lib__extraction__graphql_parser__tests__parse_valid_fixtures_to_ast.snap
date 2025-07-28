@@ -1,0 +1,141 @@
+---
+source: lib/src/extraction/graphql_parser.rs
+expression: result
+---
+File: fixtures/valid/fragment_level_catch.ts
+GraphQL AST items: 1
+
+=== AST Item 1 ===
+Type: Fragment
+Name: RiskyUserData
+File: fixtures/valid/fragment_level_catch.ts
+Directives: 1
+  - Catch 🧤
+Fields: 3
+  - sensitiveInfo [ThrowOnFieldError ☄️]
+  - backupEmail [ThrowOnFieldError ☄️]
+  - internalId
+Fragment Spreads: 0
+
+---
+
+File: fixtures/valid/fragment_level_catch.ts
+GraphQL AST items: 1
+
+=== AST Item 1 ===
+Type: Query
+Name: GetUserWithRiskyData
+File: fixtures/valid/fragment_level_catch.ts
+Directives: 1
+  - Catch 🧤
+Fields: 1
+  - user
+Fragment Spreads: 0
+
+---
+
+File: fixtures/valid/nested_fragments_protected.ts
+GraphQL AST items: 1
+
+=== AST Item 1 ===
+Type: Fragment
+Name: UserBasicInfo
+File: fixtures/valid/nested_fragments_protected.ts
+Directives: 0
+Fields: 3
+  - id
+  - name
+  - email
+Fragment Spreads: 0
+
+---
+
+File: fixtures/valid/nested_fragments_protected.ts
+GraphQL AST items: 1
+
+=== AST Item 1 ===
+Type: Fragment
+Name: avatarImage
+File: fixtures/valid/nested_fragments_protected.ts
+Directives: 1
+  - ThrowOnFieldError ☄️
+Fields: 2
+  - avatar
+  - avatarUrl
+Fragment Spreads: 0
+
+---
+
+File: fixtures/valid/nested_fragments_protected.ts
+GraphQL AST items: 1
+
+=== AST Item 1 ===
+Type: Fragment
+Name: UserAvatar
+File: fixtures/valid/nested_fragments_protected.ts
+Directives: 1
+  - Catch 🧤
+Fields: 1
+  - avatar
+Fragment Spreads: 1
+  - avatarImage
+
+---
+
+File: fixtures/valid/nested_fragments_protected.ts
+GraphQL AST items: 1
+
+=== AST Item 1 ===
+Type: Fragment
+Name: UserBio
+File: fixtures/valid/nested_fragments_protected.ts
+Directives: 0
+Fields: 2
+  - bioText
+  - bioImage [ThrowOnFieldError ☄️]
+Fragment Spreads: 0
+
+---
+
+File: fixtures/valid/nested_fragments_protected.ts
+GraphQL AST items: 1
+
+=== AST Item 1 ===
+Type: Fragment
+Name: UserDetails
+File: fixtures/valid/nested_fragments_protected.ts
+Directives: 0
+Fields: 1
+  - bio [Catch 🧤]
+Fragment Spreads: 2
+  - UserBasicInfo
+  - UserAvatar
+
+---
+
+File: fixtures/valid/nested_fragments_protected.ts
+GraphQL AST items: 1
+
+=== AST Item 1 ===
+Type: Query
+Name: GetFullUser
+File: fixtures/valid/nested_fragments_protected.ts
+Directives: 0
+Fields: 1
+  - user
+Fragment Spreads: 0
+
+---
+
+File: fixtures/valid/query_with_catch.tsx
+GraphQL AST items: 1
+
+=== AST Item 1 ===
+Type: Query
+Name: GetUserProfile
+File: fixtures/valid/query_with_catch.tsx
+Directives: 1
+  - Catch 🧤
+Fields: 1
+  - user
+Fragment Spreads: 0

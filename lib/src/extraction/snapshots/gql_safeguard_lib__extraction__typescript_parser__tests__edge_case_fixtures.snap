@@ -1,12 +1,12 @@
 ---
-source: lib/src/scanner/extractor.rs
+source: lib/src/extraction/typescript_parser.rs
 expression: result
 ---
 File: fixtures/edge_cases/additional-queries.ts
 GraphQL strings found: 2
 
 === GraphQL String 1 ===
-Line: 1
+BytePos: 66
 Content:
 
   query AdditionalQuery($id: ID!) {
@@ -18,7 +18,7 @@ Content:
 
 
 === GraphQL String 2 ===
-Line: 1
+BytePos: 234
 Content:
 
   query GraphQLQuery($id: ID!) @catch {
@@ -35,7 +35,7 @@ File: fixtures/edge_cases/circular_fragments.ts
 GraphQL strings found: 3
 
 === GraphQL String 1 ===
-Line: 1
+BytePos: 53
 Content:
 
   fragment FragmentA on User {
@@ -46,7 +46,7 @@ Content:
 
 
 === GraphQL String 2 ===
-Line: 1
+BytePos: 149
 Content:
 
   fragment FragmentB on User {
@@ -57,7 +57,7 @@ Content:
 
 
 === GraphQL String 3 ===
-Line: 1
+BytePos: 273
 Content:
 
   query CircularQuery($id: ID!) {
@@ -73,7 +73,7 @@ File: fixtures/edge_cases/commented_graphql.ts
 GraphQL strings found: 1
 
 === GraphQL String 1 ===
-Line: 1
+BytePos: 219
 Content:
 
   query ValidQuery($id: ID!) @catch {
@@ -92,7 +92,7 @@ File: fixtures/edge_cases/dynamic_imports.tsx
 GraphQL strings found: 2
 
 === GraphQL String 1 ===
-Line: 1
+BytePos: 105
 Content:
 
   query BaseQuery($id: ID!) @catch {
@@ -105,7 +105,7 @@ Content:
 
 
 === GraphQL String 2 ===
-Line: 1
+BytePos: 971
 Content:
 
     query StaticDynamicQuery($id: ID!) {

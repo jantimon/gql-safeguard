@@ -1,4 +1,4 @@
-use crate::types::graphql::FragmentDefinition;
+use crate::extraction::graphql_parser::FragmentDefinition;
 use rustc_hash::FxHashMap;
 
 pub struct FragmentRegistry {

@@ -1,12 +1,12 @@
 ---
-source: lib/src/scanner/extractor.rs
+source: lib/src/extraction/typescript_parser.rs
 expression: formatted
 ---
 File: fixtures/valid/fragment_level_catch.ts
 GraphQL strings found: 2
 
 === GraphQL String 1 ===
-Line: 1
+BytePos: 58
 Content:
 
   fragment RiskyUserData on User @catch {
@@ -17,13 +17,15 @@ Content:
 
 
 === GraphQL String 2 ===
-Line: 1
+BytePos: 233
 Content:
 
-  query GetUserWithRiskyData($id: ID!) {
+  query GetUserWithRiskyData($id: ID!) @catch{
     user(id: $id) {
       id
       name
-      ...RiskyUserData
+      friends @throwOnFieldError {
+        ...RiskyUserData
+      }
     }
   }

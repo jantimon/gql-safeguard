@@ -1,0 +1,122 @@
+---
+source: lib/src/extraction/graphql_parser.rs
+expression: result
+---
+File: fixtures/invalid/missing_catch.tsx
+GraphQL AST items: 1
+
+=== AST Item 1 ===
+Type: Query
+Name: GetUserProfile
+File: fixtures/invalid/missing_catch.tsx
+Directives: 0
+Fields: 1
+  - user
+Fragment Spreads: 0
+
+---
+
+File: fixtures/invalid/partial_protection.ts
+GraphQL AST items: 1
+
+=== AST Item 1 ===
+Type: Fragment
+Name: ProtectedFragment
+File: fixtures/invalid/partial_protection.ts
+Directives: 1
+  - Catch 🧤
+Fields: 2
+  - sensitiveData [ThrowOnFieldError ☄️]
+  - otherData
+Fragment Spreads: 0
+
+---
+
+File: fixtures/invalid/partial_protection.ts
+GraphQL AST items: 1
+
+=== AST Item 1 ===
+Type: Fragment
+Name: UnprotectedFragment
+File: fixtures/invalid/partial_protection.ts
+Directives: 0
+Fields: 2
+  - riskyField [ThrowOnFieldError ☄️]
+  - normalField
+Fragment Spreads: 0
+
+---
+
+File: fixtures/invalid/partial_protection.ts
+GraphQL AST items: 1
+
+=== AST Item 1 ===
+Type: Query
+Name: MixedQuery
+File: fixtures/invalid/partial_protection.ts
+Directives: 0
+Fields: 1
+  - user
+Fragment Spreads: 0
+
+---
+
+File: fixtures/invalid/unprotected_nested.ts
+GraphQL AST items: 1
+
+=== AST Item 1 ===
+Type: Fragment
+Name: UserBasicInfo
+File: fixtures/invalid/unprotected_nested.ts
+Directives: 0
+Fields: 3
+  - id
+  - name
+  - email
+Fragment Spreads: 0
+
+---
+
+File: fixtures/invalid/unprotected_nested.ts
+GraphQL AST items: 1
+
+=== AST Item 1 ===
+Type: Fragment
+Name: UserAvatar
+File: fixtures/invalid/unprotected_nested.ts
+Directives: 1
+  - ThrowOnFieldError ☄️
+Fields: 2
+  - avatar
+  - avatarUrl
+Fragment Spreads: 0
+
+---
+
+File: fixtures/invalid/unprotected_nested.ts
+GraphQL AST items: 1
+
+=== AST Item 1 ===
+Type: Fragment
+Name: UserDetails
+File: fixtures/invalid/unprotected_nested.ts
+Directives: 0
+Fields: 1
+  - bio
+Fragment Spreads: 2
+  - UserBasicInfo
+  - UserAvatar
+
+---
+
+File: fixtures/invalid/unprotected_nested.ts
+GraphQL AST items: 1
+
+=== AST Item 1 ===
+Type: Query
+Name: GetFullUser
+File: fixtures/invalid/unprotected_nested.ts
+Directives: 0
+Fields: 1
+  - user
+Fragment Spreads: 0

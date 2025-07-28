@@ -9,11 +9,13 @@ const RISKY_USER_DATA = gql`
 `;
 
 const GET_USER_WITH_RISKY_DATA = gql`
-  query GetUserWithRiskyData($id: ID!) {
+  query GetUserWithRiskyData($id: ID!) @catch{
     user(id: $id) {
       id
       name
-      ...RiskyUserData
+      friends @throwOnFieldError {
+        ...RiskyUserData
+      }
     }
   }
 `;

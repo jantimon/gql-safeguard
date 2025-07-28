@@ -38,53 +38,6 @@ anyhow = "1.0"            # Error handling
 serde = { version = "1.0", features = ["derive"] } # Serialization
 ```
 
-## Project Structure
-
-```
-graphql-directive-analyzer/
-├── Cargo.toml (workspace)
-├── cli/
-│   ├── Cargo.toml
-│   └── src/
-│       ├── main.rs          # CLI entry point, argument parsing
-│       ├── output.rs        # Report formatting and tree visualization
-│       └── args.rs          # CLI argument definitions
-├── lib/
-│   ├── Cargo.toml
-│   └── src/
-│       ├── lib.rs           # Public API exports
-│       ├── scanner/
-│       │   ├── mod.rs       # File discovery and parallel processing
-│       │   ├── file_finder.rs    # Glob-based file discovery
-│       │   └── extractor.rs      # SWC-based GraphQL extraction
-│       ├── parser/
-│       │   ├── mod.rs       # GraphQL parsing coordination
-│       │   ├── ast_builder.rs    # Convert parsed GraphQL to internal types
-│       │   └── directive_parser.rs # Extract directives from GraphQL AST
-│       ├── registry/
-│       │   ├── mod.rs       # Fragment/query storage
-│       │   ├── fragment_registry.rs # Global fragment storage with file locations
-│       │   └── query_registry.rs    # Global query storage with file locations
-│       ├── graph/
-│       │   ├── mod.rs       # Dependency graph construction
-│       │   ├── builder.rs   # Build fragment dependency graph
-│       │   └── traversal.rs # Graph traversal for directive checking
-│       ├── analysis/
-│       │   ├── mod.rs       # Analysis coordination
-│       │   ├── validator.rs # @throwOnFieldError/@catch validation
-│       │   └── reporter.rs  # Violation reporting
-│       ├── types/
-│       │   ├── mod.rs       # Core type definitions
-│       │   ├── graphql.rs   # GraphQL operation types
-│       │   ├── directive.rs # Directive representation
-│       │   └── violation.rs # Violation/error types
-│       └── tree_formatter.rs # Tree visualization (provided)
-└── fixtures/
-    ├── valid/               # Test cases with proper @catch usage
-    ├── invalid/             # Test cases with missing @catch
-    └── edge_cases/          # Complex scenarios
-```
-
 ## Core Data Structures
 
 ### GraphQL Types

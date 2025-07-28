@@ -1,0 +1,120 @@
+---
+source: lib/src/extraction/graphql_parser.rs
+expression: result
+---
+File: fixtures/edge_cases/additional-queries.ts
+GraphQL AST items: 1
+
+=== AST Item 1 ===
+Type: Query
+Name: AdditionalQuery
+File: fixtures/edge_cases/additional-queries.ts
+Directives: 0
+Fields: 1
+  - user
+Fragment Spreads: 0
+
+---
+
+File: fixtures/edge_cases/additional-queries.ts
+GraphQL AST items: 1
+
+=== AST Item 1 ===
+Type: Query
+Name: GraphQLQuery
+File: fixtures/edge_cases/additional-queries.ts
+Directives: 1
+  - Catch 🧤
+Fields: 1
+  - user
+Fragment Spreads: 0
+
+---
+
+File: fixtures/edge_cases/circular_fragments.ts
+GraphQL AST items: 1
+
+=== AST Item 1 ===
+Type: Fragment
+Name: FragmentA
+File: fixtures/edge_cases/circular_fragments.ts
+Directives: 0
+Fields: 2
+  - id
+  - name
+Fragment Spreads: 1
+  - FragmentB
+
+---
+
+File: fixtures/edge_cases/circular_fragments.ts
+GraphQL AST items: 1
+
+=== AST Item 1 ===
+Type: Fragment
+Name: FragmentB
+File: fixtures/edge_cases/circular_fragments.ts
+Directives: 0
+Fields: 2
+  - email
+  - bio
+Fragment Spreads: 1
+  - FragmentA
+
+---
+
+File: fixtures/edge_cases/circular_fragments.ts
+GraphQL AST items: 1
+
+=== AST Item 1 ===
+Type: Query
+Name: CircularQuery
+File: fixtures/edge_cases/circular_fragments.ts
+Directives: 0
+Fields: 1
+  - user
+Fragment Spreads: 0
+
+---
+
+File: fixtures/edge_cases/commented_graphql.ts
+GraphQL AST items: 1
+
+=== AST Item 1 ===
+Type: Query
+Name: ValidQuery
+File: fixtures/edge_cases/commented_graphql.ts
+Directives: 1
+  - Catch 🧤
+Fields: 1
+  - user
+Fragment Spreads: 0
+
+---
+
+File: fixtures/edge_cases/dynamic_imports.tsx
+GraphQL AST items: 1
+
+=== AST Item 1 ===
+Type: Query
+Name: BaseQuery
+File: fixtures/edge_cases/dynamic_imports.tsx
+Directives: 1
+  - Catch 🧤
+Fields: 1
+  - user
+Fragment Spreads: 0
+
+---
+
+File: fixtures/edge_cases/dynamic_imports.tsx
+GraphQL AST items: 1
+
+=== AST Item 1 ===
+Type: Query
+Name: StaticDynamicQuery
+File: fixtures/edge_cases/dynamic_imports.tsx
+Directives: 0
+Fields: 1
+  - user
+Fragment Spreads: 0

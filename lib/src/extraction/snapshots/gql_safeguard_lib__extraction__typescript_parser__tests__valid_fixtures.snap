@@ -1,12 +1,12 @@
 ---
-source: lib/src/scanner/extractor.rs
+source: lib/src/extraction/typescript_parser.rs
 expression: result
 ---
 File: fixtures/valid/fragment_level_catch.ts
 GraphQL strings found: 2
 
 === GraphQL String 1 ===
-Line: 1
+BytePos: 58
 Content:
 
   fragment RiskyUserData on User @catch {
@@ -17,14 +17,16 @@ Content:
 
 
 === GraphQL String 2 ===
-Line: 1
+BytePos: 233
 Content:
 
-  query GetUserWithRiskyData($id: ID!) {
+  query GetUserWithRiskyData($id: ID!) @catch{
     user(id: $id) {
       id
       name
-      ...RiskyUserData
+      friends @throwOnFieldError {
+        ...RiskyUserData
+      }
     }
   }
 
@@ -32,10 +34,10 @@ Content:
 ---
 
 File: fixtures/valid/nested_fragments_protected.ts
-GraphQL strings found: 4
+GraphQL strings found: 6
 
 === GraphQL String 1 ===
-Line: 1
+BytePos: 58
 Content:
 
   fragment UserBasicInfo on User {
@@ -46,32 +48,54 @@ Content:
 
 
 === GraphQL String 2 ===
-Line: 1
+BytePos: 158
 Content:
 
-  fragment UserAvatar on User @throwOnFieldError {
+  fragment avatarImage on User @throwOnFieldError {
     avatar
     avatarUrl
   }
 
 
 === GraphQL String 3 ===
-Line: 1
+BytePos: 268
+Content:
+
+  fragment UserAvatar on User @catch {
+    avatar
+    ...avatarImage
+  }
+
+
+=== GraphQL String 4 ===
+BytePos: 367
+Content:
+
+  fragment UserBio on User {
+    bioText
+    bioImage @throwOnFieldError
+  }
+
+
+=== GraphQL String 5 ===
+BytePos: 474
 Content:
 
   fragment UserDetails on User {
     ...UserBasicInfo
     ...UserAvatar
-    bio
+    bio @catch(to: NULL) {
+      ...UserBio
+    }
   }
 
 
-=== GraphQL String 4 ===
-Line: 1
+=== GraphQL String 6 ===
+BytePos: 631
 Content:
 
   query GetFullUser($id: ID!) {
-    user(id: $id) @catch(to: NULL) {
+    user(id: $id) {
       ...UserDetails
     }
   }
@@ -83,7 +107,7 @@ File: fixtures/valid/query_with_catch.tsx
 GraphQL strings found: 1
 
 === GraphQL String 1 ===
-Line: 1
+BytePos: 59
 Content:
 
   query GetUserProfile($id: ID!) @catch {

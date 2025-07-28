@@ -1,6 +1,7 @@
-use crate::types::directive::Directive;
 use rustc_hash::FxHashMap;
 use serde::{Deserialize, Serialize};
+
+use crate::extraction::graphql_parser::Directive;
 
 #[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
 pub struct FragmentNode {

@@ -1,4 +1,4 @@
-use crate::types::graphql::QueryOperation;
+use crate::extraction::graphql_parser::QueryOperation;
 use rustc_hash::FxHashMap;
 
 pub struct QueryRegistry {
