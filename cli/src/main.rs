@@ -51,29 +51,45 @@ fn main() -> anyhow::Result<()> {
             }
 
             // Validate the queries
-            match validate_query_directives(&dependency_graph) {
-                Ok(()) => {
-                    let elapsed = start_time.elapsed();
-                    println!(
-                        "✅ All GraphQL queries pass validation! (took {:.2?})",
-                        elapsed
-                    );
-                    println!(
-                        "Found {} queries and {} fragments",
-                        registry.queries.len(),
-                        registry.fragments.len()
-                    );
+            let validation_result = validate_query_directives(&dependency_graph);
+            if validation_result.is_valid() {
+                let elapsed = start_time.elapsed();
+                println!(
+                    "✅ All GraphQL queries pass validation! (took {:.2?})",
+                    elapsed
+                );
+                println!(
+                    "Found {} queries and {} fragments",
+                    registry.queries.len(),
+                    registry.fragments.len()
+                );
+            } else {
+                for error in &validation_result.errors {
+                    println!("{}", error);
                 }
-                Err(e) => {
-                    let elapsed = start_time.elapsed();
-                    println!("❌ Validation failed: {} (took {:.2?})", e, elapsed);
-                    println!(
-                        "Found {} queries and {} fragments",
-                        registry.queries.len(),
-                        registry.fragments.len()
-                    );
-                    std::process::exit(1);
-                }
+
+                let elapsed = start_time.elapsed();
+                println!();
+                println!("💡 About @catch and @throwOnFieldError:");
+                println!(
+                    "The @throwOnFieldError directive requires protection by a @catch directive"
+                );
+                println!(
+                    "in an ancestor field or a parent GraphQL fragment. Without proper @catch"
+                );
+                println!("protection, field errors will throw exceptions that bubble up and can");
+                println!("break the entire Page");
+                println!();
+                println!("Fix by adding @catch to a parent field or fragment.");
+                println!("Learn more: https://relay.dev/docs/next/guides/throw-on-field-error-directive/");
+                println!();
+                println!("❌ Validation failed: (took {:.2?})", elapsed);
+                println!(
+                    "Found {} queries and {} fragments",
+                    registry.queries.len(),
+                    registry.fragments.len()
+                );
+                std::process::exit(1);
             }
 
             if show_trees {

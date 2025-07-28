@@ -1,5 +1,83 @@
 ---
 source: lib/src/validate.rs
-expression: error_message
+expression: result_message
 ---
-Validation Error: Unprotected @throwOnFieldError: Unprotected @throwOnFieldError in query 'GetFullUserUnprotected' at query.user...UserDetailsUnprotected...UserBasicInfoUnprotected.name
+Validation Result:
+❌ Found 4 validation errors:
+
+
+
+🚨 Unprotected @throwOnFieldError
+
+Query: GetFullUserUnprotected (/Users/jannicklas/Desktop/gql-safeguard/fixtures/invalid/unprotected_nested.ts)
+Location: UserBasicInfoUnprotected.name
+
+Query Structure:
+📄 Query: GetFullUserUnprotected (/Users/jannicklas/Desktop/gql-safeguard/fixtures/invalid/unprotected_nested.ts)
+└── 🔍 Selections:
+    └── 🔹 Field: user
+        └── 🧩 Fragment: UserDetailsUnprotected ❌
+            ├── 🧩 Fragment: UserBasicInfoUnprotected ❌
+            |   ├── 🔹 Field: id
+            |   ├── 🔹 Field: name ❌ [⚠️ @ThrowOnFieldError]
+            |   └── 🔹 Field: email
+            ├── 🧩 Fragment: UserAvatarUnprotected [⚠️ @ThrowOnFieldError]
+            |   ├── 🔹 Field: avatar
+            |   └── 🔹 Field: avatarUrl
+            └── 🔹 Field: bio
+--------------------------------------------------------------------------------
+
+
+🚨 Unprotected @throwOnFieldError
+
+Query: GetFullUserUnprotected (/Users/jannicklas/Desktop/gql-safeguard/fixtures/invalid/unprotected_nested.ts)
+Location: UserDetailsUnprotected...UserAvatarUnprotected
+
+Query Structure:
+📄 Query: GetFullUserUnprotected (/Users/jannicklas/Desktop/gql-safeguard/fixtures/invalid/unprotected_nested.ts)
+└── 🔍 Selections:
+    └── 🔹 Field: user
+        └── 🧩 Fragment: UserDetailsUnprotected ❌
+            ├── 🧩 Fragment: UserBasicInfoUnprotected
+            |   ├── 🔹 Field: id
+            |   ├── 🔹 Field: name [⚠️ @ThrowOnFieldError]
+            |   └── 🔹 Field: email
+            ├── 🧩 Fragment: UserAvatarUnprotected ❌ [⚠️ @ThrowOnFieldError]
+            |   ├── 🔹 Field: avatar
+            |   └── 🔹 Field: avatarUrl
+            └── 🔹 Field: bio
+--------------------------------------------------------------------------------
+
+
+🚨 Unprotected @throwOnFieldError
+
+Query: GetUserProfileUnprotected (/Users/jannicklas/Desktop/gql-safeguard/fixtures/invalid/missing_catch.tsx)
+Location: avatar
+
+Query Structure:
+📄 Query: GetUserProfileUnprotected (/Users/jannicklas/Desktop/gql-safeguard/fixtures/invalid/missing_catch.tsx)
+└── 🔍 Selections:
+    └── 🔹 Field: user
+        ├── 🔹 Field: id
+        ├── 🔹 Field: name
+        ├── 🔹 Field: avatar ❌ [⚠️ @ThrowOnFieldError]
+        └── 🔹 Field: email
+--------------------------------------------------------------------------------
+
+
+🚨 Unprotected @throwOnFieldError
+
+Query: MixedQuery (/Users/jannicklas/Desktop/gql-safeguard/fixtures/invalid/partial_protection.ts)
+Location: UnprotectedFragment.riskyField
+
+Query Structure:
+📄 Query: MixedQuery (/Users/jannicklas/Desktop/gql-safeguard/fixtures/invalid/partial_protection.ts)
+└── 🔍 Selections:
+    └── 🔹 Field: user
+        ├── 🔹 Field: id
+        ├── 🧩 Fragment: ProtectedFragment [🧤 @Catch]
+        |   ├── 🔹 Field: sensitiveData [⚠️ @ThrowOnFieldError]
+        |   └── 🔹 Field: otherData
+        └── 🧩 Fragment: UnprotectedFragment ❌
+            ├── 🔹 Field: riskyField ❌ [⚠️ @ThrowOnFieldError]
+            └── 🔹 Field: normalField

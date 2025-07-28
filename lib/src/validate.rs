@@ -7,12 +7,13 @@
 //! The validation uses a single-pass recursive traversal with O(n) time complexity,
 //! tracking ancestor `@catch` directives to ensure proper protection relationships.
 
-use anyhow::Result;
 use rustc_hash::FxHashSet;
 use std::fmt;
+use std::path::PathBuf;
 
 use crate::parsers::graphql_parser::{DirectiveType, Selection};
 use crate::registry_to_graph::QueryWithFragments;
+use crate::tree_formatter::TreeFormatter;
 
 /// Validation error types for directive protection violations
 #[derive(Debug, Clone, PartialEq, Eq)]
@@ -36,21 +37,140 @@ impl fmt::Display for ValidationErrorType {
     }
 }
 
-/// A validation error with context about the query and location
+/// Context about where an error occurred in the query structure
+#[derive(Debug, Clone, PartialEq, Eq)]
+pub struct ErrorContext {
+    pub query_name: String,
+    pub query_file: PathBuf,
+    pub location_path: String,
+    pub fragment_file: Option<PathBuf>, // Set if error is in a fragment
+    pub fragment_name: Option<String>,  // Set if error is in a fragment
+}
+
+/// A validation error with rich context and tree visualization
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub struct ValidationError {
-    pub query_name: String,
     pub error_type: ValidationErrorType,
-    pub location: String,
+    pub context: ErrorContext,
+    pub tree_visualization: String,
+    pub explanation: String,
+}
+
+/// Collection of all validation errors found during validation
+#[derive(Debug, Clone, PartialEq, Eq)]
+pub struct ValidationResult {
+    pub errors: Vec<ValidationError>,
+}
+
+impl Default for ValidationResult {
+    fn default() -> Self {
+        Self::new()
+    }
+}
+
+impl ValidationResult {
+    pub fn new() -> Self {
+        Self { errors: Vec::new() }
+    }
+
+    pub fn add_error(&mut self, error: ValidationError) {
+        self.errors.push(error);
+    }
+
+    pub fn has_errors(&self) -> bool {
+        !self.errors.is_empty()
+    }
+
+    pub fn is_valid(&self) -> bool {
+        self.errors.is_empty()
+    }
 }
 
 impl fmt::Display for ValidationError {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        write!(
+        writeln!(f, "\n🚨 {}", self.error_type)?;
+        writeln!(f)?;
+
+        // Show query and file information
+        writeln!(
             f,
-            "{}: {} in query '{}' at {}",
-            self.error_type, self.error_type, self.query_name, self.location
-        )
+            "Query: {} ({})",
+            self.context.query_name,
+            self.context.query_file.display()
+        )?;
+        if let (Some(fragment_name), Some(fragment_file)) =
+            (&self.context.fragment_name, &self.context.fragment_file)
+        {
+            writeln!(
+                f,
+                "Fragment: {} ({})",
+                fragment_name,
+                fragment_file.display()
+            )?;
+        }
+        // Show simplified location (fragment.field format)
+        let simplified_location = if self.context.location_path.starts_with("query.") {
+            self.context
+                .location_path
+                .strip_prefix("query.")
+                .unwrap_or(&self.context.location_path)
+        } else {
+            &self.context.location_path
+        };
+
+        // Simplify to FRAGMENT_NAME.FIELD_NAME format only
+        let final_location = if let Some(last_dot_pos) = simplified_location.rfind('.') {
+            let field_name = &simplified_location[last_dot_pos + 1..];
+            // Look for the last fragment name (after the last "...")
+            let before_field = &simplified_location[..last_dot_pos];
+            if let Some(last_fragment_pos) = before_field.rfind("...") {
+                let fragment_name = &before_field[last_fragment_pos + 3..];
+                format!("{}.{}", fragment_name, field_name)
+            } else {
+                // No fragment found, just use the field name
+                field_name.to_string()
+            }
+        } else {
+            simplified_location.to_string()
+        };
+
+        writeln!(f, "Location: {}", final_location)?;
+        writeln!(f)?;
+
+        // Show tree visualization
+        writeln!(f, "Query Structure:")?;
+        write!(f, "{}", self.tree_visualization)
+    }
+}
+
+impl fmt::Display for ValidationResult {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        if self.errors.is_empty() {
+            write!(
+                f,
+                "✅ All queries follow proper @catch protection patterns!"
+            )
+        } else {
+            // Summary
+            writeln!(
+                f,
+                "❌ Found {} validation error{}:",
+                self.errors.len(),
+                if self.errors.len() == 1 { "" } else { "s" }
+            )?;
+            writeln!(f)?;
+
+            // Individual errors
+            for (i, error) in self.errors.iter().enumerate() {
+                if i > 0 {
+                    writeln!(f)?;
+                    writeln!(f, "{}", "-".repeat(80))?;
+                }
+                writeln!(f)?;
+                write!(f, "{}", error)?;
+            }
+            Ok(())
+        }
     }
 }
 
@@ -66,21 +186,23 @@ impl std::error::Error for ValidationError {}
 /// * `queries` - The queries with resolved fragment dependencies to validate
 ///
 /// # Returns
-/// * `Ok(())` if all queries are valid
-/// * `Err(ValidationError)` with details about the first validation failure found
+/// * `ValidationResult` containing all validation errors found, with rich context and explanations
 ///
 /// # Performance
 /// * Time complexity: O(n) where n is the total number of selections across all queries
 /// * Space complexity: O(d) where d is the maximum depth of nested selections
-pub fn validate_query_directives(queries: &[QueryWithFragments]) -> Result<()> {
+pub fn validate_query_directives(queries: &[QueryWithFragments]) -> ValidationResult {
+    let mut result = ValidationResult::new();
+
     for query in queries {
-        validate_query(query)?;
+        validate_query(query, &mut result);
     }
-    Ok(())
+
+    result
 }
 
 /// Validates a single query for proper directive protection patterns
-fn validate_query(query: &QueryWithFragments) -> Result<()> {
+fn validate_query(query: &QueryWithFragments, result: &mut ValidationResult) {
     // Track which @catch directives in this query protect at least one @throwOnFieldError
     let mut protecting_catches = FxHashSet::default();
 
@@ -97,37 +219,52 @@ fn validate_query(query: &QueryWithFragments) -> Result<()> {
     // Validate all selections in the query
     validate_selections(
         &query.selections,
-        &query.name,
+        query,
         "query",
         &mut catch_ancestors,
         &mut protecting_catches,
-    )?;
+        result,
+        None, // No fragment context at query level
+        None,
+    );
 
     // Check for empty @catch directives at query level
     for directive in &query.directives {
         if directive.directive_type == DirectiveType::Catch
             && !protecting_catches.contains(&directive.position)
         {
-            return Err(ValidationError {
+            let context = ErrorContext {
                 query_name: query.name.clone(),
+                query_file: query.file_path.clone(),
+                location_path: "query level".to_string(),
+                fragment_file: None,
+                fragment_name: None,
+            };
+
+            let tree_visualization = create_query_tree_visualization(query, Some("query level"));
+            let explanation = create_empty_catch_explanation();
+
+            result.add_error(ValidationError {
                 error_type: ValidationErrorType::EmptyCatch,
-                location: "query level".to_string(),
-            }
-            .into());
+                context,
+                tree_visualization,
+                explanation,
+            });
         }
     }
-
-    Ok(())
 }
 
 /// Recursively validates selections with ancestor tracking
 fn validate_selections(
     selections: &[Selection],
-    query_name: &str,
+    query: &QueryWithFragments,
     current_location: &str,
     catch_ancestors: &mut FxHashSet<u32>,
     protecting_catches: &mut FxHashSet<u32>,
-) -> Result<()> {
+    result: &mut ValidationResult,
+    current_fragment_file: Option<PathBuf>,
+    current_fragment_name: Option<String>,
+) {
     for selection in selections {
         match selection {
             Selection::Field(field) => {
@@ -136,11 +273,14 @@ fn validate_selections(
                 // Check field-level directives
                 validate_field_directives(
                     field,
-                    query_name,
+                    query,
                     &field_location,
                     catch_ancestors,
                     protecting_catches,
-                )?;
+                    result,
+                    current_fragment_file.clone(),
+                    current_fragment_name.clone(),
+                );
 
                 // Create new ancestor context for this field's nested selections
                 let mut field_catch_ancestors = catch_ancestors.clone();
@@ -155,23 +295,38 @@ fn validate_selections(
                 // Recursively validate nested selections
                 validate_selections(
                     &field.selections,
-                    query_name,
+                    query,
                     &field_location,
                     &mut field_catch_ancestors,
                     protecting_catches,
-                )?;
+                    result,
+                    current_fragment_file.clone(),
+                    current_fragment_name.clone(),
+                );
 
                 // Check for empty @catch directives at field level
                 for directive in &field.directives {
                     if directive.directive_type == DirectiveType::Catch
                         && !protecting_catches.contains(&directive.position)
                     {
-                        return Err(ValidationError {
-                            query_name: query_name.to_string(),
+                        let context = ErrorContext {
+                            query_name: query.name.clone(),
+                            query_file: query.file_path.clone(),
+                            location_path: field_location.clone(),
+                            fragment_file: current_fragment_file.clone(),
+                            fragment_name: current_fragment_name.clone(),
+                        };
+
+                        let tree_visualization =
+                            create_query_tree_visualization(query, Some(&field_location));
+                        let explanation = create_empty_catch_explanation();
+
+                        result.add_error(ValidationError {
                             error_type: ValidationErrorType::EmptyCatch,
-                            location: field_location.clone(),
-                        }
-                        .into());
+                            context,
+                            tree_visualization,
+                            explanation,
+                        });
                     }
                 }
             }
@@ -183,15 +338,28 @@ fn validate_selections(
                     match directive.directive_type {
                         DirectiveType::ThrowOnFieldError => {
                             if catch_ancestors.is_empty() {
-                                return Err(ValidationError {
-                                    query_name: query_name.to_string(),
+                                let context = ErrorContext {
+                                    query_name: query.name.clone(),
+                                    query_file: query.file_path.clone(),
+                                    location_path: spread_location.clone(),
+                                    fragment_file: current_fragment_file.clone(),
+                                    fragment_name: Some(spread.name.clone()),
+                                };
+
+                                let tree_visualization =
+                                    create_query_tree_visualization(query, Some(&spread_location));
+                                let explanation = create_unprotected_throw_explanation();
+
+                                result.add_error(ValidationError {
                                     error_type: ValidationErrorType::UnprotectedThrowOnFieldError,
-                                    location: spread_location.clone(),
-                                }
-                                .into());
+                                    context,
+                                    tree_visualization,
+                                    explanation,
+                                });
+                            } else {
+                                // Mark all ancestor @catch directives as protecting
+                                protecting_catches.extend(catch_ancestors.iter());
                             }
-                            // Mark all ancestor @catch directives as protecting
-                            protecting_catches.extend(catch_ancestors.iter());
                         }
                         DirectiveType::Catch => {
                             // Fragment spread @catch will be validated when fragment content is processed
@@ -207,20 +375,54 @@ fn validate_selections(
                     .unwrap_or("InlineFragment");
                 let inline_location = format!("{}...{}", current_location, fragment_name);
 
+                // Determine if this is a resolved fragment (has type_condition ending with "Fragment")
+                let is_resolved_fragment = inline
+                    .type_condition
+                    .as_ref()
+                    .map(|tc| tc.ends_with("Fragment"))
+                    .unwrap_or(false);
+
+                let fragment_context_file = if is_resolved_fragment {
+                    // TODO: We would need to track fragment file paths through the resolution process
+                    // For now, we'll use the current fragment file or None
+                    current_fragment_file.clone()
+                } else {
+                    current_fragment_file.clone()
+                };
+
+                let fragment_context_name = if is_resolved_fragment {
+                    Some(fragment_name.to_string())
+                } else {
+                    current_fragment_name.clone()
+                };
+
                 // Check inline fragment directives
                 for directive in &inline.directives {
                     match directive.directive_type {
                         DirectiveType::ThrowOnFieldError => {
                             if catch_ancestors.is_empty() {
-                                return Err(ValidationError {
-                                    query_name: query_name.to_string(),
+                                let context = ErrorContext {
+                                    query_name: query.name.clone(),
+                                    query_file: query.file_path.clone(),
+                                    location_path: inline_location.clone(),
+                                    fragment_file: fragment_context_file.clone(),
+                                    fragment_name: fragment_context_name.clone(),
+                                };
+
+                                let tree_visualization =
+                                    create_query_tree_visualization(query, Some(&inline_location));
+                                let explanation = create_unprotected_throw_explanation();
+
+                                result.add_error(ValidationError {
                                     error_type: ValidationErrorType::UnprotectedThrowOnFieldError,
-                                    location: inline_location.clone(),
-                                }
-                                .into());
+                                    context,
+                                    tree_visualization,
+                                    explanation,
+                                });
+                            } else {
+                                // Mark all ancestor @catch directives as protecting
+                                protecting_catches.extend(catch_ancestors.iter());
                             }
-                            // Mark all ancestor @catch directives as protecting
-                            protecting_catches.extend(catch_ancestors.iter());
                         }
                         DirectiveType::Catch => {
                             // Will be added to ancestors below
@@ -241,60 +443,278 @@ fn validate_selections(
                 // Recursively validate fragment selections
                 validate_selections(
                     &inline.selections,
-                    query_name,
+                    query,
                     &inline_location,
                     &mut fragment_catch_ancestors,
                     protecting_catches,
-                )?;
+                    result,
+                    fragment_context_file.clone(),
+                    fragment_context_name.clone(),
+                );
 
                 // Check for empty @catch directives at fragment level
                 for directive in &inline.directives {
                     if directive.directive_type == DirectiveType::Catch
                         && !protecting_catches.contains(&directive.position)
                     {
-                        return Err(ValidationError {
-                            query_name: query_name.to_string(),
+                        let context = ErrorContext {
+                            query_name: query.name.clone(),
+                            query_file: query.file_path.clone(),
+                            location_path: inline_location.clone(),
+                            fragment_file: fragment_context_file.clone(),
+                            fragment_name: fragment_context_name.clone(),
+                        };
+
+                        let tree_visualization =
+                            create_query_tree_visualization(query, Some(&inline_location));
+                        let explanation = create_empty_catch_explanation();
+
+                        result.add_error(ValidationError {
                             error_type: ValidationErrorType::EmptyCatch,
-                            location: inline_location.clone(),
-                        }
-                        .into());
+                            context,
+                            tree_visualization,
+                            explanation,
+                        });
                     }
                 }
             }
         }
     }
-
-    Ok(())
 }
 
 /// Validates directives on a specific field
 fn validate_field_directives(
     field: &crate::parsers::graphql_parser::FieldSelection,
-    query_name: &str,
+    query: &QueryWithFragments,
     field_location: &str,
     catch_ancestors: &FxHashSet<u32>,
     protecting_catches: &mut FxHashSet<u32>,
-) -> Result<()> {
+    result: &mut ValidationResult,
+    current_fragment_file: Option<PathBuf>,
+    current_fragment_name: Option<String>,
+) {
     for directive in &field.directives {
         match directive.directive_type {
             DirectiveType::ThrowOnFieldError => {
                 if catch_ancestors.is_empty() {
-                    return Err(ValidationError {
-                        query_name: query_name.to_string(),
+                    let context = ErrorContext {
+                        query_name: query.name.clone(),
+                        query_file: query.file_path.clone(),
+                        location_path: field_location.to_string(),
+                        fragment_file: current_fragment_file.clone(),
+                        fragment_name: current_fragment_name.clone(),
+                    };
+
+                    let tree_visualization =
+                        create_query_tree_visualization(query, Some(field_location));
+                    let explanation = create_unprotected_throw_explanation();
+
+                    result.add_error(ValidationError {
                         error_type: ValidationErrorType::UnprotectedThrowOnFieldError,
-                        location: field_location.to_string(),
-                    }
-                    .into());
+                        context,
+                        tree_visualization,
+                        explanation,
+                    });
+                } else {
+                    // Mark all ancestor @catch directives as protecting
+                    protecting_catches.extend(catch_ancestors.iter());
                 }
-                // Mark all ancestor @catch directives as protecting
-                protecting_catches.extend(catch_ancestors.iter());
             }
             DirectiveType::Catch => {
                 // @catch directive validation happens after processing nested selections
             }
         }
     }
-    Ok(())
+}
+
+/// Creates a tree visualization of the query structure, highlighting the error location
+fn create_query_tree_visualization(
+    query: &QueryWithFragments,
+    error_location: Option<&str>,
+) -> String {
+    let mut formatter = TreeFormatter::new();
+
+    // Git root for relative paths
+    let git_root = std::env::current_dir().unwrap_or_else(|_| PathBuf::from("."));
+
+    let relative_path = query
+        .file_path
+        .strip_prefix(&git_root)
+        .unwrap_or(&query.file_path);
+
+    formatter.add_line(
+        0,
+        &format!("📄 Query: {} ({})", query.name, relative_path.display()),
+    );
+
+    // Add query-level directives
+    if !query.directives.is_empty() {
+        formatter.add_line(1, "🏷️  Query Directives:");
+        for directive in &query.directives {
+            let emoji = match directive.directive_type {
+                DirectiveType::Catch => "🧤",
+                DirectiveType::ThrowOnFieldError => "⚠️",
+            };
+            let highlight = if let Some(error_loc) = error_location {
+                if error_loc == "query level" {
+                    " ❌"
+                } else {
+                    ""
+                }
+            } else {
+                ""
+            };
+            formatter.add_line(
+                2,
+                &format!("{} @{:?}{}", emoji, directive.directive_type, highlight),
+            );
+        }
+    }
+
+    // Add query selections
+    if !query.selections.is_empty() {
+        formatter.add_line(1, "🔍 Selections:");
+        format_selections_for_error(&mut formatter, &query.selections, 2, error_location);
+    }
+
+    formatter.to_string()
+}
+
+/// Recursively formats selections for error visualization, highlighting the error location
+fn format_selections_for_error(
+    formatter: &mut TreeFormatter,
+    selections: &[Selection],
+    depth: usize,
+    error_location: Option<&str>,
+) {
+    for selection in selections {
+        match selection {
+            Selection::Field(field) => {
+                let highlight = if let Some(error_loc) = error_location {
+                    if error_loc.ends_with(&format!(".{}", field.name)) {
+                        " ❌"
+                    } else {
+                        ""
+                    }
+                } else {
+                    ""
+                };
+
+                let mut field_text = format!("🔹 Field: {}{}", field.name, highlight);
+
+                if !field.directives.is_empty() {
+                    let directive_strs: Vec<String> = field
+                        .directives
+                        .iter()
+                        .map(|d| {
+                            let emoji = match d.directive_type {
+                                DirectiveType::Catch => "🧤",
+                                DirectiveType::ThrowOnFieldError => "⚠️",
+                            };
+                            format!("{} @{:?}", emoji, d.directive_type)
+                        })
+                        .collect();
+                    field_text.push_str(&format!(" [{}]", directive_strs.join(", ")));
+                }
+
+                formatter.add_line(depth, &field_text);
+
+                if !field.selections.is_empty() {
+                    format_selections_for_error(
+                        formatter,
+                        &field.selections,
+                        depth + 1,
+                        error_location,
+                    );
+                }
+            }
+            Selection::FragmentSpread(spread) => {
+                let highlight = if let Some(error_loc) = error_location {
+                    if error_loc.contains(&format!("...{}", spread.name)) {
+                        " ❌"
+                    } else {
+                        ""
+                    }
+                } else {
+                    ""
+                };
+
+                let mut spread_text = format!("📋 FragmentSpread: {}{}", spread.name, highlight);
+
+                if !spread.directives.is_empty() {
+                    let directive_strs: Vec<String> = spread
+                        .directives
+                        .iter()
+                        .map(|d| {
+                            let emoji = match d.directive_type {
+                                DirectiveType::Catch => "🧤",
+                                DirectiveType::ThrowOnFieldError => "⚠️",
+                            };
+                            format!("{} @{:?}", emoji, d.directive_type)
+                        })
+                        .collect();
+                    spread_text.push_str(&format!(" [{}]", directive_strs.join(", ")));
+                }
+
+                formatter.add_line(depth, &spread_text);
+            }
+            Selection::InlineFragment(inline) => {
+                let fragment_name = inline
+                    .type_condition
+                    .as_ref()
+                    .and_then(|tc| tc.strip_suffix("Fragment"))
+                    .unwrap_or("InlineFragment");
+
+                let highlight = if let Some(error_loc) = error_location {
+                    if error_loc.contains(&format!("...{}", fragment_name)) {
+                        " ❌"
+                    } else {
+                        ""
+                    }
+                } else {
+                    ""
+                };
+
+                let mut inline_text = format!("🧩 Fragment: {}{}", fragment_name, highlight);
+
+                if !inline.directives.is_empty() {
+                    let directive_strs: Vec<String> = inline
+                        .directives
+                        .iter()
+                        .map(|d| {
+                            let emoji = match d.directive_type {
+                                DirectiveType::Catch => "🧤",
+                                DirectiveType::ThrowOnFieldError => "⚠️",
+                            };
+                            format!("{} @{:?}", emoji, d.directive_type)
+                        })
+                        .collect();
+                    inline_text.push_str(&format!(" [{}]", directive_strs.join(", ")));
+                }
+
+                formatter.add_line(depth, &inline_text);
+
+                if !inline.selections.is_empty() {
+                    format_selections_for_error(
+                        formatter,
+                        &inline.selections,
+                        depth + 1,
+                        error_location,
+                    );
+                }
+            }
+        }
+    }
+}
+
+/// Creates an explanation for unprotected @throwOnFieldError errors
+fn create_unprotected_throw_explanation() -> String {
+    String::new() // No individual explanations needed since we have global explanation
+}
+
+/// Creates an explanation for empty @catch errors  
+fn create_empty_catch_explanation() -> String {
+    String::new() // No individual explanations needed since we have global explanation
 }
 
 #[cfg(test)]
@@ -346,8 +766,9 @@ mod tests {
 
         let result = validate_query_directives(&dependency_graph);
         assert!(
-            result.is_ok(),
-            "Valid fixtures should pass validation: {:?}",
+            result.is_valid(),
+            "Valid fixtures should pass validation but found {} errors: {}",
+            result.errors.len(),
             result
         );
     }
@@ -360,11 +781,14 @@ mod tests {
             registry_to_dependency_graph(&registry).expect("Failed to build dependency graph");
 
         let result = validate_query_directives(&dependency_graph);
-        assert!(result.is_err(), "Invalid fixtures should fail validation");
+        assert!(
+            result.has_errors(),
+            "Invalid fixtures should fail validation"
+        );
 
-        // Snapshot the validation error for regression testing
-        let error_message = format!("Validation Error: {}", result.unwrap_err());
-        insta::assert_snapshot!(error_message);
+        // Snapshot the validation result for regression testing
+        let result_message = format!("Validation Result:\n{}", result);
+        insta::assert_snapshot!(result_message);
     }
 
     #[test]
@@ -376,10 +800,11 @@ mod tests {
         match registry_to_dependency_graph(&registry) {
             Ok(dependency_graph) => {
                 let result = validate_query_directives(&dependency_graph);
-                // Snapshot the result (could be success or validation error)
-                let result_message = match result {
-                    Ok(_) => "All edge cases passed validation".to_string(),
-                    Err(e) => format!("Edge case validation error: {}", e),
+                // Snapshot the result (could be success or validation errors)
+                let result_message = if result.is_valid() {
+                    "All edge cases passed validation".to_string()
+                } else {
+                    format!("Edge case validation result:\n{}", result)
                 };
                 insta::assert_snapshot!(result_message);
             }
