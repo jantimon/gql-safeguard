@@ -1,5 +1,5 @@
 ---
-source: lib/src/extraction/typescript_parser.rs
+source: lib/src/parsers/typescript_parser.rs
 expression: result
 ---
 File: fixtures/valid/fragment_level_catch.ts
@@ -84,14 +84,16 @@ Content:
   fragment UserDetails on User {
     ...UserBasicInfo
     ...UserAvatar
-    bio @catch(to: NULL) {
-      ...UserBio
+    details @catch(to: NULL){
+      bio @throwOnFieldError {
+        ...UserBio
+      }
     }
   }
 
 
 === GraphQL String 6 ===
-BytePos: 631
+BytePos: 675
 Content:
 
   query GetFullUser($id: ID!) {

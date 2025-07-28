@@ -29,13 +29,20 @@
 
 use std::path::PathBuf;
 
-use crate::extraction::typescript_parser::GraphQLString;
+use crate::parsers::typescript_parser::GraphQLString;
 use anyhow::Result;
 use graphql_parser::parse_query;
 use graphql_parser::query::{
-    Definition, Document as QueryDocument, OperationDefinition, Selection, SelectionSet,
+    Definition, Document as QueryDocument, OperationDefinition, SelectionSet,
 };
 use serde::{Deserialize, Serialize};
+
+/// Legacy flat field structure for compatibility
+#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
+pub struct Field {
+    pub name: String,
+    pub directives: Vec<Directive>,
+}
 
 #[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
 pub enum DirectiveType {
@@ -56,10 +63,36 @@ pub enum GraphQLItem {
 }
 
 #[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
+pub enum Selection {
+    Field(FieldSelection),
+    FragmentSpread(FragmentSpread),
+    InlineFragment(InlineFragment),
+}
+
+#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
+pub struct FieldSelection {
+    pub name: String,
+    pub directives: Vec<Directive>,
+    pub selections: Vec<Selection>,
+}
+
+#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
+pub struct FragmentSpread {
+    pub name: String,
+    pub directives: Vec<Directive>,
+}
+
+#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
+pub struct InlineFragment {
+    pub type_condition: Option<String>,
+    pub directives: Vec<Directive>,
+    pub selections: Vec<Selection>,
+}
+
+#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
 pub struct QueryOperation {
     pub name: String,
-    pub fields: Vec<Field>,
-    pub fragments: Vec<FragmentSpread>,
+    pub selections: Vec<Selection>,
     pub directives: Vec<Directive>,
     pub file_path: PathBuf,
 }
@@ -67,22 +100,10 @@ pub struct QueryOperation {
 #[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
 pub struct FragmentDefinition {
     pub name: String,
-    pub fields: Vec<Field>,
-    pub fragments: Vec<FragmentSpread>,
+    pub type_condition: String,
+    pub selections: Vec<Selection>,
     pub directives: Vec<Directive>,
     pub file_path: PathBuf,
-}
-
-#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
-pub struct Field {
-    pub name: String,
-    pub directives: Vec<Directive>,
-}
-
-#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
-pub struct FragmentSpread {
-    pub name: String,
-    pub directives: Vec<Directive>,
 }
 
 /// Parses a GraphQL string into structured AST items with directive extraction.
@@ -149,14 +170,12 @@ fn convert_operation_to_query(
             // Extract directives from the query operation
             let directives = extract_directives_from_directive_list(&query.directives, position);
 
-            // Process the selection set to extract fields and fragment spreads
-            let (fields, fragments) =
-                convert_selection_set_to_fields_and_spreads(&query.selection_set, position);
+            // Process the selection set to build hierarchical structure
+            let selections = convert_selection_set(&query.selection_set, position);
 
             Ok(Some(QueryOperation {
                 name,
-                fields,
-                fragments,
+                selections,
                 directives,
                 file_path: file_path.to_path_buf(),
             }))
@@ -188,67 +207,148 @@ fn convert_fragment_definition(
     // Extract directives from the fragment definition
     let directives = extract_directives_from_directive_list(&frag.directives, position);
 
-    // Process the selection set to extract fields and fragment spreads
-    let (fields, fragments) =
-        convert_selection_set_to_fields_and_spreads(&frag.selection_set, position);
+    // Process the selection set to build hierarchical structure
+    let selections = convert_selection_set(&frag.selection_set, position);
 
     Ok(FragmentDefinition {
         name: frag.name,
-        fields,
-        fragments,
+        type_condition: frag.type_condition.to_string(),
+        selections,
         directives,
         file_path: file_path.to_path_buf(),
     })
 }
 
-/// Converts a GraphQL selection set into separate lists of fields and fragment spreads.
+/// Converts a GraphQL selection set into hierarchical Selection structures.
 ///
-/// This function processes the selection set from queries or fragments and separates
-/// the different types of selections into appropriate data structures. This separation
-/// is important for directive validation since protection rules apply differently to
-/// direct field selections versus fragment spreads
-fn convert_selection_set_to_fields_and_spreads(
-    selection_set: &SelectionSet<String>,
-    position: u32,
-) -> (Vec<Field>, Vec<FragmentSpread>) {
-    let mut fields = Vec::new();
-    let mut fragments = Vec::new();
+/// This function processes the selection set from queries or fragments and builds
+/// a hierarchical structure that preserves the nesting relationships between
+/// fields and fragments. This is crucial for directive validation since
+/// protection rules need to understand the parent-child relationships.
+fn convert_selection_set(selection_set: &SelectionSet<String>, position: u32) -> Vec<Selection> {
+    let mut selections = Vec::new();
 
     for selection in &selection_set.items {
         match selection {
-            Selection::Field(field) => {
+            graphql_parser::query::Selection::Field(field) => {
                 // Extract directives from the field selection
                 let directives =
                     extract_directives_from_directive_list(&field.directives, position);
-                fields.push(Field {
+
+                // Recursively process nested selection set
+                let nested_selections = convert_selection_set(&field.selection_set, position);
+
+                selections.push(Selection::Field(FieldSelection {
                     name: field.name.clone(),
                     directives,
-                });
-
-                // Recursively process nested selection set if it has items
-                if !field.selection_set.items.is_empty() {
-                    let (_nested_fields, nested_fragments) =
-                        convert_selection_set_to_fields_and_spreads(&field.selection_set, position);
-                    fragments.extend(nested_fragments);
-                }
+                    selections: nested_selections,
+                }));
             }
-            Selection::FragmentSpread(spread) => {
+            graphql_parser::query::Selection::FragmentSpread(spread) => {
                 // Extract directives from the fragment spread
                 let directives =
                     extract_directives_from_directive_list(&spread.directives, position);
-                fragments.push(FragmentSpread {
+
+                selections.push(Selection::FragmentSpread(FragmentSpread {
                     name: spread.fragment_name.clone(),
                     directives,
-                });
+                }));
             }
-            Selection::InlineFragment(_) => {
-                // Skip inline fragments for now - they're less common and would
-                // require additional complexity for proper directive inheritance
+            graphql_parser::query::Selection::InlineFragment(inline) => {
+                // Extract directives from the inline fragment
+                let directives =
+                    extract_directives_from_directive_list(&inline.directives, position);
+
+                // Recursively process nested selection set
+                let nested_selections = convert_selection_set(&inline.selection_set, position);
+
+                selections.push(Selection::InlineFragment(InlineFragment {
+                    type_condition: inline.type_condition.as_ref().map(|tc| tc.to_string()),
+                    directives,
+                    selections: nested_selections,
+                }));
             }
         }
     }
 
-    (fields, fragments)
+    selections
+}
+
+/// Helper functions for backward compatibility with modules expecting flat structures
+impl QueryOperation {
+    /// Extract all fields from the hierarchical selection structure (flattened)
+    pub fn fields(&self) -> Vec<Field> {
+        extract_fields_from_selections(&self.selections)
+    }
+
+    /// Extract all fragment spreads from the hierarchical selection structure (flattened)
+    pub fn fragments(&self) -> Vec<FragmentSpread> {
+        extract_fragment_spreads_from_selections(&self.selections)
+    }
+}
+
+impl FragmentDefinition {
+    /// Extract all fields from the hierarchical selection structure (flattened)
+    pub fn fields(&self) -> Vec<Field> {
+        extract_fields_from_selections(&self.selections)
+    }
+
+    /// Extract all fragment spreads from the hierarchical selection structure (flattened)
+    pub fn fragments(&self) -> Vec<FragmentSpread> {
+        extract_fragment_spreads_from_selections(&self.selections)
+    }
+}
+
+/// Recursively extract all fields from a selection hierarchy (flattened)
+fn extract_fields_from_selections(selections: &[Selection]) -> Vec<Field> {
+    let mut fields = Vec::new();
+
+    for selection in selections {
+        match selection {
+            Selection::Field(field_selection) => {
+                fields.push(Field {
+                    name: field_selection.name.clone(),
+                    directives: field_selection.directives.clone(),
+                });
+                // Recursively extract nested fields
+                fields.extend(extract_fields_from_selections(&field_selection.selections));
+            }
+            Selection::InlineFragment(inline) => {
+                // Recursively extract fields from inline fragments
+                fields.extend(extract_fields_from_selections(&inline.selections));
+            }
+            Selection::FragmentSpread(_) => {
+                // Fragment spreads don't contain fields directly
+            }
+        }
+    }
+
+    fields
+}
+
+/// Recursively extract all fragment spreads from a selection hierarchy (flattened)
+fn extract_fragment_spreads_from_selections(selections: &[Selection]) -> Vec<FragmentSpread> {
+    let mut spreads = Vec::new();
+
+    for selection in selections {
+        match selection {
+            Selection::Field(field_selection) => {
+                // Recursively extract fragment spreads from nested fields
+                spreads.extend(extract_fragment_spreads_from_selections(
+                    &field_selection.selections,
+                ));
+            }
+            Selection::FragmentSpread(spread) => {
+                spreads.push(spread.clone());
+            }
+            Selection::InlineFragment(inline) => {
+                // Recursively extract fragment spreads from inline fragments
+                spreads.extend(extract_fragment_spreads_from_selections(&inline.selections));
+            }
+        }
+    }
+
+    spreads
 }
 
 /// Extracts relevant GraphQL directives from a list of directive AST nodes.
@@ -282,9 +382,86 @@ fn extract_directives_from_directive_list(
 #[cfg(test)]
 mod tests {
     use super::*;
-    use crate::extraction::typescript_parser;
+    use crate::parsers::typescript_parser;
     use std::fs;
     use std::path::PathBuf;
+
+    /// Helper function to format selections recursively with proper indentation
+    fn format_selections(result: &mut String, selections: &[Selection], indent_level: usize) {
+        let indent = "  ".repeat(indent_level);
+
+        for selection in selections {
+            match selection {
+                Selection::Field(field) => {
+                    result.push_str(&format!("{}- Field: {}", indent, field.name));
+                    if !field.directives.is_empty() {
+                        result.push_str(" [");
+                        for (j, directive) in field.directives.iter().enumerate() {
+                            if j > 0 {
+                                result.push_str(", ");
+                            }
+                            let emoji = match directive.directive_type {
+                                DirectiveType::Catch => "🧤",
+                                DirectiveType::ThrowOnFieldError => "☄️",
+                            };
+                            result.push_str(&format!("{:?} {}", directive.directive_type, emoji));
+                        }
+                        result.push_str("]");
+                    }
+                    result.push_str("\n");
+
+                    // Recursively format nested selections
+                    if !field.selections.is_empty() {
+                        format_selections(result, &field.selections, indent_level + 1);
+                    }
+                }
+                Selection::FragmentSpread(spread) => {
+                    result.push_str(&format!("{}- FragmentSpread: {}", indent, spread.name));
+                    if !spread.directives.is_empty() {
+                        result.push_str(" [");
+                        for (j, directive) in spread.directives.iter().enumerate() {
+                            if j > 0 {
+                                result.push_str(", ");
+                            }
+                            let emoji = match directive.directive_type {
+                                DirectiveType::Catch => "🧤",
+                                DirectiveType::ThrowOnFieldError => "☄️",
+                            };
+                            result.push_str(&format!("{:?} {}", directive.directive_type, emoji));
+                        }
+                        result.push_str("]");
+                    }
+                    result.push_str("\n");
+                }
+                Selection::InlineFragment(inline) => {
+                    result.push_str(&format!("{}- InlineFragment", indent));
+                    if let Some(type_condition) = &inline.type_condition {
+                        result.push_str(&format!(" on {}", type_condition));
+                    }
+                    if !inline.directives.is_empty() {
+                        result.push_str(" [");
+                        for (j, directive) in inline.directives.iter().enumerate() {
+                            if j > 0 {
+                                result.push_str(", ");
+                            }
+                            let emoji = match directive.directive_type {
+                                DirectiveType::Catch => "🧤",
+                                DirectiveType::ThrowOnFieldError => "☄️",
+                            };
+                            result.push_str(&format!("{:?} {}", directive.directive_type, emoji));
+                        }
+                        result.push_str("]");
+                    }
+                    result.push_str("\n");
+
+                    // Recursively format nested selections
+                    if !inline.selections.is_empty() {
+                        format_selections(result, &inline.selections, indent_level + 1);
+                    }
+                }
+            }
+        }
+    }
 
     /// Formats GraphQL AST items for snapshot testing with detailed structure visualization
     fn format_graphql_ast_result(
@@ -326,49 +503,9 @@ mod tests {
                         result.push_str(&format!("  - {:?} {}\n", directive.directive_type, emoji));
                     }
 
-                    // Show fields with their directives
-                    result.push_str(&format!("Fields: {}\n", query.fields.len()));
-                    for field in &query.fields {
-                        result.push_str(&format!("  - {}", field.name));
-                        if !field.directives.is_empty() {
-                            result.push_str(" [");
-                            for (j, directive) in field.directives.iter().enumerate() {
-                                if j > 0 {
-                                    result.push_str(", ");
-                                }
-                                let emoji = match directive.directive_type {
-                                    DirectiveType::Catch => "🧤",
-                                    DirectiveType::ThrowOnFieldError => "☄️",
-                                };
-                                result
-                                    .push_str(&format!("{:?} {}", directive.directive_type, emoji));
-                            }
-                            result.push_str("]");
-                        }
-                        result.push_str("\n");
-                    }
-
-                    // Show fragment spreads
-                    result.push_str(&format!("Fragment Spreads: {}\n", query.fragments.len()));
-                    for fragment in &query.fragments {
-                        result.push_str(&format!("  - {}", fragment.name));
-                        if !fragment.directives.is_empty() {
-                            result.push_str(" [");
-                            for (j, directive) in fragment.directives.iter().enumerate() {
-                                if j > 0 {
-                                    result.push_str(", ");
-                                }
-                                let emoji = match directive.directive_type {
-                                    DirectiveType::Catch => "🧤",
-                                    DirectiveType::ThrowOnFieldError => "☄️",
-                                };
-                                result
-                                    .push_str(&format!("{:?} {}", directive.directive_type, emoji));
-                            }
-                            result.push_str("]");
-                        }
-                        result.push_str("\n");
-                    }
+                    // Show selections with hierarchical structure
+                    result.push_str(&format!("Selections: {}\n", query.selections.len()));
+                    format_selections(&mut result, &query.selections, 2);
                 }
                 GraphQLItem::Fragment(fragment) => {
                     result.push_str(&format!("Type: Fragment\n"));
@@ -391,49 +528,12 @@ mod tests {
                         result.push_str(&format!("  - {:?} {}\n", directive.directive_type, emoji));
                     }
 
-                    // Show fields with their directives
-                    result.push_str(&format!("Fields: {}\n", fragment.fields.len()));
-                    for field in &fragment.fields {
-                        result.push_str(&format!("  - {}", field.name));
-                        if !field.directives.is_empty() {
-                            result.push_str(" [");
-                            for (j, directive) in field.directives.iter().enumerate() {
-                                if j > 0 {
-                                    result.push_str(", ");
-                                }
-                                let emoji = match directive.directive_type {
-                                    DirectiveType::Catch => "🧤",
-                                    DirectiveType::ThrowOnFieldError => "☄️",
-                                };
-                                result
-                                    .push_str(&format!("{:?} {}", directive.directive_type, emoji));
-                            }
-                            result.push_str("]");
-                        }
-                        result.push_str("\n");
-                    }
+                    // Show type condition for fragments
+                    result.push_str(&format!("Type Condition: {}\n", fragment.type_condition));
 
-                    // Show fragment spreads
-                    result.push_str(&format!("Fragment Spreads: {}\n", fragment.fragments.len()));
-                    for spread in &fragment.fragments {
-                        result.push_str(&format!("  - {}", spread.name));
-                        if !spread.directives.is_empty() {
-                            result.push_str(" [");
-                            for (j, directive) in spread.directives.iter().enumerate() {
-                                if j > 0 {
-                                    result.push_str(", ");
-                                }
-                                let emoji = match directive.directive_type {
-                                    DirectiveType::Catch => "🧤",
-                                    DirectiveType::ThrowOnFieldError => "☄️",
-                                };
-                                result
-                                    .push_str(&format!("{:?} {}", directive.directive_type, emoji));
-                            }
-                            result.push_str("]");
-                        }
-                        result.push_str("\n");
-                    }
+                    // Show selections with hierarchical structure
+                    result.push_str(&format!("Selections: {}\n", fragment.selections.len()));
+                    format_selections(&mut result, &fragment.selections, 2);
                 }
             }
             result.push_str("\n");

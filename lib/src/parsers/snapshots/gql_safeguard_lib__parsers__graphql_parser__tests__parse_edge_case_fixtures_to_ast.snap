@@ -1,5 +1,5 @@
 ---
-source: lib/src/extraction/graphql_parser.rs
+source: lib/src/parsers/graphql_parser.rs
 expression: result
 ---
 File: fixtures/edge_cases/additional-queries.ts
@@ -10,9 +10,10 @@ Type: Query
 Name: AdditionalQueryEdgeCase
 File: fixtures/edge_cases/additional-queries.ts
 Directives: 0
-Fields: 1
-  - user
-Fragment Spreads: 0
+Selections: 1
+    - Field: user
+      - Field: id
+      - Field: importedField [ThrowOnFieldError ☄️]
 
 ---
 
@@ -25,9 +26,10 @@ Name: GraphQLQuery
 File: fixtures/edge_cases/additional-queries.ts
 Directives: 1
   - Catch 🧤
-Fields: 1
-  - user
-Fragment Spreads: 0
+Selections: 1
+    - Field: user
+      - Field: id
+      - Field: protectedField [ThrowOnFieldError ☄️]
 
 ---
 
@@ -39,11 +41,11 @@ Type: Fragment
 Name: FragmentACircular
 File: fixtures/edge_cases/circular_fragments.ts
 Directives: 0
-Fields: 2
-  - id
-  - name
-Fragment Spreads: 1
-  - FragmentBCircular
+Type Condition: on User
+Selections: 3
+    - Field: id
+    - Field: name
+    - FragmentSpread: FragmentBCircular
 
 ---
 
@@ -55,11 +57,11 @@ Type: Fragment
 Name: FragmentBCircular
 File: fixtures/edge_cases/circular_fragments.ts
 Directives: 0
-Fields: 2
-  - email
-  - bio
-Fragment Spreads: 1
-  - FragmentACircular
+Type Condition: on User
+Selections: 3
+    - Field: email
+    - Field: bio
+    - FragmentSpread: FragmentACircular
 
 ---
 
@@ -71,10 +73,9 @@ Type: Query
 Name: CircularQueryTest
 File: fixtures/edge_cases/circular_fragments.ts
 Directives: 0
-Fields: 1
-  - user
-Fragment Spreads: 1
-  - FragmentACircular
+Selections: 1
+    - Field: user
+      - FragmentSpread: FragmentACircular
 
 ---
 
@@ -87,9 +88,11 @@ Name: ValidQueryCommented
 File: fixtures/edge_cases/commented_graphql.ts
 Directives: 1
   - Catch 🧤
-Fields: 1
-  - user
-Fragment Spreads: 0
+Selections: 1
+    - Field: user
+      - Field: id
+      - Field: name
+      - Field: avatar [ThrowOnFieldError ☄️]
 
 ---
 
@@ -102,9 +105,11 @@ Name: BaseQueryDynamic
 File: fixtures/edge_cases/dynamic_imports.tsx
 Directives: 1
   - Catch 🧤
-Fields: 1
-  - user
-Fragment Spreads: 0
+Selections: 1
+    - Field: user
+      - Field: id
+      - Field: name
+      - Field: dynamicField [ThrowOnFieldError ☄️]
 
 ---
 
@@ -116,6 +121,7 @@ Type: Query
 Name: StaticDynamicQueryEdge
 File: fixtures/edge_cases/dynamic_imports.tsx
 Directives: 0
-Fields: 1
-  - user
-Fragment Spreads: 0
+Selections: 1
+    - Field: user
+      - Field: id
+      - Field: dynamicField [ThrowOnFieldError ☄️]

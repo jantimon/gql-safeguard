@@ -33,8 +33,10 @@ const USER_DETAILS = gql`
   fragment UserDetails on User {
     ...UserBasicInfo
     ...UserAvatar
-    bio @catch(to: NULL) {
-      ...UserBio
+    details @catch(to: NULL){
+      bio @throwOnFieldError {
+        ...UserBio
+      }
     }
   }
 `;

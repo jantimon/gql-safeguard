@@ -1,5 +1,5 @@
 ---
-source: lib/src/extraction/registry.rs
+source: lib/src/registry.rs
 expression: formatted
 ---
 GraphQL Registry
@@ -11,10 +11,15 @@ GraphQL Registry
 |   |       └── UserDetailsUnprotected
 |   ├── GetUserProfileUnprotected (fixtures/invalid/missing_catch.tsx)
 |   |   └── Fields:
-|   |       └── user
+|   |       ├── user
+|   |       ├── id
+|   |       ├── name
+|   |       ├── avatar [ThrowOnFieldError ⚠️]
+|   |       └── email
 |   └── MixedQuery (fixtures/invalid/partial_protection.ts)
 |       ├── Fields:
-|       |   └── user
+|       |   ├── user
+|       |   └── id
 |       └── Fragment Spreads:
 |           ├── ProtectedFragment
 |           └── UnprotectedFragment

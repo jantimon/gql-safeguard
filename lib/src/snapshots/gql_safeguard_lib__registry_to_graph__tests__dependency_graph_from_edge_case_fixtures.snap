@@ -1,0 +1,5 @@
+---
+source: lib/src/registry_to_graph.rs
+expression: error_output
+---
+Dependency Graph Error: Failed to resolve selections for query 'CircularQueryTest'

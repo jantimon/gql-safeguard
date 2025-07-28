@@ -1,0 +1,44 @@
+---
+source: lib/src/registry_to_graph.rs
+expression: formatted
+---
+Dependency Graph
+├── GetFullUser (fixtures/valid/nested_fragments_protected.ts)
+|   └── Selections:
+|       └── Field: user
+|           └── Fragment: UserDetails
+|               ├── Fragment: UserBasicInfo
+|               |   ├── Field: id
+|               |   ├── Field: name
+|               |   └── Field: email
+|               ├── Fragment: UserAvatar [Catch 🧤]
+|               |   ├── Field: avatar
+|               |   └── Fragment: avatarImage [ThrowOnFieldError ⚠️]
+|               |       ├── Field: avatar
+|               |       └── Field: avatarUrl
+|               └── Field: details [Catch 🧤]
+|                   └── Field: bio [ThrowOnFieldError ⚠️]
+|                       └── Fragment: UserBio
+|                           ├── Field: bioText
+|                           └── Field: bioImage [ThrowOnFieldError ⚠️]
+├── GetUserProfile (fixtures/valid/query_with_catch.tsx)
+|   ├── Directives:
+|   |   └── Catch 🧤
+|   └── Selections:
+|       └── Field: user
+|           ├── Field: id
+|           ├── Field: name
+|           ├── Field: avatar [ThrowOnFieldError ⚠️]
+|           └── Field: email
+└── GetUserWithRiskyData (fixtures/valid/fragment_level_catch.ts)
+    ├── Directives:
+    |   └── Catch 🧤
+    └── Selections:
+        └── Field: user
+            ├── Field: id
+            ├── Field: name
+            └── Field: friends [ThrowOnFieldError ⚠️]
+                └── Fragment: RiskyUserData [Catch 🧤]
+                    ├── Field: sensitiveInfo [ThrowOnFieldError ⚠️]
+                    ├── Field: backupEmail [ThrowOnFieldError ⚠️]
+                    └── Field: internalId

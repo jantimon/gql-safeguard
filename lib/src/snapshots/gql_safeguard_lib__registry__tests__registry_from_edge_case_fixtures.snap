@@ -1,17 +1,22 @@
 ---
-source: lib/src/extraction/registry.rs
+source: lib/src/registry.rs
 expression: formatted
 ---
 GraphQL Registry
 ├── Queries (6)
 |   ├── AdditionalQueryEdgeCase (fixtures/edge_cases/additional-queries.ts)
 |   |   └── Fields:
-|   |       └── user
+|   |       ├── user
+|   |       ├── id
+|   |       └── importedField [ThrowOnFieldError ⚠️]
 |   ├── BaseQueryDynamic (fixtures/edge_cases/dynamic_imports.tsx)
 |   |   ├── Directives:
 |   |   |   └── Catch 🧤
 |   |   └── Fields:
-|   |       └── user
+|   |       ├── user
+|   |       ├── id
+|   |       ├── name
+|   |       └── dynamicField [ThrowOnFieldError ⚠️]
 |   ├── CircularQueryTest (fixtures/edge_cases/circular_fragments.ts)
 |   |   ├── Fields:
 |   |   |   └── user
@@ -21,15 +26,22 @@ GraphQL Registry
 |   |   ├── Directives:
 |   |   |   └── Catch 🧤
 |   |   └── Fields:
-|   |       └── user
+|   |       ├── user
+|   |       ├── id
+|   |       └── protectedField [ThrowOnFieldError ⚠️]
 |   ├── StaticDynamicQueryEdge (fixtures/edge_cases/dynamic_imports.tsx)
 |   |   └── Fields:
-|   |       └── user
+|   |       ├── user
+|   |       ├── id
+|   |       └── dynamicField [ThrowOnFieldError ⚠️]
 |   └── ValidQueryCommented (fixtures/edge_cases/commented_graphql.ts)
 |       ├── Directives:
 |       |   └── Catch 🧤
 |       └── Fields:
-|           └── user
+|           ├── user
+|           ├── id
+|           ├── name
+|           └── avatar [ThrowOnFieldError ⚠️]
 └── Fragments (2)
     ├── FragmentACircular (fixtures/edge_cases/circular_fragments.ts)
     |   ├── Fields:

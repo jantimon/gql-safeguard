@@ -1,5 +1,5 @@
 ---
-source: lib/src/extraction/graphql_parser.rs
+source: lib/src/parsers/graphql_parser.rs
 expression: result
 ---
 File: fixtures/invalid/missing_catch.tsx
@@ -10,9 +10,12 @@ Type: Query
 Name: GetUserProfileUnprotected
 File: fixtures/invalid/missing_catch.tsx
 Directives: 0
-Fields: 1
-  - user
-Fragment Spreads: 0
+Selections: 1
+    - Field: user
+      - Field: id
+      - Field: name
+      - Field: avatar [ThrowOnFieldError ☄️]
+      - Field: email
 
 ---
 
@@ -25,10 +28,10 @@ Name: ProtectedFragment
 File: fixtures/invalid/partial_protection.ts
 Directives: 1
   - Catch 🧤
-Fields: 2
-  - sensitiveData [ThrowOnFieldError ☄️]
-  - otherData
-Fragment Spreads: 0
+Type Condition: on User
+Selections: 2
+    - Field: sensitiveData [ThrowOnFieldError ☄️]
+    - Field: otherData
 
 ---
 
@@ -40,10 +43,10 @@ Type: Fragment
 Name: UnprotectedFragment
 File: fixtures/invalid/partial_protection.ts
 Directives: 0
-Fields: 2
-  - riskyField [ThrowOnFieldError ☄️]
-  - normalField
-Fragment Spreads: 0
+Type Condition: on User
+Selections: 2
+    - Field: riskyField [ThrowOnFieldError ☄️]
+    - Field: normalField
 
 ---
 
@@ -55,11 +58,11 @@ Type: Query
 Name: MixedQuery
 File: fixtures/invalid/partial_protection.ts
 Directives: 0
-Fields: 1
-  - user
-Fragment Spreads: 2
-  - ProtectedFragment
-  - UnprotectedFragment
+Selections: 1
+    - Field: user
+      - Field: id
+      - FragmentSpread: ProtectedFragment
+      - FragmentSpread: UnprotectedFragment
 
 ---
 
@@ -71,11 +74,11 @@ Type: Fragment
 Name: UserBasicInfoUnprotected
 File: fixtures/invalid/unprotected_nested.ts
 Directives: 0
-Fields: 3
-  - id
-  - name
-  - email
-Fragment Spreads: 0
+Type Condition: on User
+Selections: 3
+    - Field: id
+    - Field: name
+    - Field: email
 
 ---
 
@@ -88,10 +91,10 @@ Name: UserAvatarUnprotected
 File: fixtures/invalid/unprotected_nested.ts
 Directives: 1
   - ThrowOnFieldError ☄️
-Fields: 2
-  - avatar
-  - avatarUrl
-Fragment Spreads: 0
+Type Condition: on User
+Selections: 2
+    - Field: avatar
+    - Field: avatarUrl
 
 ---
 
@@ -103,11 +106,11 @@ Type: Fragment
 Name: UserDetailsUnprotected
 File: fixtures/invalid/unprotected_nested.ts
 Directives: 0
-Fields: 1
-  - bio
-Fragment Spreads: 2
-  - UserBasicInfoUnprotected
-  - UserAvatarUnprotected
+Type Condition: on User
+Selections: 3
+    - FragmentSpread: UserBasicInfoUnprotected
+    - FragmentSpread: UserAvatarUnprotected
+    - Field: bio
 
 ---
 
@@ -119,7 +122,6 @@ Type: Query
 Name: GetFullUserUnprotected
 File: fixtures/invalid/unprotected_nested.ts
 Directives: 0
-Fields: 1
-  - user
-Fragment Spreads: 1
-  - UserDetailsUnprotected
+Selections: 1
+    - Field: user
+      - FragmentSpread: UserDetailsUnprotected

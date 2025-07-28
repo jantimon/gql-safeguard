@@ -1,6 +1,7 @@
-pub mod extraction;
+pub mod file_finder;
+pub mod parsers;
 pub mod registry;
-pub mod scanner;
+pub mod registry_to_graph;
 pub mod tree_formatter;
 
 pub mod analyzer {

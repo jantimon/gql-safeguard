@@ -11,10 +11,10 @@ use rayon::prelude::*;
 use std::path::Path;
 use std::sync::Arc;
 
-use crate::extraction::graphql_parser::{
+use crate::parsers::graphql_parser::{
     parse_graphql_to_ast, FragmentDefinition, GraphQLItem, QueryOperation,
 };
-use crate::extraction::typescript_parser::extract_graphql_from_file;
+use crate::parsers::typescript_parser::extract_graphql_from_file;
 
 /// Registry for GraphQL fragments
 pub type FragmentRegistry = Arc<DashMap<String, FragmentDefinition>>;
@@ -119,8 +119,8 @@ mod tests {
                     formatter.add_line(3, "Directives:");
                     for directive in &query.directives {
                         let emoji = match directive.directive_type {
-                            crate::extraction::graphql_parser::DirectiveType::Catch => "🧤",
-                            crate::extraction::graphql_parser::DirectiveType::ThrowOnFieldError => {
+                            crate::parsers::graphql_parser::DirectiveType::Catch => "🧤",
+                            crate::parsers::graphql_parser::DirectiveType::ThrowOnFieldError => {
                                 "⚠️"
                             }
                         };
@@ -129,15 +129,16 @@ mod tests {
                 }
 
                 // Query fields
-                if !query.fields.is_empty() {
+                let query_fields = query.fields();
+                if !query_fields.is_empty() {
                     formatter.add_line(3, "Fields:");
-                    for field in &query.fields {
+                    for field in &query_fields {
                         let mut field_text = field.name.clone();
                         if !field.directives.is_empty() {
                             let directive_strs: Vec<String> = field.directives.iter().map(|d| {
                                 let emoji = match d.directive_type {
-                                    crate::extraction::graphql_parser::DirectiveType::Catch => "🧤",
-                                    crate::extraction::graphql_parser::DirectiveType::ThrowOnFieldError => "⚠️",
+                                    crate::parsers::graphql_parser::DirectiveType::Catch => "🧤",
+                                    crate::parsers::graphql_parser::DirectiveType::ThrowOnFieldError => "⚠️",
                                 };
                                 format!("{:?} {}", d.directive_type, emoji)
                             }).collect();
@@ -148,15 +149,16 @@ mod tests {
                 }
 
                 // Query fragment spreads
-                if !query.fragments.is_empty() {
+                let query_fragments = query.fragments();
+                if !query_fragments.is_empty() {
                     formatter.add_line(3, "Fragment Spreads:");
-                    for fragment in &query.fragments {
+                    for fragment in &query_fragments {
                         let mut fragment_text = fragment.name.clone();
                         if !fragment.directives.is_empty() {
                             let directive_strs: Vec<String> = fragment.directives.iter().map(|d| {
                                 let emoji = match d.directive_type {
-                                    crate::extraction::graphql_parser::DirectiveType::Catch => "🧤",
-                                    crate::extraction::graphql_parser::DirectiveType::ThrowOnFieldError => "⚠️",
+                                    crate::parsers::graphql_parser::DirectiveType::Catch => "🧤",
+                                    crate::parsers::graphql_parser::DirectiveType::ThrowOnFieldError => "⚠️",
                                 };
                                 format!("{:?} {}", d.directive_type, emoji)
                             }).collect();
@@ -191,8 +193,8 @@ mod tests {
                     formatter.add_line(3, "Directives:");
                     for directive in &fragment.directives {
                         let emoji = match directive.directive_type {
-                            crate::extraction::graphql_parser::DirectiveType::Catch => "🧤",
-                            crate::extraction::graphql_parser::DirectiveType::ThrowOnFieldError => {
+                            crate::parsers::graphql_parser::DirectiveType::Catch => "🧤",
+                            crate::parsers::graphql_parser::DirectiveType::ThrowOnFieldError => {
                                 "⚠️"
                             }
                         };
@@ -201,15 +203,16 @@ mod tests {
                 }
 
                 // Fragment fields
-                if !fragment.fields.is_empty() {
+                let fragment_fields = fragment.fields();
+                if !fragment_fields.is_empty() {
                     formatter.add_line(3, "Fields:");
-                    for field in &fragment.fields {
+                    for field in &fragment_fields {
                         let mut field_text = field.name.clone();
                         if !field.directives.is_empty() {
                             let directive_strs: Vec<String> = field.directives.iter().map(|d| {
                                 let emoji = match d.directive_type {
-                                    crate::extraction::graphql_parser::DirectiveType::Catch => "🧤",
-                                    crate::extraction::graphql_parser::DirectiveType::ThrowOnFieldError => "⚠️",
+                                    crate::parsers::graphql_parser::DirectiveType::Catch => "🧤",
+                                    crate::parsers::graphql_parser::DirectiveType::ThrowOnFieldError => "⚠️",
                                 };
                                 format!("{:?} {}", d.directive_type, emoji)
                             }).collect();
@@ -220,15 +223,16 @@ mod tests {
                 }
 
                 // Fragment spreads
-                if !fragment.fragments.is_empty() {
+                let fragment_spreads = fragment.fragments();
+                if !fragment_spreads.is_empty() {
                     formatter.add_line(3, "Fragment Spreads:");
-                    for spread in &fragment.fragments {
+                    for spread in &fragment_spreads {
                         let mut spread_text = spread.name.clone();
                         if !spread.directives.is_empty() {
                             let directive_strs: Vec<String> = spread.directives.iter().map(|d| {
                                 let emoji = match d.directive_type {
-                                    crate::extraction::graphql_parser::DirectiveType::Catch => "🧤",
-                                    crate::extraction::graphql_parser::DirectiveType::ThrowOnFieldError => "⚠️",
+                                    crate::parsers::graphql_parser::DirectiveType::Catch => "🧤",
+                                    crate::parsers::graphql_parser::DirectiveType::ThrowOnFieldError => "⚠️",
                                 };
                                 format!("{:?} {}", d.directive_type, emoji)
                             }).collect();

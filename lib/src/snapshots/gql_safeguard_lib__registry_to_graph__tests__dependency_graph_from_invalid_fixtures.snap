@@ -1,0 +1,34 @@
+---
+source: lib/src/registry_to_graph.rs
+expression: formatted
+---
+Dependency Graph
+├── GetFullUserUnprotected (fixtures/invalid/unprotected_nested.ts)
+|   └── Selections:
+|       └── Field: user
+|           └── Fragment: UserDetailsUnprotected
+|               ├── Fragment: UserBasicInfoUnprotected
+|               |   ├── Field: id
+|               |   ├── Field: name
+|               |   └── Field: email
+|               ├── Fragment: UserAvatarUnprotected [ThrowOnFieldError ⚠️]
+|               |   ├── Field: avatar
+|               |   └── Field: avatarUrl
+|               └── Field: bio
+├── GetUserProfileUnprotected (fixtures/invalid/missing_catch.tsx)
+|   └── Selections:
+|       └── Field: user
+|           ├── Field: id
+|           ├── Field: name
+|           ├── Field: avatar [ThrowOnFieldError ⚠️]
+|           └── Field: email
+└── MixedQuery (fixtures/invalid/partial_protection.ts)
+    └── Selections:
+        └── Field: user
+            ├── Field: id
+            ├── Fragment: ProtectedFragment [Catch 🧤]
+            |   ├── Field: sensitiveData [ThrowOnFieldError ⚠️]
+            |   └── Field: otherData
+            └── Fragment: UnprotectedFragment
+                ├── Field: riskyField [ThrowOnFieldError ⚠️]
+                └── Field: normalField

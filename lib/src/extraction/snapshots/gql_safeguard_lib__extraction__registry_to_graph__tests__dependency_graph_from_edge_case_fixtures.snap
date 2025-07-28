@@ -1,5 +1,0 @@
----
-source: lib/src/extraction/registry_to_graph.rs
-expression: error_output
----
-Dependency Graph Error: Failed to resolve dependencies for query 'CircularQueryTest'

@@ -1,5 +1,5 @@
 ---
-source: lib/src/extraction/typescript_parser.rs
+source: lib/src/parsers/typescript_parser.rs
 expression: result
 ---
 File: fixtures/edge_cases/additional-queries.ts
