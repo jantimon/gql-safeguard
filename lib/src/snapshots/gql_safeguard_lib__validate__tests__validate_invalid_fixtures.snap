@@ -1,0 +1,5 @@
+---
+source: lib/src/validate.rs
+expression: error_message
+---
+Validation Error: Unprotected @throwOnFieldError: Unprotected @throwOnFieldError in query 'GetFullUserUnprotected' at query.user...UserDetailsUnprotected...UserAvatarUnprotected

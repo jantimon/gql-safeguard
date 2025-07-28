@@ -6,11 +6,15 @@
 ///
 /// a dashmap regisry for all fragments (key fragment name)
 /// a dashmap registry for all queries (key query name)
+use anyhow::Result;
 use dashmap::DashMap;
 use rayon::prelude::*;
+use serde::{Deserialize, Serialize};
 use std::path::Path;
 use std::sync::Arc;
+use walkdir::WalkDir;
 
+use crate::file_finder::FileFinder;
 use crate::parsers::graphql_parser::{
     parse_graphql_to_ast, FragmentDefinition, GraphQLItem, QueryOperation,
 };
@@ -23,9 +27,49 @@ pub type FragmentRegistry = Arc<DashMap<String, FragmentDefinition>>;
 pub type QueryRegistry = Arc<DashMap<String, QueryOperation>>;
 
 /// Main registry that holds both fragments and queries
+#[derive(Serialize, Deserialize)]
 pub struct GraphQLRegistry {
+    #[serde(with = "serde_dashmap")]
     pub fragments: FragmentRegistry,
+    #[serde(with = "serde_dashmap")]
     pub queries: QueryRegistry,
+}
+
+/// Custom serialization for DashMap
+mod serde_dashmap {
+    use super::*;
+    use serde::{Deserializer, Serializer};
+    use std::collections::HashMap;
+
+    pub fn serialize<S, K, V>(
+        dashmap: &Arc<DashMap<K, V>>,
+        serializer: S,
+    ) -> Result<S::Ok, S::Error>
+    where
+        S: Serializer,
+        K: Clone + Serialize + Eq + std::hash::Hash,
+        V: Clone + Serialize,
+    {
+        let map: HashMap<K, V> = dashmap
+            .iter()
+            .map(|entry| (entry.key().clone(), entry.value().clone()))
+            .collect();
+        map.serialize(serializer)
+    }
+
+    pub fn deserialize<'de, D, K, V>(deserializer: D) -> Result<Arc<DashMap<K, V>>, D::Error>
+    where
+        D: Deserializer<'de>,
+        K: Clone + Deserialize<'de> + Eq + std::hash::Hash,
+        V: Clone + Deserialize<'de>,
+    {
+        let map: HashMap<K, V> = HashMap::deserialize(deserializer)?;
+        let dashmap = DashMap::new();
+        for (k, v) in map {
+            dashmap.insert(k, v);
+        }
+        Ok(Arc::new(dashmap))
+    }
 }
 
 impl Default for GraphQLRegistry {
@@ -52,6 +96,31 @@ pub fn process_files(files: &[String]) -> GraphQLRegistry {
     });
 
     registry
+}
+
+/// Function which processes files matching a glob pattern using streaming
+pub fn process_glob(
+    pattern: &str,
+    ignore_pattern: Option<&str>,
+    root_path: &Path,
+) -> Result<GraphQLRegistry> {
+    let finder = FileFinder::new(pattern, ignore_pattern)?;
+    let registry = GraphQLRegistry::new();
+
+    WalkDir::new(root_path)
+        .follow_links(false)
+        .into_iter()
+        .filter_map(|e| e.ok())
+        .filter(|entry| {
+            let path = entry.path();
+            path.is_file() && finder.matches_pattern(path)
+        })
+        .par_bridge()
+        .for_each(|entry| {
+            parse_file(entry.path(), &registry);
+        });
+
+    Ok(registry)
 }
 
 fn parse_file(file: &Path, registry: &GraphQLRegistry) {

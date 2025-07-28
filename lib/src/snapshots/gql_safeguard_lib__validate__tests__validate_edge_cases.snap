@@ -1,0 +1,5 @@
+---
+source: lib/src/validate.rs
+expression: error_message
+---
+Graph building failed for edge cases: Failed to resolve selections for query 'CircularQueryTest'

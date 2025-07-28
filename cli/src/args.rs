@@ -14,21 +14,31 @@ pub struct Args {
     #[arg(long, default_value = "**/*.{ts,tsx}")]
     pub pattern: String,
 
-    /// Output format
-    #[arg(long, value_enum, default_value = "text")]
-    pub output: OutputFormat,
-
-    /// Show dependency trees in output
+    /// File glob pattern to ignore (defaults to "**/node_modules/**")
     #[arg(long)]
-    pub show_trees: bool,
+    pub ignore: Option<String>,
+
+    /// Change working directory before executing
+    #[arg(long)]
+    pub cwd: Option<PathBuf>,
+
+    /// Command to execute
+    #[command(subcommand)]
+    pub command: Command,
 
     /// Show processing details
     #[arg(long, short)]
     pub verbose: bool,
 }
 
-#[derive(clap::ValueEnum, Clone, Debug)]
-pub enum OutputFormat {
-    Text,
+#[derive(clap::Subcommand, Debug)]
+pub enum Command {
+    /// Validate GraphQL operations for missing @catch directives
+    Validate {
+        /// Show dependency trees in output
+        #[arg(long)]
+        show_trees: bool,
+    },
+    /// Output registry information in JSON format
     Json,
 }
