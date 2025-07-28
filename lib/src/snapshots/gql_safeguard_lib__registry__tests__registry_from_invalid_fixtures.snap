@@ -43,7 +43,7 @@ GraphQL Registry
     ├── UserBasicInfoUnprotected (fixtures/invalid/unprotected_nested.ts)
     |   └── Fields:
     |       ├── id
-    |       ├── name
+    |       ├── name [ThrowOnFieldError ⚠️]
     |       └── email
     └── UserDetailsUnprotected (fixtures/invalid/unprotected_nested.ts)
         ├── Fields:

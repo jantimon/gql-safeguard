@@ -23,6 +23,11 @@ pub struct GraphQLString {
 pub fn extract_graphql_from_file(file_path: &Path) -> Result<Vec<GraphQLString>> {
     let source_code = fs::read_to_string(file_path)?;
 
+    // Quick string check to avoid expensive AST parsing if no GraphQL is present
+    if !source_code.contains("gql") && !source_code.contains("graphql") {
+        return Ok(Vec::new());
+    }
+
     let syntax = if file_path.extension().and_then(|s| s.to_str()) == Some("tsx") {
         Syntax::Typescript(TsConfig {
             tsx: true,

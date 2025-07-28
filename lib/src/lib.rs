@@ -1,4 +1,3 @@
-pub mod file_finder;
 pub mod parsers;
 pub mod registry;
 pub mod registry_to_graph;

@@ -5,8 +5,10 @@ use clap::Parser;
 use gql_safeguard_lib::registry::process_glob;
 use gql_safeguard_lib::registry_to_graph::registry_to_dependency_graph;
 use gql_safeguard_lib::validate::validate_query_directives;
+use std::time::Instant;
 
 fn main() -> anyhow::Result<()> {
+    let start_time = Instant::now();
     let args = Args::parse();
 
     // Change working directory if specified
@@ -18,18 +20,26 @@ fn main() -> anyhow::Result<()> {
     }
 
     // Set default ignore pattern if none provided
-    let ignore_pattern = args.ignore.as_deref().or(Some("**/node_modules/**"));
+    let ignore_patterns = match args.ignore.as_deref() {
+        Some(pattern) => vec![pattern],
+        None => vec![
+            "**/node_modules",
+            "**/.git",
+            "**/.yarn",
+            "**/.swc",
+            "**/*.xcassets",
+        ],
+    };
 
     if args.verbose {
         println!("Scanning path: {}", args.path.display());
         println!("Pattern: {}", args.pattern);
-        if let Some(ignore) = ignore_pattern {
-            println!("Ignore pattern: {}", ignore);
-        }
+        println!("Ignore pattern: {}", ignore_patterns.join(", "));
     }
 
     // Process files using the streaming approach
-    let registry = process_glob(&args.pattern, ignore_pattern, &args.path)?;
+    let patterns = vec![args.pattern.as_str()];
+    let registry = process_glob(&args.path, &patterns, &ignore_patterns)?;
 
     match args.command {
         Command::Validate { show_trees } => {
@@ -43,10 +53,25 @@ fn main() -> anyhow::Result<()> {
             // Validate the queries
             match validate_query_directives(&dependency_graph) {
                 Ok(()) => {
-                    println!("✅ All GraphQL queries pass validation!");
+                    let elapsed = start_time.elapsed();
+                    println!(
+                        "✅ All GraphQL queries pass validation! (took {:.2?})",
+                        elapsed
+                    );
+                    println!(
+                        "Found {} queries and {} fragments",
+                        registry.queries.len(),
+                        registry.fragments.len()
+                    );
                 }
                 Err(e) => {
-                    println!("❌ Validation failed: {}", e);
+                    let elapsed = start_time.elapsed();
+                    println!("❌ Validation failed: {} (took {:.2?})", e, elapsed);
+                    println!(
+                        "Found {} queries and {} fragments",
+                        registry.queries.len(),
+                        registry.fragments.len()
+                    );
                     std::process::exit(1);
                 }
             }

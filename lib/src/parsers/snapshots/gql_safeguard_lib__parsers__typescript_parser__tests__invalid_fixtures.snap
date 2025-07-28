@@ -68,13 +68,13 @@ Content:
 
   fragment UserBasicInfoUnprotected on User {
     id
-    name
+    name @throwOnFieldError
     email
   }
 
 
 === GraphQL String 2 ===
-BytePos: 187
+BytePos: 206
 Content:
 
   fragment UserAvatarUnprotected on User @throwOnFieldError {
@@ -84,7 +84,7 @@ Content:
 
 
 === GraphQL String 3 ===
-BytePos: 320
+BytePos: 339
 Content:
 
   fragment UserDetailsUnprotected on User {
@@ -95,7 +95,7 @@ Content:
 
 
 === GraphQL String 4 ===
-BytePos: 480
+BytePos: 499
 Content:
 
   query GetFullUserUnprotected($id: ID!) {

@@ -77,7 +77,7 @@ Directives: 0
 Type Condition: on User
 Selections: 3
     - Field: id
-    - Field: name
+    - Field: name [ThrowOnFieldError ☄️]
     - Field: email
 
 ---

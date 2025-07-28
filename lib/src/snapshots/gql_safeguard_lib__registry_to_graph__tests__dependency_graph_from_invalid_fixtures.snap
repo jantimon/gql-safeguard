@@ -9,7 +9,7 @@ Dependency Graph
 |           └── Fragment: UserDetailsUnprotected
 |               ├── Fragment: UserBasicInfoUnprotected
 |               |   ├── Field: id
-|               |   ├── Field: name
+|               |   ├── Field: name [ThrowOnFieldError ⚠️]
 |               |   └── Field: email
 |               ├── Fragment: UserAvatarUnprotected [ThrowOnFieldError ⚠️]
 |               |   ├── Field: avatar

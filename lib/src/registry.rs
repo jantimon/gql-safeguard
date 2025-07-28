@@ -8,13 +8,13 @@
 /// a dashmap registry for all queries (key query name)
 use anyhow::Result;
 use dashmap::DashMap;
+use globset::{Glob, GlobSetBuilder};
+use ignore::{WalkBuilder, WalkState};
 use rayon::prelude::*;
 use serde::{Deserialize, Serialize};
 use std::path::Path;
 use std::sync::Arc;
-use walkdir::WalkDir;
 
-use crate::file_finder::FileFinder;
 use crate::parsers::graphql_parser::{
     parse_graphql_to_ast, FragmentDefinition, GraphQLItem, QueryOperation,
 };
@@ -100,24 +100,46 @@ pub fn process_files(files: &[String]) -> GraphQLRegistry {
 
 /// Function which processes files matching a glob pattern using streaming
 pub fn process_glob(
-    pattern: &str,
-    ignore_pattern: Option<&str>,
     root_path: &Path,
+    include_patterns: &[&str], // e.g. &["**/*.ts", "**/*.tsx"]
+    exclude_patterns: &[&str], // e.g. &["**/node_modules/**"]
 ) -> Result<GraphQLRegistry> {
-    let finder = FileFinder::new(pattern, ignore_pattern)?;
-    let registry = GraphQLRegistry::new();
+    // Build include GlobSet
+    let mut include_builder = GlobSetBuilder::new();
+    for pattern in include_patterns {
+        include_builder.add(Glob::new(pattern)?);
+    }
+    let include_set = Arc::new(include_builder.build()?);
 
-    WalkDir::new(root_path)
-        .follow_links(false)
-        .into_iter()
-        .filter_map(|e| e.ok())
-        .filter(|entry| {
-            let path = entry.path();
-            path.is_file() && finder.matches_pattern(path)
-        })
-        .par_bridge()
-        .for_each(|entry| {
-            parse_file(entry.path(), &registry);
+    // Build exclude GlobSet
+    let mut exclude_builder = GlobSetBuilder::new();
+    for pattern in exclude_patterns {
+        exclude_builder.add(Glob::new(pattern)?);
+    }
+    let exclude_set = Arc::new(exclude_builder.build()?);
+
+    let registry = GraphQLRegistry::new();
+    let registry_ref = &registry;
+
+    WalkBuilder::new(root_path)
+        .standard_filters(false)
+        .build_parallel()
+        .run(|| {
+            let include = Arc::clone(&include_set);
+            let exclude = Arc::clone(&exclude_set);
+            let registry = registry_ref;
+
+            Box::new(move |entry_res: Result<ignore::DirEntry, ignore::Error>| {
+                if let Ok(entry) = entry_res {
+                    let path = entry.path();
+                    if path.is_dir() && exclude.is_match(path) {
+                        return WalkState::Skip;
+                    } else if path.is_file() && include.is_match(path) {
+                        parse_file(path, registry);
+                    }
+                }
+                WalkState::Continue
+            })
         });
 
     Ok(registry)

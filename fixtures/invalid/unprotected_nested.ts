@@ -3,7 +3,7 @@ import { gql } from 'relay';
 const USER_BASIC_INFO_UNPROTECTED = gql`
   fragment UserBasicInfoUnprotected on User {
     id
-    name
+    name @throwOnFieldError
     email
   }
 `;
