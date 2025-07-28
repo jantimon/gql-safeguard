@@ -1,0 +1,45 @@
+---
+source: lib/src/extraction/registry.rs
+expression: formatted
+---
+GraphQL Registry
+├── Queries (6)
+|   ├── AdditionalQueryEdgeCase (fixtures/edge_cases/additional-queries.ts)
+|   |   └── Fields:
+|   |       └── user
+|   ├── BaseQueryDynamic (fixtures/edge_cases/dynamic_imports.tsx)
+|   |   ├── Directives:
+|   |   |   └── Catch 🧤
+|   |   └── Fields:
+|   |       └── user
+|   ├── CircularQueryTest (fixtures/edge_cases/circular_fragments.ts)
+|   |   ├── Fields:
+|   |   |   └── user
+|   |   └── Fragment Spreads:
+|   |       └── FragmentACircular
+|   ├── GraphQLQuery (fixtures/edge_cases/additional-queries.ts)
+|   |   ├── Directives:
+|   |   |   └── Catch 🧤
+|   |   └── Fields:
+|   |       └── user
+|   ├── StaticDynamicQueryEdge (fixtures/edge_cases/dynamic_imports.tsx)
+|   |   └── Fields:
+|   |       └── user
+|   └── ValidQueryCommented (fixtures/edge_cases/commented_graphql.ts)
+|       ├── Directives:
+|       |   └── Catch 🧤
+|       └── Fields:
+|           └── user
+└── Fragments (2)
+    ├── FragmentACircular (fixtures/edge_cases/circular_fragments.ts)
+    |   ├── Fields:
+    |   |   ├── id
+    |   |   └── name
+    |   └── Fragment Spreads:
+    |       └── FragmentBCircular
+    └── FragmentBCircular (fixtures/edge_cases/circular_fragments.ts)
+        ├── Fields:
+        |   ├── email
+        |   └── bio
+        └── Fragment Spreads:
+            └── FragmentACircular

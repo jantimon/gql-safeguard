@@ -7,7 +7,7 @@ GraphQL AST items: 1
 
 === AST Item 1 ===
 Type: Query
-Name: AdditionalQuery
+Name: AdditionalQueryEdgeCase
 File: fixtures/edge_cases/additional-queries.ts
 Directives: 0
 Fields: 1
@@ -36,14 +36,14 @@ GraphQL AST items: 1
 
 === AST Item 1 ===
 Type: Fragment
-Name: FragmentA
+Name: FragmentACircular
 File: fixtures/edge_cases/circular_fragments.ts
 Directives: 0
 Fields: 2
   - id
   - name
 Fragment Spreads: 1
-  - FragmentB
+  - FragmentBCircular
 
 ---
 
@@ -52,14 +52,14 @@ GraphQL AST items: 1
 
 === AST Item 1 ===
 Type: Fragment
-Name: FragmentB
+Name: FragmentBCircular
 File: fixtures/edge_cases/circular_fragments.ts
 Directives: 0
 Fields: 2
   - email
   - bio
 Fragment Spreads: 1
-  - FragmentA
+  - FragmentACircular
 
 ---
 
@@ -68,12 +68,13 @@ GraphQL AST items: 1
 
 === AST Item 1 ===
 Type: Query
-Name: CircularQuery
+Name: CircularQueryTest
 File: fixtures/edge_cases/circular_fragments.ts
 Directives: 0
 Fields: 1
   - user
-Fragment Spreads: 0
+Fragment Spreads: 1
+  - FragmentACircular
 
 ---
 
@@ -82,7 +83,7 @@ GraphQL AST items: 1
 
 === AST Item 1 ===
 Type: Query
-Name: ValidQuery
+Name: ValidQueryCommented
 File: fixtures/edge_cases/commented_graphql.ts
 Directives: 1
   - Catch 🧤
@@ -97,7 +98,7 @@ GraphQL AST items: 1
 
 === AST Item 1 ===
 Type: Query
-Name: BaseQuery
+Name: BaseQueryDynamic
 File: fixtures/edge_cases/dynamic_imports.tsx
 Directives: 1
   - Catch 🧤
@@ -112,7 +113,7 @@ GraphQL AST items: 1
 
 === AST Item 1 ===
 Type: Query
-Name: StaticDynamicQuery
+Name: StaticDynamicQueryEdge
 File: fixtures/edge_cases/dynamic_imports.tsx
 Directives: 0
 Fields: 1

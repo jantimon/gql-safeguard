@@ -2,7 +2,7 @@ import { gql } from 'relay';
 import React, { useState, useEffect } from 'react';
 
 const BASE_QUERY = gql`
-  query BaseQuery($id: ID!) @catch {
+  query BaseQueryDynamic($id: ID!) @catch {
     user(id: $id) {
       id
       name
@@ -34,7 +34,7 @@ export default function DynamicComponent() {
 
   // Static version for testing parsing
   const STATIC_DYNAMIC_QUERY = gql`
-    query StaticDynamicQuery($id: ID!) {
+    query StaticDynamicQueryEdge($id: ID!) {
       user(id: $id) {
         id
         dynamicField @throwOnFieldError  # This should be flagged as unprotected

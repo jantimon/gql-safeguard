@@ -1,0 +1,139 @@
+---
+source: lib/src/extraction/registry.rs
+expression: formatted
+---
+GraphQL Registry
+├── Queries (12)
+|   ├── AdditionalQueryEdgeCase (fixtures/edge_cases/additional-queries.ts)
+|   |   └── Fields:
+|   |       └── user
+|   ├── BaseQueryDynamic (fixtures/edge_cases/dynamic_imports.tsx)
+|   |   ├── Directives:
+|   |   |   └── Catch 🧤
+|   |   └── Fields:
+|   |       └── user
+|   ├── CircularQueryTest (fixtures/edge_cases/circular_fragments.ts)
+|   |   ├── Fields:
+|   |   |   └── user
+|   |   └── Fragment Spreads:
+|   |       └── FragmentACircular
+|   ├── GetFullUser (fixtures/valid/nested_fragments_protected.ts)
+|   |   ├── Fields:
+|   |   |   └── user
+|   |   └── Fragment Spreads:
+|   |       └── UserDetails
+|   ├── GetFullUserUnprotected (fixtures/invalid/unprotected_nested.ts)
+|   |   ├── Fields:
+|   |   |   └── user
+|   |   └── Fragment Spreads:
+|   |       └── UserDetailsUnprotected
+|   ├── GetUserProfile (fixtures/valid/query_with_catch.tsx)
+|   |   ├── Directives:
+|   |   |   └── Catch 🧤
+|   |   └── Fields:
+|   |       └── user
+|   ├── GetUserProfileUnprotected (fixtures/invalid/missing_catch.tsx)
+|   |   └── Fields:
+|   |       └── user
+|   ├── GetUserWithRiskyData (fixtures/valid/fragment_level_catch.ts)
+|   |   ├── Directives:
+|   |   |   └── Catch 🧤
+|   |   ├── Fields:
+|   |   |   └── user
+|   |   └── Fragment Spreads:
+|   |       └── RiskyUserData
+|   ├── GraphQLQuery (fixtures/edge_cases/additional-queries.ts)
+|   |   ├── Directives:
+|   |   |   └── Catch 🧤
+|   |   └── Fields:
+|   |       └── user
+|   ├── MixedQuery (fixtures/invalid/partial_protection.ts)
+|   |   ├── Fields:
+|   |   |   └── user
+|   |   └── Fragment Spreads:
+|   |       ├── ProtectedFragment
+|   |       └── UnprotectedFragment
+|   ├── StaticDynamicQueryEdge (fixtures/edge_cases/dynamic_imports.tsx)
+|   |   └── Fields:
+|   |       └── user
+|   └── ValidQueryCommented (fixtures/edge_cases/commented_graphql.ts)
+|       ├── Directives:
+|       |   └── Catch 🧤
+|       └── Fields:
+|           └── user
+└── Fragments (13)
+    ├── FragmentACircular (fixtures/edge_cases/circular_fragments.ts)
+    |   ├── Fields:
+    |   |   ├── id
+    |   |   └── name
+    |   └── Fragment Spreads:
+    |       └── FragmentBCircular
+    ├── FragmentBCircular (fixtures/edge_cases/circular_fragments.ts)
+    |   ├── Fields:
+    |   |   ├── email
+    |   |   └── bio
+    |   └── Fragment Spreads:
+    |       └── FragmentACircular
+    ├── ProtectedFragment (fixtures/invalid/partial_protection.ts)
+    |   ├── Directives:
+    |   |   └── Catch 🧤
+    |   └── Fields:
+    |       ├── sensitiveData [ThrowOnFieldError ⚠️]
+    |       └── otherData
+    ├── RiskyUserData (fixtures/valid/fragment_level_catch.ts)
+    |   ├── Directives:
+    |   |   └── Catch 🧤
+    |   └── Fields:
+    |       ├── sensitiveInfo [ThrowOnFieldError ⚠️]
+    |       ├── backupEmail [ThrowOnFieldError ⚠️]
+    |       └── internalId
+    ├── UnprotectedFragment (fixtures/invalid/partial_protection.ts)
+    |   └── Fields:
+    |       ├── riskyField [ThrowOnFieldError ⚠️]
+    |       └── normalField
+    ├── UserAvatar (fixtures/valid/nested_fragments_protected.ts)
+    |   ├── Directives:
+    |   |   └── Catch 🧤
+    |   ├── Fields:
+    |   |   └── avatar
+    |   └── Fragment Spreads:
+    |       └── avatarImage
+    ├── UserAvatarUnprotected (fixtures/invalid/unprotected_nested.ts)
+    |   ├── Directives:
+    |   |   └── ThrowOnFieldError ⚠️
+    |   └── Fields:
+    |       ├── avatar
+    |       └── avatarUrl
+    ├── UserBasicInfo (fixtures/valid/nested_fragments_protected.ts)
+    |   └── Fields:
+    |       ├── id
+    |       ├── name
+    |       └── email
+    ├── UserBasicInfoUnprotected (fixtures/invalid/unprotected_nested.ts)
+    |   └── Fields:
+    |       ├── id
+    |       ├── name
+    |       └── email
+    ├── UserBio (fixtures/valid/nested_fragments_protected.ts)
+    |   └── Fields:
+    |       ├── bioText
+    |       └── bioImage [ThrowOnFieldError ⚠️]
+    ├── UserDetails (fixtures/valid/nested_fragments_protected.ts)
+    |   ├── Fields:
+    |   |   └── bio [Catch 🧤]
+    |   └── Fragment Spreads:
+    |       ├── UserBasicInfo
+    |       ├── UserAvatar
+    |       └── UserBio
+    ├── UserDetailsUnprotected (fixtures/invalid/unprotected_nested.ts)
+    |   ├── Fields:
+    |   |   └── bio
+    |   └── Fragment Spreads:
+    |       ├── UserBasicInfoUnprotected
+    |       └── UserAvatarUnprotected
+    └── avatarImage (fixtures/valid/nested_fragments_protected.ts)
+        ├── Directives:
+        |   └── ThrowOnFieldError ⚠️
+        └── Fields:
+            ├── avatar
+            └── avatarUrl

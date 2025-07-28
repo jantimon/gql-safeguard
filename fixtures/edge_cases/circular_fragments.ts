@@ -1,25 +1,25 @@
 import { gql } from 'relay';
 
 const FRAGMENT_A = gql`
-  fragment FragmentA on User {
+  fragment FragmentACircular on User {
     id
     name
-    ...FragmentB
+    ...FragmentBCircular
   }
 `;
 
 const FRAGMENT_B = gql`
-  fragment FragmentB on User {
+  fragment FragmentBCircular on User {
     email
     bio
-    ...FragmentA  # Circular reference
+    ...FragmentACircular  # Circular reference
   }
 `;
 
 const CIRCULAR_QUERY = gql`
-  query CircularQuery($id: ID!) {
+  query CircularQueryTest($id: ID!) {
     user(id: $id) {
-      ...FragmentA
+      ...FragmentACircular
     }
   }
 `;

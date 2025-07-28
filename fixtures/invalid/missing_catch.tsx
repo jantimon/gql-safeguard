@@ -1,7 +1,7 @@
 import { gql } from 'relay';
 
-const GET_USER_PROFILE = gql`
-  query GetUserProfile($id: ID!) {
+const GET_USER_PROFILE_UNPROTECTED = gql`
+  query GetUserProfileUnprotected($id: ID!) {
     user(id: $id) {
       id
       name

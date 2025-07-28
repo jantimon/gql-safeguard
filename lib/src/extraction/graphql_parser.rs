@@ -224,6 +224,13 @@ fn convert_selection_set_to_fields_and_spreads(
                     name: field.name.clone(),
                     directives,
                 });
+
+                // Recursively process nested selection set if it has items
+                if !field.selection_set.items.is_empty() {
+                    let (_nested_fields, nested_fragments) =
+                        convert_selection_set_to_fields_and_spreads(&field.selection_set, position);
+                    fragments.extend(nested_fragments);
+                }
             }
             Selection::FragmentSpread(spread) => {
                 // Extract directives from the fragment spread

@@ -6,10 +6,10 @@ File: fixtures/invalid/missing_catch.tsx
 GraphQL strings found: 1
 
 === GraphQL String 1 ===
-BytePos: 59
+BytePos: 71
 Content:
 
-  query GetUserProfile($id: ID!) {
+  query GetUserProfileUnprotected($id: ID!) {
     user(id: $id) {
       id
       name
@@ -63,10 +63,10 @@ File: fixtures/invalid/unprotected_nested.ts
 GraphQL strings found: 4
 
 === GraphQL String 1 ===
-BytePos: 58
+BytePos: 70
 Content:
 
-  fragment UserBasicInfo on User {
+  fragment UserBasicInfoUnprotected on User {
     id
     name
     email
@@ -74,32 +74,32 @@ Content:
 
 
 === GraphQL String 2 ===
-BytePos: 152
+BytePos: 187
 Content:
 
-  fragment UserAvatar on User @throwOnFieldError {
+  fragment UserAvatarUnprotected on User @throwOnFieldError {
     avatar
     avatarUrl
   }
 
 
 === GraphQL String 3 ===
-BytePos: 262
+BytePos: 320
 Content:
 
-  fragment UserDetails on User {
-    ...UserBasicInfo
-    ...UserAvatar
+  fragment UserDetailsUnprotected on User {
+    ...UserBasicInfoUnprotected
+    ...UserAvatarUnprotected
     bio
   }
 
 
 === GraphQL String 4 ===
-BytePos: 377
+BytePos: 480
 Content:
 
-  query GetFullUser($id: ID!) {
+  query GetFullUserUnprotected($id: ID!) {
     user(id: $id) {
-      ...UserDetails
+      ...UserDetailsUnprotected
     }
   }

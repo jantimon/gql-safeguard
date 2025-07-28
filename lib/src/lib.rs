@@ -1,5 +1,4 @@
 pub mod extraction;
-pub mod graph;
 pub mod registry;
 pub mod scanner;
 pub mod tree_formatter;

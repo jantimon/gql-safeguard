@@ -30,7 +30,8 @@ Directives: 1
   - Catch 🧤
 Fields: 1
   - user
-Fragment Spreads: 0
+Fragment Spreads: 1
+  - RiskyUserData
 
 ---
 
@@ -107,9 +108,10 @@ File: fixtures/valid/nested_fragments_protected.ts
 Directives: 0
 Fields: 1
   - bio [Catch 🧤]
-Fragment Spreads: 2
+Fragment Spreads: 3
   - UserBasicInfo
   - UserAvatar
+  - UserBio
 
 ---
 
@@ -123,7 +125,8 @@ File: fixtures/valid/nested_fragments_protected.ts
 Directives: 0
 Fields: 1
   - user
-Fragment Spreads: 0
+Fragment Spreads: 1
+  - UserDetails
 
 ---
 

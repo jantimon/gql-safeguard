@@ -12,7 +12,7 @@ const COMMENTED_QUERY = gql`
 */
 
 const VALID_QUERY = gql`
-  query ValidQuery($id: ID!) @catch {
+  query ValidQueryCommented($id: ID!) @catch {
     user(id: $id) {
       id
       name

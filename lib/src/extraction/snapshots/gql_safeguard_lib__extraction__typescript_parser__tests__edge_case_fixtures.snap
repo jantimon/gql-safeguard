@@ -9,7 +9,7 @@ GraphQL strings found: 2
 BytePos: 66
 Content:
 
-  query AdditionalQuery($id: ID!) {
+  query AdditionalQueryEdgeCase($id: ID!) {
     user(id: $id) {
       id
       importedField @throwOnFieldError  # Some Comment
@@ -18,7 +18,7 @@ Content:
 
 
 === GraphQL String 2 ===
-BytePos: 234
+BytePos: 242
 Content:
 
   query GraphQLQuery($id: ID!) @catch {
@@ -38,31 +38,31 @@ GraphQL strings found: 3
 BytePos: 53
 Content:
 
-  fragment FragmentA on User {
+  fragment FragmentACircular on User {
     id
     name
-    ...FragmentB
+    ...FragmentBCircular
   }
 
 
 === GraphQL String 2 ===
-BytePos: 149
+BytePos: 165
 Content:
 
-  fragment FragmentB on User {
+  fragment FragmentBCircular on User {
     email
     bio
-    ...FragmentA  # Circular reference
+    ...FragmentACircular  # Circular reference
   }
 
 
 === GraphQL String 3 ===
-BytePos: 273
+BytePos: 305
 Content:
 
-  query CircularQuery($id: ID!) {
+  query CircularQueryTest($id: ID!) {
     user(id: $id) {
-      ...FragmentA
+      ...FragmentACircular
     }
   }
 
@@ -76,7 +76,7 @@ GraphQL strings found: 1
 BytePos: 219
 Content:
 
-  query ValidQuery($id: ID!) @catch {
+  query ValidQueryCommented($id: ID!) @catch {
     user(id: $id) {
       id
       name
@@ -95,7 +95,7 @@ GraphQL strings found: 2
 BytePos: 105
 Content:
 
-  query BaseQuery($id: ID!) @catch {
+  query BaseQueryDynamic($id: ID!) @catch {
     user(id: $id) {
       id
       name
@@ -105,10 +105,10 @@ Content:
 
 
 === GraphQL String 2 ===
-BytePos: 971
+BytePos: 978
 Content:
 
-    query StaticDynamicQuery($id: ID!) {
+    query StaticDynamicQueryEdge($id: ID!) {
       user(id: $id) {
         id
         dynamicField @throwOnFieldError  # This should be flagged as unprotected

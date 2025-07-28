@@ -5,4 +5,5 @@
 
 pub mod graphql_parser;
 pub mod registry;
+pub mod registry_to_graph;
 pub mod typescript_parser;

@@ -7,7 +7,7 @@ GraphQL AST items: 1
 
 === AST Item 1 ===
 Type: Query
-Name: GetUserProfile
+Name: GetUserProfileUnprotected
 File: fixtures/invalid/missing_catch.tsx
 Directives: 0
 Fields: 1
@@ -57,7 +57,9 @@ File: fixtures/invalid/partial_protection.ts
 Directives: 0
 Fields: 1
   - user
-Fragment Spreads: 0
+Fragment Spreads: 2
+  - ProtectedFragment
+  - UnprotectedFragment
 
 ---
 
@@ -66,7 +68,7 @@ GraphQL AST items: 1
 
 === AST Item 1 ===
 Type: Fragment
-Name: UserBasicInfo
+Name: UserBasicInfoUnprotected
 File: fixtures/invalid/unprotected_nested.ts
 Directives: 0
 Fields: 3
@@ -82,7 +84,7 @@ GraphQL AST items: 1
 
 === AST Item 1 ===
 Type: Fragment
-Name: UserAvatar
+Name: UserAvatarUnprotected
 File: fixtures/invalid/unprotected_nested.ts
 Directives: 1
   - ThrowOnFieldError ☄️
@@ -98,14 +100,14 @@ GraphQL AST items: 1
 
 === AST Item 1 ===
 Type: Fragment
-Name: UserDetails
+Name: UserDetailsUnprotected
 File: fixtures/invalid/unprotected_nested.ts
 Directives: 0
 Fields: 1
   - bio
 Fragment Spreads: 2
-  - UserBasicInfo
-  - UserAvatar
+  - UserBasicInfoUnprotected
+  - UserAvatarUnprotected
 
 ---
 
@@ -114,9 +116,10 @@ GraphQL AST items: 1
 
 === AST Item 1 ===
 Type: Query
-Name: GetFullUser
+Name: GetFullUserUnprotected
 File: fixtures/invalid/unprotected_nested.ts
 Directives: 0
 Fields: 1
   - user
-Fragment Spreads: 0
+Fragment Spreads: 1
+  - UserDetailsUnprotected
