@@ -1,6 +1,0 @@
----
-source: lib/src/snapshot.rs
-expression: snapshot_content.trim()
----
-Query: GetUser @catch
-└── Field: user

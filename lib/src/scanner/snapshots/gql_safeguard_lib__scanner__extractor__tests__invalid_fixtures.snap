@@ -1,0 +1,105 @@
+---
+source: lib/src/scanner/extractor.rs
+expression: result
+---
+File: fixtures/invalid/missing_catch.tsx
+GraphQL strings found: 1
+
+=== GraphQL String 1 ===
+Line: 1
+Content:
+
+  query GetUserProfile($id: ID!) {
+    user(id: $id) {
+      id
+      name
+      avatar @throwOnFieldError
+      email
+    }
+  }
+
+
+---
+
+File: fixtures/invalid/partial_protection.ts
+GraphQL strings found: 3
+
+=== GraphQL String 1 ===
+Line: 1
+Content:
+
+  fragment ProtectedFragment on User @catch {
+    sensitiveData @throwOnFieldError
+    otherData
+  }
+
+
+=== GraphQL String 2 ===
+Line: 1
+Content:
+
+  fragment UnprotectedFragment on User {
+    riskyField @throwOnFieldError
+    normalField
+  }
+
+
+=== GraphQL String 3 ===
+Line: 1
+Content:
+
+  query MixedQuery($id: ID!) {
+    user(id: $id) {
+      id
+      ...ProtectedFragment
+      ...UnprotectedFragment
+    }
+  }
+
+
+---
+
+File: fixtures/invalid/unprotected_nested.ts
+GraphQL strings found: 4
+
+=== GraphQL String 1 ===
+Line: 1
+Content:
+
+  fragment UserBasicInfo on User {
+    id
+    name
+    email
+  }
+
+
+=== GraphQL String 2 ===
+Line: 1
+Content:
+
+  fragment UserAvatar on User @throwOnFieldError {
+    avatar
+    avatarUrl
+  }
+
+
+=== GraphQL String 3 ===
+Line: 1
+Content:
+
+  fragment UserDetails on User {
+    ...UserBasicInfo
+    ...UserAvatar
+    bio
+  }
+
+
+=== GraphQL String 4 ===
+Line: 1
+Content:
+
+  query GetFullUser($id: ID!) {
+    user(id: $id) {
+      ...UserDetails
+    }
+  }

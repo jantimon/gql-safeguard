@@ -1,4 +1,4 @@
-import { gql } from '@apollo/client';
+import { gql } from 'relay';
 
 const GET_USER_PROFILE = gql`
   query GetUserProfile($id: ID!) @catch {

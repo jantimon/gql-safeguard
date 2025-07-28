@@ -1,4 +1,4 @@
-import { gql } from '@apollo/client';
+import { gql } from 'relay';
 
 // This should be ignored - it's in a comment
 /*
@@ -16,7 +16,7 @@ const VALID_QUERY = gql`
     user(id: $id) {
       id
       name
-      // This field comment should not affect parsing
+      # This field comment should not affect parsing
       avatar @throwOnFieldError  # Protected by query-level @catch
     }
   }

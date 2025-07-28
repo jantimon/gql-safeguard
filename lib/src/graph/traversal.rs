@@ -1,7 +1,13 @@
-use crate::graph::builder::{DependencyGraph, FragmentNode};
+use crate::graph::builder::DependencyGraph;
 use anyhow::Result;
 
 pub struct GraphTraversal;
+
+impl Default for GraphTraversal {
+    fn default() -> Self {
+        Self::new()
+    }
+}
 
 impl GraphTraversal {
     pub fn new() -> Self {

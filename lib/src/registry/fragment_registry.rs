@@ -5,6 +5,12 @@ pub struct FragmentRegistry {
     fragments: FxHashMap<String, FragmentDefinition>,
 }
 
+impl Default for FragmentRegistry {
+    fn default() -> Self {
+        Self::new()
+    }
+}
+
 impl FragmentRegistry {
     pub fn new() -> Self {
         Self {

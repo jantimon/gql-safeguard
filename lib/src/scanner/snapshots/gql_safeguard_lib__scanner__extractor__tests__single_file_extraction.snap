@@ -1,14 +1,25 @@
-import { gql } from 'relay';
+---
+source: lib/src/scanner/extractor.rs
+expression: formatted
+---
+File: fixtures/valid/fragment_level_catch.ts
+GraphQL strings found: 2
 
-const RISKY_USER_DATA = gql`
+=== GraphQL String 1 ===
+Line: 1
+Content:
+
   fragment RiskyUserData on User @catch {
     sensitiveInfo @throwOnFieldError
     backupEmail @throwOnFieldError
     internalId
   }
-`;
 
-const GET_USER_WITH_RISKY_DATA = gql`
+
+=== GraphQL String 2 ===
+Line: 1
+Content:
+
   query GetUserWithRiskyData($id: ID!) {
     user(id: $id) {
       id
@@ -16,6 +27,3 @@ const GET_USER_WITH_RISKY_DATA = gql`
       ...RiskyUserData
     }
   }
-`;
-
-export { GET_USER_WITH_RISKY_DATA, RISKY_USER_DATA };

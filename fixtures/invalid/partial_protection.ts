@@ -1,4 +1,4 @@
-import { gql } from '@apollo/client';
+import { gql } from 'relay';
 
 const PROTECTED_FRAGMENT = gql`
   fragment ProtectedFragment on User @catch {

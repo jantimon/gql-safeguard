@@ -5,6 +5,12 @@ pub struct QueryRegistry {
     queries: FxHashMap<String, QueryOperation>,
 }
 
+impl Default for QueryRegistry {
+    fn default() -> Self {
+        Self::new()
+    }
+}
+
 impl QueryRegistry {
     pub fn new() -> Self {
         Self {

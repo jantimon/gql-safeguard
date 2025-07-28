@@ -3,7 +3,6 @@ pub mod graph;
 pub mod parser;
 pub mod registry;
 pub mod scanner;
-pub mod snapshot;
 pub mod tree_formatter;
 pub mod types;
 

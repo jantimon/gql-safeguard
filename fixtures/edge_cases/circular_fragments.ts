@@ -1,4 +1,4 @@
-import { gql } from '@apollo/client';
+import { gql } from 'relay';
 
 const FRAGMENT_A = gql`
   fragment FragmentA on User {

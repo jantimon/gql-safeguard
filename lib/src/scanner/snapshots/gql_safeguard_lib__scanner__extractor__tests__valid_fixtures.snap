@@ -1,0 +1,96 @@
+---
+source: lib/src/scanner/extractor.rs
+expression: result
+---
+File: fixtures/valid/fragment_level_catch.ts
+GraphQL strings found: 2
+
+=== GraphQL String 1 ===
+Line: 1
+Content:
+
+  fragment RiskyUserData on User @catch {
+    sensitiveInfo @throwOnFieldError
+    backupEmail @throwOnFieldError
+    internalId
+  }
+
+
+=== GraphQL String 2 ===
+Line: 1
+Content:
+
+  query GetUserWithRiskyData($id: ID!) {
+    user(id: $id) {
+      id
+      name
+      ...RiskyUserData
+    }
+  }
+
+
+---
+
+File: fixtures/valid/nested_fragments_protected.ts
+GraphQL strings found: 4
+
+=== GraphQL String 1 ===
+Line: 1
+Content:
+
+  fragment UserBasicInfo on User {
+    id
+    name
+    email
+  }
+
+
+=== GraphQL String 2 ===
+Line: 1
+Content:
+
+  fragment UserAvatar on User @throwOnFieldError {
+    avatar
+    avatarUrl
+  }
+
+
+=== GraphQL String 3 ===
+Line: 1
+Content:
+
+  fragment UserDetails on User {
+    ...UserBasicInfo
+    ...UserAvatar
+    bio
+  }
+
+
+=== GraphQL String 4 ===
+Line: 1
+Content:
+
+  query GetFullUser($id: ID!) {
+    user(id: $id) @catch(to: NULL) {
+      ...UserDetails
+    }
+  }
+
+
+---
+
+File: fixtures/valid/query_with_catch.tsx
+GraphQL strings found: 1
+
+=== GraphQL String 1 ===
+Line: 1
+Content:
+
+  query GetUserProfile($id: ID!) @catch {
+    user(id: $id) {
+      id
+      name
+      avatar @throwOnFieldError
+      email
+    }
+  }

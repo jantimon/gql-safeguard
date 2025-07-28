@@ -8,9 +8,14 @@ use graphql_parser::parse_query;
 use graphql_parser::query::{
     Definition, Document as QueryDocument, OperationDefinition, Selection, SelectionSet,
 };
-use graphql_parser::schema::Document;
 
 pub struct AstBuilder;
+
+impl Default for AstBuilder {
+    fn default() -> Self {
+        Self::new()
+    }
+}
 
 impl AstBuilder {
     pub fn new() -> Self {

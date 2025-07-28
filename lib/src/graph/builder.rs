@@ -13,6 +13,12 @@ pub struct DependencyGraph {
     query_dependencies: FxHashMap<String, Vec<FragmentNode>>,
 }
 
+impl Default for DependencyGraph {
+    fn default() -> Self {
+        Self::new()
+    }
+}
+
 impl DependencyGraph {
     pub fn new() -> Self {
         Self {

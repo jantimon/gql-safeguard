@@ -5,6 +5,12 @@ use anyhow::Result;
 
 pub struct DirectiveValidator;
 
+impl Default for DirectiveValidator {
+    fn default() -> Self {
+        Self::new()
+    }
+}
+
 impl DirectiveValidator {
     pub fn new() -> Self {
         Self

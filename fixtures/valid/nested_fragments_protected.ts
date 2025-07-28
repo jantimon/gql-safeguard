@@ -1,4 +1,4 @@
-import { gql } from '@apollo/client';
+import { gql } from 'relay';
 
 const USER_BASIC_INFO = gql`
   fragment UserBasicInfo on User {
@@ -9,8 +9,8 @@ const USER_BASIC_INFO = gql`
 `;
 
 const USER_AVATAR = gql`
-  fragment UserAvatar on User @catch {
-    avatar @throwOnFieldError
+  fragment UserAvatar on User @throwOnFieldError {
+    avatar
     avatarUrl
   }
 `;
@@ -25,7 +25,7 @@ const USER_DETAILS = gql`
 
 const GET_FULL_USER = gql`
   query GetFullUser($id: ID!) {
-    user(id: $id) {
+    user(id: $id) @catch(to: NULL) {
       ...UserDetails
     }
   }

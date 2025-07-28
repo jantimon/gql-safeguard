@@ -3,6 +3,12 @@ use anyhow::Result;
 
 pub struct ViolationReporter;
 
+impl Default for ViolationReporter {
+    fn default() -> Self {
+        Self::new()
+    }
+}
+
 impl ViolationReporter {
     pub fn new() -> Self {
         Self

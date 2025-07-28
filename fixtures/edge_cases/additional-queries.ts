@@ -1,10 +1,10 @@
-import { gql } from '@apollo/client';
+import { gql } from 'relay';
 
 export const ADDITIONAL_QUERY = gql`
   query AdditionalQuery($id: ID!) {
     user(id: $id) {
       id
-      importedField @throwOnFieldError  # Missing @catch - should be flagged
+      importedField @throwOnFieldError  # Some Comment
     }
   }
 `;

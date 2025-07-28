@@ -1,7 +1,0 @@
----
-source: lib/src/snapshot.rs
-expression: error_message
----
-Parsing error: query parse error: Parse error at 6:7
-Unexpected unexpected character '/'
-Expected }
