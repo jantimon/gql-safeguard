@@ -1,5 +1,11 @@
 # gql-safeguard
 
+## 0.6.0
+
+### Minor Changes
+
+- 5cf6873: add gql-safeguard-ignore comment
+
 ## 0.5.0
 
 ### Minor Changes
