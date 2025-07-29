@@ -54,10 +54,7 @@ fn main() -> anyhow::Result<()> {
             let validation_result = validate_query_directives(&dependency_graph);
             if validation_result.is_valid() {
                 let elapsed = start_time.elapsed();
-                println!(
-                    "✅ All GraphQL queries pass validation! (took {:.2?})",
-                    elapsed
-                );
+                println!("✅ All GraphQL queries pass validation! (took {elapsed:.2?})");
                 println!(
                     "Found {} queries and {} fragments",
                     registry.queries.len(),
@@ -65,7 +62,7 @@ fn main() -> anyhow::Result<()> {
                 );
             } else {
                 for error in &validation_result.errors {
-                    println!("{}", error);
+                    println!("{error}");
                 }
 
                 let elapsed = start_time.elapsed();
@@ -83,7 +80,7 @@ fn main() -> anyhow::Result<()> {
                 println!("Fix by adding @catch to a parent field or fragment.");
                 println!("Learn more: https://relay.dev/docs/next/guides/throw-on-field-error-directive/");
                 println!();
-                println!("❌ Validation failed: (took {:.2?})", elapsed);
+                println!("❌ Validation failed: (took {elapsed:.2?})");
                 println!(
                     "Found {} queries and {} fragments",
                     registry.queries.len(),
@@ -103,7 +100,7 @@ fn main() -> anyhow::Result<()> {
         Command::Json => {
             // Export extracted GraphQL for external analysis
             let json_output = serde_json::to_string_pretty(&registry)?;
-            println!("{}", json_output);
+            println!("{json_output}");
         }
     }
 
