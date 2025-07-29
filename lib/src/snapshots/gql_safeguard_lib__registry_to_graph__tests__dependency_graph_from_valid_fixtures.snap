@@ -21,15 +21,39 @@ Dependency Graph
 |                       └── Fragment: UserBio
 |                           ├── Field: bioText
 |                           └── Field: bioImage [ThrowOnFieldError ⚠️]
-├── GetUserProfile (fixtures/valid/query_with_catch.tsx)
+├── GetUserBasic (fixtures/valid/required_throw.ts)
 |   ├── Directives:
 |   |   └── Catch 🧤
 |   └── Selections:
 |       └── Field: user
 |           ├── Field: id
-|           ├── Field: name
+|           ├── Field: name [RequiredThrow ⚠️]
+|           └── Field: email [RequiredThrow ⚠️]
+├── GetUserMixed (fixtures/valid/required_throw.ts)
+|   ├── Directives:
+|   |   └── Catch 🧤
+|   └── Selections:
+|       └── Field: user
+|           ├── Field: id
+|           ├── Field: name [RequiredThrow ⚠️]
 |           ├── Field: avatar [ThrowOnFieldError ⚠️]
-|           └── Field: email
+|           └── Field: email [RequiredThrow ⚠️]
+├── GetUserNested (fixtures/valid/required_throw.ts)
+|   └── Selections:
+|       └── Field: user
+|           ├── Field: id
+|           └── Field: profile [Catch 🧤]
+|               ├── Field: displayName [RequiredThrow ⚠️]
+|               ├── Field: bio [RequiredThrow ⚠️]
+|               └── Field: avatar
+|                   └── Field: url [ThrowOnFieldError ⚠️]
+├── GetUserProfile (fixtures/valid/required_throw.ts)
+|   └── Selections:
+|       └── Field: user [Catch 🧤]
+|           ├── Field: id
+|           ├── Field: name [RequiredThrow ⚠️]
+|           ├── Field: avatar [RequiredThrow ⚠️]
+|           └── Field: bio
 └── GetUserWithRiskyData (fixtures/valid/fragment_level_catch.ts)
     ├── Directives:
     |   └── Catch 🧤

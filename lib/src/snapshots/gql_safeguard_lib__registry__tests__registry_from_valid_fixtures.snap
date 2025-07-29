@@ -3,12 +3,38 @@ source: lib/src/registry.rs
 expression: formatted
 ---
 GraphQL Registry
-├── Queries (3)
+├── Queries (6)
 |   ├── GetFullUser (fixtures/valid/nested_fragments_protected.ts)
 |   |   ├── Fields:
 |   |   |   └── user
 |   |   └── Fragment Spreads:
 |   |       └── UserDetails
+|   ├── GetUserBasic (fixtures/valid/required_throw.ts)
+|   |   ├── Directives:
+|   |   |   └── Catch 🧤
+|   |   └── Fields:
+|   |       ├── user
+|   |       ├── id
+|   |       ├── name [RequiredThrow ⚠️]
+|   |       └── email [RequiredThrow ⚠️]
+|   ├── GetUserMixed (fixtures/valid/required_throw.ts)
+|   |   ├── Directives:
+|   |   |   └── Catch 🧤
+|   |   └── Fields:
+|   |       ├── user
+|   |       ├── id
+|   |       ├── name [RequiredThrow ⚠️]
+|   |       ├── avatar [ThrowOnFieldError ⚠️]
+|   |       └── email [RequiredThrow ⚠️]
+|   ├── GetUserNested (fixtures/valid/required_throw.ts)
+|   |   └── Fields:
+|   |       ├── user
+|   |       ├── id
+|   |       ├── profile [Catch 🧤]
+|   |       ├── displayName [RequiredThrow ⚠️]
+|   |       ├── bio [RequiredThrow ⚠️]
+|   |       ├── avatar
+|   |       └── url [ThrowOnFieldError ⚠️]
 |   ├── GetUserProfile (fixtures/valid/query_with_catch.tsx)
 |   |   ├── Directives:
 |   |   |   └── Catch 🧤

@@ -22,6 +22,12 @@ Dependency Graph
 |           ├── Field: name
 |           ├── Field: avatar [ThrowOnFieldError ⚠️]
 |           └── Field: email
+├── GetUserUnprotected (fixtures/invalid/unprotected_required_throw.ts)
+|   └── Selections:
+|       └── Field: user
+|           ├── Field: id
+|           ├── Field: name [RequiredThrow ⚠️]
+|           └── Field: email
 └── MixedQuery (fixtures/invalid/partial_protection.ts)
     └── Selections:
         └── Field: user

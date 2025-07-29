@@ -186,7 +186,8 @@ mod tests {
                 for directive in &query.directives {
                     let emoji = match directive.directive_type {
                         crate::parsers::graphql_parser::DirectiveType::Catch => "🧤",
-                        crate::parsers::graphql_parser::DirectiveType::ThrowOnFieldError => "⚠️",
+                        crate::parsers::graphql_parser::DirectiveType::ThrowOnFieldError
+                        | crate::parsers::graphql_parser::DirectiveType::RequiredThrow => "⚠️",
                     };
                     formatter.add_line(3, &format!("{:?} {}", directive.directive_type, emoji));
                 }
@@ -218,7 +219,8 @@ mod tests {
                         let directive_strs: Vec<String> = field_selection.directives.iter().map(|d| {
                             let emoji = match d.directive_type {
                                 crate::parsers::graphql_parser::DirectiveType::Catch => "🧤",
-                                crate::parsers::graphql_parser::DirectiveType::ThrowOnFieldError => "⚠️",
+                                crate::parsers::graphql_parser::DirectiveType::ThrowOnFieldError |
+                                crate::parsers::graphql_parser::DirectiveType::RequiredThrow => "⚠️",
                             };
                             format!("{:?} {}", d.directive_type, emoji)
                         }).collect();
@@ -243,7 +245,8 @@ mod tests {
                         let directive_strs: Vec<String> = spread.directives.iter().map(|d| {
                             let emoji = match d.directive_type {
                                 crate::parsers::graphql_parser::DirectiveType::Catch => "🧤",
-                                crate::parsers::graphql_parser::DirectiveType::ThrowOnFieldError => "⚠️",
+                                crate::parsers::graphql_parser::DirectiveType::ThrowOnFieldError |
+                                crate::parsers::graphql_parser::DirectiveType::RequiredThrow => "⚠️",
                             };
                             format!("{:?} {}", d.directive_type, emoji)
                         }).collect();
@@ -268,7 +271,8 @@ mod tests {
                         let directive_strs: Vec<String> = inline.directives.iter().map(|d| {
                             let emoji = match d.directive_type {
                                 crate::parsers::graphql_parser::DirectiveType::Catch => "🧤",
-                                crate::parsers::graphql_parser::DirectiveType::ThrowOnFieldError => "⚠️",
+                                crate::parsers::graphql_parser::DirectiveType::ThrowOnFieldError |
+                                crate::parsers::graphql_parser::DirectiveType::RequiredThrow => "⚠️",
                             };
                             format!("{:?} {}", d.directive_type, emoji)
                         }).collect();

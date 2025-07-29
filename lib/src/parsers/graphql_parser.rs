@@ -24,6 +24,7 @@ pub struct Field {
 pub enum DirectiveType {
     Catch,
     ThrowOnFieldError,
+    RequiredThrow,
 }
 
 #[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
@@ -309,7 +310,7 @@ fn extract_fragment_spreads_from_selections(selections: &[Selection]) -> Vec<Fra
 }
 
 // Filters and converts directives to internal representation
-// Only processes @catch and @throwOnFieldError - ignores irrelevant directives
+// Only processes @catch, @throwOnFieldError, and @required(action: THROW) - ignores irrelevant directives
 fn extract_directives_from_directive_list(
     directives: &[graphql_parser::query::Directive<String>],
     position: u32,
@@ -321,6 +322,14 @@ fn extract_directives_from_directive_list(
             let directive_type = match dir.name.as_str() {
                 "catch" => DirectiveType::Catch,
                 "throwOnFieldError" => DirectiveType::ThrowOnFieldError,
+                "required" => {
+                    // Only process @required if it has action: THROW
+                    if has_throw_action(&dir.arguments) {
+                        DirectiveType::RequiredThrow
+                    } else {
+                        return None; // Ignore @required with other actions
+                    }
+                }
                 _ => return None,
             };
 
@@ -330,6 +339,14 @@ fn extract_directives_from_directive_list(
             })
         })
         .collect()
+}
+
+// Helper function to check if @required directive has action: THROW
+fn has_throw_action(arguments: &[(String, graphql_parser::query::Value<String>)]) -> bool {
+    arguments.iter().any(|(name, value)| {
+        name == "action"
+            && matches!(value, graphql_parser::query::Value::Enum(action) if action == "THROW")
+    })
 }
 
 #[cfg(test)]
@@ -355,7 +372,9 @@ mod tests {
                             }
                             let emoji = match directive.directive_type {
                                 DirectiveType::Catch => "🧤",
-                                DirectiveType::ThrowOnFieldError => "☄️",
+                                DirectiveType::ThrowOnFieldError | DirectiveType::RequiredThrow => {
+                                    "☄️"
+                                }
                             };
                             result.push_str(&format!("{:?} {}", directive.directive_type, emoji));
                         }
@@ -378,7 +397,9 @@ mod tests {
                             }
                             let emoji = match directive.directive_type {
                                 DirectiveType::Catch => "🧤",
-                                DirectiveType::ThrowOnFieldError => "☄️",
+                                DirectiveType::ThrowOnFieldError | DirectiveType::RequiredThrow => {
+                                    "☄️"
+                                }
                             };
                             result.push_str(&format!("{:?} {}", directive.directive_type, emoji));
                         }
@@ -399,7 +420,9 @@ mod tests {
                             }
                             let emoji = match directive.directive_type {
                                 DirectiveType::Catch => "🧤",
-                                DirectiveType::ThrowOnFieldError => "☄️",
+                                DirectiveType::ThrowOnFieldError | DirectiveType::RequiredThrow => {
+                                    "☄️"
+                                }
                             };
                             result.push_str(&format!("{:?} {}", directive.directive_type, emoji));
                         }
@@ -451,7 +474,7 @@ mod tests {
                     for directive in &query.directives {
                         let emoji = match directive.directive_type {
                             DirectiveType::Catch => "🧤",
-                            DirectiveType::ThrowOnFieldError => "☄️",
+                            DirectiveType::ThrowOnFieldError | DirectiveType::RequiredThrow => "☄️",
                         };
                         result.push_str(&format!("  - {:?} {}\n", directive.directive_type, emoji));
                     }
@@ -476,7 +499,7 @@ mod tests {
                     for directive in &fragment.directives {
                         let emoji = match directive.directive_type {
                             DirectiveType::Catch => "🧤",
-                            DirectiveType::ThrowOnFieldError => "☄️",
+                            DirectiveType::ThrowOnFieldError | DirectiveType::RequiredThrow => "☄️",
                         };
                         result.push_str(&format!("  - {:?} {}\n", directive.directive_type, emoji));
                     }

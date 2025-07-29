@@ -114,3 +114,91 @@ Content:
         dynamicField @throwOnFieldError  # This should be flagged as unprotected
       }
     }
+  
+
+---
+
+File: fixtures/edge_cases/required_variants.ts
+GraphQL strings found: 6
+
+=== GraphQL String 1 ===
+BytePos: 118
+Content:
+
+  query GetUserLogAction($id: ID!) {
+    user(id: $id) {
+      id
+      name @required(action: LOG)    // Should be ignored - no @catch needed
+      email @required(action: THROW) @catch  // Should validate - needs protection
+    }
+  }
+
+
+=== GraphQL String 2 ===
+BytePos: 441
+Content:
+
+  query GetUserNoAction($id: ID!) {
+    user(id: $id) {
+      id
+      name @required                 // Should be ignored - no action specified
+      email @required(action: THROW) @catch  // Should validate
+    }
+  }
+
+
+=== GraphQL String 3 ===
+BytePos: 752
+Content:
+
+  query GetUserOtherActions($id: ID!) {
+    user(id: $id) {
+      id
+      name @required(action: WARN)   // Should be ignored
+      email @required(action: NONE)  // Should be ignored
+      bio @required(action: THROW) @catch    // Should validate
+    }
+  }
+
+
+=== GraphQL String 4 ===
+BytePos: 1095
+Content:
+
+  query GetUserComplex($id: ID!) @catch {
+    user(id: $id) {
+      id
+      profile {
+        name @required(action: LOG)    // Should be ignored
+        displayName @required(action: THROW)  // Should validate (protected by query @catch)
+        avatar @throwOnFieldError      // Should validate (protected by query @catch)
+        bio @catch {
+          text @required(action: THROW)  // Should validate (protected by bio @catch)
+          lastModified @required(action: WARN)  // Should be ignored
+        }
+      }
+    }
+  }
+
+
+=== GraphQL String 5 ===
+BytePos: 1698
+Content:
+
+  fragment UserInfo on User {
+    name @required(action: LOG)      // Should be ignored
+    email @required(action: THROW)   // Should validate when fragment is used
+    avatar @throwOnFieldError        // Should validate when fragment is used
+  }
+
+
+=== GraphQL String 6 ===
+BytePos: 1986
+Content:
+
+  query GetUserWithFragment($id: ID!) {
+    user(id: $id) @catch {
+      id
+      ...UserInfo  // Fragment spreads should inherit protection
+    }
+  }

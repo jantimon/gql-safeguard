@@ -1,16 +1,16 @@
 # GQL Safeguard
 
-A Rust-powered static analysis tool that prevents GraphQL runtime errors by enforcing proper `@catch` directive protection for `@throwOnFieldError` usage in Relay applications
+A Rust-powered static analysis tool that prevents GraphQL runtime errors by enforcing proper `@catch` directive protection for `@throwOnFieldError` and `@required(action: THROW)` usage in Relay applications
 
 ![gql-guard](https://github.com/user-attachments/assets/96ee62ce-c0b1-4c40-9fe5-59b7d492c6d9)
 
 ## Why GQL Safeguard?
 
-When using `@throwOnFieldError` in GraphQL queries, field errors are converted to exceptions that bubble up through your component tree. Without proper `@catch` directive protection, these exceptions can crash entire pages or app sections.
+When using `@throwOnFieldError` or `@required(action: THROW)` in GraphQL queries, field errors are converted to exceptions that bubble up through your component tree. Without proper `@catch` directive protection, these exceptions can crash entire pages or app sections.
 
 The reason why `@catch` is enforced instead of React Error Boundaries: Error boundaries don't work during SSR, but `@catch` does. This makes `@catch` essential for server-side rendered applications.
 
-GQL Safeguard analyzes your TypeScript/TSX codebase to ensure every `@throwOnFieldError` directive is properly protected by a `@catch` directive in an ancestor field or fragment.
+GQL Safeguard analyzes your TypeScript/TSX codebase to ensure every `@throwOnFieldError` directive and every `@required(action: THROW)` directive is properly protected by a `@catch` directive in an ancestor field or fragment.
 
 ## Key Features
 
@@ -51,14 +51,14 @@ npx gql-safeguard . json > graphql-analysis.json
 
 ### Example Validation
 
-**❌ Invalid - Unprotected @throwOnFieldError:**
+**❌ Invalid - Unprotected directives:**
 
 **user-query.ts:**
 ```typescript
 const query = gql`
   query MyQuery {
     user {
-      ...UserProfile  # ❌ Fragment contains unprotected @throwOnFieldError!
+      ...UserProfile  # ❌ Fragment contains unprotected directives!
     }
   }
 `;
@@ -68,8 +68,8 @@ const query = gql`
 ```typescript
 const fragment = gql`
   fragment UserProfile on User {
-    name @throwOnFieldError  # ❌ No @catch protection!
-    email @throwOnFieldError
+    name @throwOnFieldError           # ❌ No @catch protection!
+    email @required(action: THROW)    # ❌ No @catch protection!
   }
 `;
 ```
@@ -91,8 +91,8 @@ const query = gql`
 ```typescript
 const fragment = gql`
   fragment UserProfile on User {
-    name @throwOnFieldError  # ✅ Protected by ancestor @catch in query
-    email @throwOnFieldError
+    name @throwOnFieldError           # ✅ Protected by ancestor @catch in query
+    email @required(action: THROW)    # ✅ Protected by ancestor @catch in query
   }
 `;
 ```
@@ -147,34 +147,38 @@ Converts extracted GraphQL strings into structured AST representations with full
 Expands fragment spreads (`...FragmentName`) into complete dependency trees while preserving directive inheritance relationships.
 
 ### 4. **Protection Validation**
-Validates that every `@throwOnFieldError` directive has proper `@catch` ancestor protection using single-pass recursive traversal with O(n) complexity.
+Validates that every `@throwOnFieldError` directive and every `@required(action: THROW)` directive has proper `@catch` ancestor protection using single-pass recursive traversal with O(n) complexity.
 
 ## Validation Rules
 
 ### Rule 1: Protection Requirement
-Every `@throwOnFieldError` directive must be protected by at least one `@catch` directive in an ancestor field, fragment, or query.
+Every `@throwOnFieldError` directive and every `@required(action: THROW)` directive must be protected by at least one `@catch` directive in an ancestor field, fragment, or query.
 
 ### Rule 2: Useful Protection  
-Every `@catch` directive must protect at least one `@throwOnFieldError` directive in its subtree to avoid unnecessary error handling.
+Every `@catch` directive must protect at least one `@throwOnFieldError` or `@required(action: THROW)` directive in its subtree to avoid unnecessary error handling.
+
+### Rule 3: Required Action Filtering
+Only `@required` directives with `action: THROW` are validated. Other action values (`LOG`, `WARN`, `NONE`) or missing action arguments are ignored as they don't throw exceptions.
 
 ## Error Types
 
-### Unprotected @throwOnFieldError
-**Risk**: Field errors will propagate as unhandled exceptions, potentially crashing the page.
+### Unprotected Throwing Directives
+**Risk**: Field errors from `@throwOnFieldError` or `@required(action: THROW)` will propagate as unhandled exceptions, potentially crashing the page.
 
 **Fix**: Add `@catch` to a parent field or fragment:
 ```graphql
 user @catch {
   profile {
-    email @throwOnFieldError  # Now protected
+    email @throwOnFieldError         # Now protected
+    name @required(action: THROW)    # Now protected
   }
 }
 ```
 
 ### Empty @catch  
-**Issue**: `@catch` directive doesn't protect any `@throwOnFieldError` directives
+**Issue**: `@catch` directive doesn't protect any `@throwOnFieldError` or `@required(action: THROW)` directives
 
-**Fix**: Either add `@throwOnFieldError` to descendant fields or remove unnecessary `@catch`
+**Fix**: Either add throwing directives to descendant fields or remove unnecessary `@catch`
 
 ## Development
 

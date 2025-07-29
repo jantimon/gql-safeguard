@@ -3,7 +3,7 @@ source: lib/src/validate.rs
 expression: result_message
 ---
 Validation Result:
-❌ Found 4 validation errors:
+❌ Found 5 validation errors:
 
 
 
@@ -61,6 +61,21 @@ Query Structure:
         ├── 🔹 Field: id
         ├── 🔹 Field: name
         ├── 🔹 Field: avatar ❌ [⚠️ @ThrowOnFieldError]
+        └── 🔹 Field: email
+--------------------------------------------------------------------------------
+
+
+🚨 Unprotected @throwOnFieldError
+
+Query: GetUserUnprotected (fixtures/invalid/unprotected_required_throw.ts)
+Location: name
+
+Query Structure:
+📄 Query: GetUserUnprotected (fixtures/invalid/unprotected_required_throw.ts)
+└── 🔍 Selections:
+    └── 🔹 Field: user
+        ├── 🔹 Field: id
+        ├── 🔹 Field: name ❌ [⚠️ @RequiredThrow]
         └── 🔹 Field: email
 --------------------------------------------------------------------------------
 

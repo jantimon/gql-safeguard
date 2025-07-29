@@ -3,7 +3,7 @@ source: lib/src/registry.rs
 expression: formatted
 ---
 GraphQL Registry
-├── Queries (3)
+├── Queries (4)
 |   ├── GetFullUserUnprotected (fixtures/invalid/unprotected_nested.ts)
 |   |   ├── Fields:
 |   |   |   └── user
@@ -15,6 +15,12 @@ GraphQL Registry
 |   |       ├── id
 |   |       ├── name
 |   |       ├── avatar [ThrowOnFieldError ⚠️]
+|   |       └── email
+|   ├── GetUserUnprotected (fixtures/invalid/unprotected_required_throw.ts)
+|   |   └── Fields:
+|   |       ├── user
+|   |       ├── id
+|   |       ├── name [RequiredThrow ⚠️]
 |   |       └── email
 |   └── MixedQuery (fixtures/invalid/partial_protection.ts)
 |       ├── Fields:

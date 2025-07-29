@@ -103,3 +103,50 @@ Content:
       ...UserDetailsUnprotected
     }
   }
+
+
+---
+
+File: fixtures/invalid/unprotected_required_throw.ts
+GraphQL strings found: 3
+
+=== GraphQL String 1 ===
+BytePos: 132
+Content:
+
+  query GetUserUnprotected($id: ID!) {
+    user(id: $id) {
+      id
+      name @required(action: THROW)
+      email
+    }
+  }
+
+
+=== GraphQL String 2 ===
+BytePos: 345
+Content:
+
+  query GetUserPartial($id: ID!) {
+    user(id: $id) @catch {
+      id
+      name @required(action: THROW)  // ✅ Protected
+      email
+    }
+    otherUser: user(id: "other") {
+      name @required(action: THROW)  // ❌ Unprotected
+    }
+  }
+
+
+=== GraphQL String 3 ===
+BytePos: 669
+Content:
+
+  query GetUserMixedUnprotected($id: ID!) {
+    user(id: $id) {
+      id
+      name @required(action: THROW)  // ❌ Unprotected
+      avatar @throwOnFieldError      // ❌ Unprotected
+    }
+  }

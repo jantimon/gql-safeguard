@@ -3,7 +3,7 @@ source: lib/src/registry.rs
 expression: formatted
 ---
 GraphQL Registry
-├── Queries (12)
+├── Queries (16)
 |   ├── AdditionalQueryEdgeCase (fixtures/edge_cases/additional-queries.ts)
 |   |   └── Fields:
 |   |       ├── user
@@ -32,21 +32,51 @@ GraphQL Registry
 |   |   |   └── user
 |   |   └── Fragment Spreads:
 |   |       └── UserDetailsUnprotected
-|   ├── GetUserProfile (fixtures/valid/query_with_catch.tsx)
+|   ├── GetUserBasic (fixtures/valid/required_throw.ts)
 |   |   ├── Directives:
 |   |   |   └── Catch 🧤
 |   |   └── Fields:
 |   |       ├── user
 |   |       ├── id
-|   |       ├── name
+|   |       ├── name [RequiredThrow ⚠️]
+|   |       └── email [RequiredThrow ⚠️]
+|   ├── GetUserMixed (fixtures/valid/required_throw.ts)
+|   |   ├── Directives:
+|   |   |   └── Catch 🧤
+|   |   └── Fields:
+|   |       ├── user
+|   |       ├── id
+|   |       ├── name [RequiredThrow ⚠️]
 |   |       ├── avatar [ThrowOnFieldError ⚠️]
-|   |       └── email
+|   |       └── email [RequiredThrow ⚠️]
+|   ├── GetUserNested (fixtures/valid/required_throw.ts)
+|   |   └── Fields:
+|   |       ├── user
+|   |       ├── id
+|   |       ├── profile [Catch 🧤]
+|   |       ├── displayName [RequiredThrow ⚠️]
+|   |       ├── bio [RequiredThrow ⚠️]
+|   |       ├── avatar
+|   |       └── url [ThrowOnFieldError ⚠️]
+|   ├── GetUserProfile (fixtures/valid/required_throw.ts)
+|   |   └── Fields:
+|   |       ├── user [Catch 🧤]
+|   |       ├── id
+|   |       ├── name [RequiredThrow ⚠️]
+|   |       ├── avatar [RequiredThrow ⚠️]
+|   |       └── bio
 |   ├── GetUserProfileUnprotected (fixtures/invalid/missing_catch.tsx)
 |   |   └── Fields:
 |   |       ├── user
 |   |       ├── id
 |   |       ├── name
 |   |       ├── avatar [ThrowOnFieldError ⚠️]
+|   |       └── email
+|   ├── GetUserUnprotected (fixtures/invalid/unprotected_required_throw.ts)
+|   |   └── Fields:
+|   |       ├── user
+|   |       ├── id
+|   |       ├── name [RequiredThrow ⚠️]
 |   |       └── email
 |   ├── GetUserWithRiskyData (fixtures/valid/fragment_level_catch.ts)
 |   |   ├── Directives:
