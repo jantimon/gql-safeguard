@@ -1,5 +1,11 @@
 # gql-safeguard
 
+## 0.3.0
+
+### Minor Changes
+
+- c6e8920: Improve release flow
+
 ## 0.2.0
 
 ### Minor Changes
