@@ -168,17 +168,9 @@ user @catch {
 ```
 
 ### Empty @catch  
-**Issue**: `@catch` directive doesn't protect any `@throwOnFieldError` directives.
+**Issue**: `@catch` directive doesn't protect any `@throwOnFieldError` directives
 
-**Fix**: Either add `@throwOnFieldError` to descendant fields or remove unnecessary `@catch`.
-
-## Integration
-
-### CI/CD Pipeline
-```yaml
-- name: Validate GraphQL Safety
-  run: npx gql-safeguard . validate
-```
+**Fix**: Either add `@throwOnFieldError` to descendant fields or remove unnecessary `@catch`
 
 ## Development
 
