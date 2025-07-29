@@ -231,11 +231,7 @@ fn validate_query(query: &QueryWithFragments, result: &mut ValidationResult) {
         current_fragment_file: None, // No fragment context at query level
         current_fragment_name: None,
     };
-    validate_selections(
-        &query.selections,
-        "query",
-        &mut ctx,
-    );
+    validate_selections(&query.selections, "query", &mut ctx);
 
     // Report unused @catch that protect nothing
     for directive in &query.directives {
@@ -250,7 +246,8 @@ fn validate_query(query: &QueryWithFragments, result: &mut ValidationResult) {
                 fragment_name: None,
             };
 
-            let tree_visualization = create_query_tree_visualization(ctx.query, Some("query level"));
+            let tree_visualization =
+                create_query_tree_visualization(ctx.query, Some("query level"));
             let explanation = create_empty_catch_explanation();
 
             ctx.result.add_error(ValidationError {
@@ -275,11 +272,7 @@ fn validate_selections(
                 let field_location = format!("{}.{}", current_location, field.name);
 
                 // Check field-level directives
-                validate_field_directives(
-                    field,
-                    &field_location,
-                    ctx,
-                );
+                validate_field_directives(field, &field_location, ctx);
 
                 // Create new ancestor context for this field's nested selections
                 let mut field_catch_ancestors = ctx.catch_ancestors.clone();
@@ -300,11 +293,7 @@ fn validate_selections(
                     current_fragment_file: ctx.current_fragment_file.clone(),
                     current_fragment_name: ctx.current_fragment_name.clone(),
                 };
-                validate_selections(
-                    &field.selections,
-                    &field_location,
-                    &mut nested_ctx,
-                );
+                validate_selections(&field.selections, &field_location, &mut nested_ctx);
 
                 // Check for empty @catch directives at field level
                 for directive in &field.directives {
@@ -348,8 +337,10 @@ fn validate_selections(
                                     fragment_name: Some(spread.name.clone()),
                                 };
 
-                                let tree_visualization =
-                                    create_query_tree_visualization(ctx.query, Some(&spread_location));
+                                let tree_visualization = create_query_tree_visualization(
+                                    ctx.query,
+                                    Some(&spread_location),
+                                );
                                 let explanation = create_unprotected_throw_explanation();
 
                                 ctx.result.add_error(ValidationError {
@@ -411,8 +402,10 @@ fn validate_selections(
                                     fragment_name: fragment_context_name.clone(),
                                 };
 
-                                let tree_visualization =
-                                    create_query_tree_visualization(ctx.query, Some(&inline_location));
+                                let tree_visualization = create_query_tree_visualization(
+                                    ctx.query,
+                                    Some(&inline_location),
+                                );
                                 let explanation = create_unprotected_throw_explanation();
 
                                 ctx.result.add_error(ValidationError {
@@ -451,11 +444,7 @@ fn validate_selections(
                     current_fragment_file: fragment_context_file.clone(),
                     current_fragment_name: fragment_context_name.clone(),
                 };
-                validate_selections(
-                    &inline.selections,
-                    &inline_location,
-                    &mut fragment_ctx,
-                );
+                validate_selections(&inline.selections, &inline_location, &mut fragment_ctx);
 
                 // Check for empty @catch directives at fragment level
                 for directive in &inline.directives {
