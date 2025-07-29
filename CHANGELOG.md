@@ -1,5 +1,11 @@
 # gql-safeguard
 
+## 0.7.0
+
+### Minor Changes
+
+- 6b15133: improve ignore comment
+
 ## 0.6.0
 
 ### Minor Changes
