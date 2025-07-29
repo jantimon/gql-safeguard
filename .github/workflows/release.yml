@@ -36,16 +36,16 @@ jobs:
 
       - name: Update optional dependencies versions
         run: |
-          # Only update during PR creation (when there are unpublished changesets)
-          CHANGESET_STATUS=$(npx changeset status --output=json)
-          HAS_CHANGESETS=$(echo "$CHANGESET_STATUS" | jq -r '.releases | length > 0')
-          
-          if [ "$HAS_CHANGESETS" = "true" ]; then
+          # Check if there are changeset files (indicates PR creation mode)
+          if [ -d ".changeset" ] && [ "$(find .changeset -name "*.md" -not -name "README.md" | wc -l)" -gt 0 ]; then
+            echo "Changeset files found, updating optionalDependencies for PR creation"
+            
             # Get the new version that changesets will use
+            CHANGESET_STATUS=$(npx changeset status --output=json 2>/dev/null || echo '{"releases":[]}')
             NEW_VERSION=$(echo "$CHANGESET_STATUS" | jq -r '.releases[0].newVersion // empty')
             
             if [ -n "$NEW_VERSION" ]; then
-              echo "Updating optionalDependencies to version $NEW_VERSION for PR creation"
+              echo "Updating optionalDependencies to version $NEW_VERSION"
               
               # Update package.json optionalDependencies to use the new version
               jq --arg version "$NEW_VERSION" '
@@ -55,10 +55,10 @@ jobs:
               echo "Updated optionalDependencies:"
               jq '.optionalDependencies' package.json
             else
-              echo "No version changes detected"
+              echo "Could not determine new version"
             fi
           else
-            echo "No unpublished changesets found, skipping optionalDependencies update (likely publishing mode)"
+            echo "No changeset files found, skipping optionalDependencies update (likely publishing mode)"
           fi
 
       - name: Create Release Pull Request or Publish to npm
