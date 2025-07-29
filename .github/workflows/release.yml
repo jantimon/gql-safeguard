@@ -40,23 +40,40 @@ jobs:
           if [ -d ".changeset" ] && [ "$(find .changeset -name "*.md" -not -name "README.md" | wc -l)" -gt 0 ]; then
             echo "Changeset files found, updating optionalDependencies for PR creation"
             
-            # Get the new version that changesets will use
-            CHANGESET_STATUS=$(npx changeset status --output=json 2>/dev/null || echo '{"releases":[]}')
-            NEW_VERSION=$(echo "$CHANGESET_STATUS" | jq -r '.releases[0].newVersion // empty')
-            
-            if [ -n "$NEW_VERSION" ]; then
-              echo "Updating optionalDependencies to version $NEW_VERSION"
+            # Get the new version and update optionalDependencies using Node.js
+            node -e "
+              const { execSync } = require('child_process');
+              const fs = require('fs');
               
-              # Update package.json optionalDependencies to use the new version
-              jq --arg version "$NEW_VERSION" '
-                .optionalDependencies = (.optionalDependencies // {} | to_entries | map(.value = $version) | from_entries)
-              ' package.json > package.json.tmp && mv package.json.tmp package.json
-              
-              echo "Updated optionalDependencies:"
-              jq '.optionalDependencies' package.json
-            else
-              echo "Could not determine new version"
-            fi
+              try {
+                // Get the new version that changesets will use
+                const changesetStatus = JSON.parse(execSync('npx changeset status --output=json', { encoding: 'utf8' }));
+                const newVersion = changesetStatus.releases?.[0]?.newVersion;
+                
+                if (newVersion) {
+                  console.log('Found new version:', newVersion);
+                  
+                  // Update package.json optionalDependencies
+                  const pkg = JSON.parse(fs.readFileSync('package.json', 'utf8'));
+                  if (pkg.optionalDependencies) {
+                    Object.keys(pkg.optionalDependencies).forEach(dep => {
+                      pkg.optionalDependencies[dep] = newVersion;
+                    });
+                    fs.writeFileSync('package.json', JSON.stringify(pkg, null, 2) + '\n');
+                    console.log('Updated optionalDependencies to version', newVersion + ':');
+                    console.log(JSON.stringify(pkg.optionalDependencies, null, 2));
+                  } else {
+                    console.log('No optionalDependencies found in package.json');
+                  }
+                } else {
+                  console.log('Could not determine new version from changesets');
+                  process.exit(1);
+                }
+              } catch (error) {
+                console.error('Error updating optionalDependencies:', error.message);
+                process.exit(1);
+              }
+            "
           else
             echo "No changeset files found, skipping optionalDependencies update (likely publishing mode)"
           fi
