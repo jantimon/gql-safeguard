@@ -1,5 +1,11 @@
 # gql-safeguard
 
+## 0.5.0
+
+### Minor Changes
+
+- 3872d3b: add @required directive
+
 ## 0.4.0
 
 ### Minor Changes
