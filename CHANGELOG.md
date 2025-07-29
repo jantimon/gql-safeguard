@@ -1,5 +1,11 @@
 # gql-safeguard
 
+## 0.6.0
+
+### Minor Changes
+
+- f15792e: improve GraphQL ignore functionality
+
 ## 0.5.0
 
 ### Minor Changes
