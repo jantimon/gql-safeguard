@@ -59,6 +59,54 @@ Content:
 
 ---
 
+File: fixtures/invalid/query_level_throw_with_ignore.ts
+GraphQL strings found: 3
+
+=== GraphQL String 1 ===
+BytePos: 327
+Content:
+
+  query queryLevelThrowWithIgnore($groupId: ID!)
+  @throwOnFieldError
+  @raw_response_type {
+    customerOrderProductLineItemsGroupById(id: $groupId)
+      # gql-safeguard-ignore
+      @required(action: THROW) {
+      startWrongDeliveryRegistrationRelativeUrl
+    }
+  }
+
+
+=== GraphQL String 2 ===
+BytePos: 723
+Content:
+
+  query unprotectedQueryLevelThrow($id: ID!)
+  @throwOnFieldError {
+    user(id: $id) {
+      id
+      name
+      email
+    }
+  }
+
+
+=== GraphQL String 3 ===
+BytePos: 987
+Content:
+
+  # gql-safeguard-ignore
+  query queryLevelThrowWithQueryIgnore($id: ID!)
+  @throwOnFieldError {
+    user(id: $id) {
+      id
+      name
+    }
+  }
+
+
+---
+
 File: fixtures/invalid/unprotected_nested.ts
 GraphQL strings found: 4
 

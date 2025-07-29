@@ -1,0 +1,80 @@
+---
+source: lib/src/validate_registry.rs
+expression: result_message
+---
+Edge case validation result:
+❌ Found 5 validation errors:
+
+
+
+🚨 Unprotected @throwOnFieldError
+
+Query: AdditionalQueryEdgeCase (fixtures/edge_cases/additional-queries.ts)
+Location: importedField
+
+Query Structure:
+📄 Query: AdditionalQueryEdgeCase (fixtures/edge_cases/additional-queries.ts)
+└── 🔍 Selections:
+    └── 🔹 Field: user
+        ├── 🔹 Field: id
+        └── 🔹 Field: importedField ❌ [☄️ @ThrowOnFieldError]
+--------------------------------------------------------------------------------
+
+
+🚨 Unprotected @throwOnFieldError
+
+Query: GetUserLogAction (fixtures/edge_cases/required_variants.ts)
+Location: email
+
+Query Structure:
+📄 Query: GetUserLogAction (fixtures/edge_cases/required_variants.ts)
+└── 🔍 Selections:
+    └── 🔹 Field: user
+        ├── 🔹 Field: id
+        ├── 🔹 Field: name
+        └── 🔹 Field: email ❌ [☄️ @RequiredThrow, 🧤 @Catch]
+--------------------------------------------------------------------------------
+
+
+🚨 Unprotected @throwOnFieldError
+
+Query: GetUserNoAction (fixtures/edge_cases/required_variants.ts)
+Location: email
+
+Query Structure:
+📄 Query: GetUserNoAction (fixtures/edge_cases/required_variants.ts)
+└── 🔍 Selections:
+    └── 🔹 Field: user
+        ├── 🔹 Field: id
+        ├── 🔹 Field: name
+        └── 🔹 Field: email ❌ [☄️ @RequiredThrow, 🧤 @Catch]
+--------------------------------------------------------------------------------
+
+
+🚨 Unprotected @throwOnFieldError
+
+Query: GetUserOtherActions (fixtures/edge_cases/required_variants.ts)
+Location: bio
+
+Query Structure:
+📄 Query: GetUserOtherActions (fixtures/edge_cases/required_variants.ts)
+└── 🔍 Selections:
+    └── 🔹 Field: user
+        ├── 🔹 Field: id
+        ├── 🔹 Field: name
+        ├── 🔹 Field: email
+        └── 🔹 Field: bio ❌ [☄️ @RequiredThrow, 🧤 @Catch]
+--------------------------------------------------------------------------------
+
+
+🚨 Unprotected @throwOnFieldError
+
+Query: StaticDynamicQueryEdge (fixtures/edge_cases/dynamic_imports.tsx)
+Location: dynamicField
+
+Query Structure:
+📄 Query: StaticDynamicQueryEdge (fixtures/edge_cases/dynamic_imports.tsx)
+└── 🔍 Selections:
+    └── 🔹 Field: user
+        ├── 🔹 Field: id
+        └── 🔹 Field: dynamicField ❌ [☄️ @ThrowOnFieldError]

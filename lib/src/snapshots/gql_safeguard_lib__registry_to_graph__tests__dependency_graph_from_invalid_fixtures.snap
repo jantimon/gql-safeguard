@@ -27,7 +27,7 @@ Dependency Graph
 |       |   ├── Field: id
 |       |   ├── Field: name [RequiredThrow ☄️]
 |       |   └── Field: email
-|       └── Field: user
+|       └── Field: otherUser
 |           └── Field: name [RequiredThrow ☄️]
 ├── GetUserProfileUnprotected (fixtures/invalid/missing_catch.tsx)
 |   └── Selections:
@@ -42,13 +42,34 @@ Dependency Graph
 |           ├── Field: id
 |           ├── Field: name [RequiredThrow ☄️]
 |           └── Field: email
-└── MixedQuery (fixtures/invalid/partial_protection.ts)
+├── MixedQuery (fixtures/invalid/partial_protection.ts)
+|   └── Selections:
+|       └── Field: user
+|           ├── Field: id
+|           ├── Fragment: ProtectedFragment [Catch 🧤]
+|           |   ├── Field: sensitiveData [ThrowOnFieldError ☄️]
+|           |   └── Field: otherData
+|           └── Fragment: UnprotectedFragment
+|               ├── Field: riskyField [ThrowOnFieldError ☄️]
+|               └── Field: normalField
+├── queryLevelThrowWithIgnore (fixtures/invalid/query_level_throw_with_ignore.ts)
+|   ├── Directives:
+|   |   └── ThrowOnFieldError ☄️
+|   └── Selections:
+|       └── Field: customerOrderProductLineItemsGroupById
+|           └── Field: startWrongDeliveryRegistrationRelativeUrl
+├── queryLevelThrowWithQueryIgnore (fixtures/invalid/query_level_throw_with_ignore.ts)
+|   ├── Directives:
+|   |   └── ThrowOnFieldError ☄️
+|   └── Selections:
+|       └── Field: user
+|           ├── Field: id
+|           └── Field: name
+└── unprotectedQueryLevelThrow (fixtures/invalid/query_level_throw_with_ignore.ts)
+    ├── Directives:
+    |   └── ThrowOnFieldError ☄️
     └── Selections:
         └── Field: user
             ├── Field: id
-            ├── Fragment: ProtectedFragment [Catch 🧤]
-            |   ├── Field: sensitiveData [ThrowOnFieldError ☄️]
-            |   └── Field: otherData
-            └── Fragment: UnprotectedFragment
-                ├── Field: riskyField [ThrowOnFieldError ☄️]
-                └── Field: normalField
+            ├── Field: name
+            └── Field: email

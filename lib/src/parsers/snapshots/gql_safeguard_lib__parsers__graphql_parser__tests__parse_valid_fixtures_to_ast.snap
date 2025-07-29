@@ -49,7 +49,7 @@ Selections: 2
     - Field: user
       - Field: id
       - Field: name
-    - Field: user
+    - Field: otherUser
       - Field: avatar
 
 ---
@@ -90,8 +90,7 @@ GraphQL AST items: 1
 Type: Fragment
 Name: userFieldsWithIgnoreInline
 File: fixtures/valid/ignore_comments.ts
-Directives: 1
-  - ThrowOnFieldError ☄️
+Directives: 0
 Type Condition: on User
 Selections: 1
     - Field: answers

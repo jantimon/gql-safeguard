@@ -22,7 +22,7 @@ GraphQL Registry
 |   |       ├── avatar
 |   |       ├── id
 |   |       ├── name
-|   |       ├── user
+|   |       ├── otherUser
 |   |       └── user
 |   ├── GetUserFieldIgnoreWithFragment (fixtures/valid/ignore_comments.ts)
 |   |   ├── Fields:
@@ -116,8 +116,6 @@ GraphQL Registry
     |       ├── id
     |       └── name
     └── userFieldsWithIgnoreInline (fixtures/valid/ignore_comments.ts)
-        ├── Directives:
-        |   └── ThrowOnFieldError ☄️
         └── Fields:
             ├── answers
             ├── contestId
