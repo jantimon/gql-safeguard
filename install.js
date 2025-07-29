@@ -31,7 +31,7 @@ function checkInstallation() {
   const binaryName = platform() === 'win32' ? 'gql-safeguard.exe' : 'gql-safeguard';
   
   try {
-    const binaryPath = require.resolve(`${pkg}/${binaryName}`);
+    const binaryPath = require.resolve(`${pkg}/bin/${binaryName}`);
     if (existsSync(binaryPath)) {
       console.log(`[gql-safeguard] Successfully installed binary for ${platform()} ${arch()}`);
     }
