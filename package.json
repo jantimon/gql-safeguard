@@ -1,8 +1,15 @@
 {
   "name": "gql-safeguard",
-  "version": "0.1.0",
+  "version": "0.1.1",
   "description": "A fast CLI tool for validating GraphQL @catch directive protection in your codebase",
-  "keywords": ["graphql", "relay", "catch", "validation", "cli", "rust"],
+  "keywords": [
+    "graphql",
+    "relay",
+    "catch",
+    "validation",
+    "cli",
+    "rust"
+  ],
   "author": "Jan Nicklas",
   "license": "MIT",
   "repository": {
