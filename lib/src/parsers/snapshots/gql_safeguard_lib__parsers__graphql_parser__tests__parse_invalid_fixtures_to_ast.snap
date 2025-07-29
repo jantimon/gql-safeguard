@@ -66,6 +66,54 @@ Selections: 1
 
 ---
 
+File: fixtures/invalid/query_level_throw_with_ignore.ts
+GraphQL AST items: 1
+
+=== AST Item 1 ===
+Type: Query
+Name: queryLevelThrowWithIgnore
+File: fixtures/invalid/query_level_throw_with_ignore.ts
+Directives: 1
+  - ThrowOnFieldError ☄️
+Selections: 1
+    - Field: customerOrderProductLineItemsGroupById
+      - Field: startWrongDeliveryRegistrationRelativeUrl
+
+---
+
+File: fixtures/invalid/query_level_throw_with_ignore.ts
+GraphQL AST items: 1
+
+=== AST Item 1 ===
+Type: Query
+Name: unprotectedQueryLevelThrow
+File: fixtures/invalid/query_level_throw_with_ignore.ts
+Directives: 1
+  - ThrowOnFieldError ☄️
+Selections: 1
+    - Field: user
+      - Field: id
+      - Field: name
+      - Field: email
+
+---
+
+File: fixtures/invalid/query_level_throw_with_ignore.ts
+GraphQL AST items: 1
+
+=== AST Item 1 ===
+Type: Query
+Name: queryLevelThrowWithQueryIgnore
+File: fixtures/invalid/query_level_throw_with_ignore.ts
+Directives: 1
+  - ThrowOnFieldError ☄️
+Selections: 1
+    - Field: user
+      - Field: id
+      - Field: name
+
+---
+
 File: fixtures/invalid/unprotected_nested.ts
 GraphQL AST items: 1
 
@@ -157,7 +205,7 @@ Selections: 2
       - Field: id
       - Field: name [RequiredThrow ☄️]
       - Field: email
-    - Field: user
+    - Field: otherUser
       - Field: name [RequiredThrow ☄️]
 
 ---

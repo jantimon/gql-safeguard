@@ -3,7 +3,7 @@ source: lib/src/registry.rs
 expression: formatted
 ---
 GraphQL Registry
-├── Queries (6)
+├── Queries (9)
 |   ├── GetFullUserUnprotected (fixtures/invalid/unprotected_nested.ts)
 |   |   ├── Fields:
 |   |   |   └── user
@@ -21,8 +21,8 @@ GraphQL Registry
 |   |       ├── id
 |   |       ├── name [RequiredThrow ☄️]
 |   |       ├── name [RequiredThrow ☄️]
-|   |       ├── user [Catch 🧤]
-|   |       └── user
+|   |       ├── otherUser
+|   |       └── user [Catch 🧤]
 |   ├── GetUserProfileUnprotected (fixtures/invalid/missing_catch.tsx)
 |   |   └── Fields:
 |   |       ├── avatar [ThrowOnFieldError ☄️]
@@ -36,13 +36,34 @@ GraphQL Registry
 |   |       ├── id
 |   |       ├── name [RequiredThrow ☄️]
 |   |       └── user
-|   └── MixedQuery (fixtures/invalid/partial_protection.ts)
-|       ├── Fields:
-|       |   ├── id
-|       |   └── user
-|       └── Fragment Spreads:
-|           ├── ProtectedFragment
-|           └── UnprotectedFragment
+|   ├── MixedQuery (fixtures/invalid/partial_protection.ts)
+|   |   ├── Fields:
+|   |   |   ├── id
+|   |   |   └── user
+|   |   └── Fragment Spreads:
+|   |       ├── ProtectedFragment
+|   |       └── UnprotectedFragment
+|   ├── queryLevelThrowWithIgnore (fixtures/invalid/query_level_throw_with_ignore.ts)
+|   |   ├── Directives:
+|   |   |   └── ThrowOnFieldError ☄️
+|   |   └── Fields:
+|   |       ├── customerOrderProductLineItemsGroupById
+|   |       └── startWrongDeliveryRegistrationRelativeUrl
+|   ├── queryLevelThrowWithQueryIgnore (fixtures/invalid/query_level_throw_with_ignore.ts)
+|   |   ├── Directives:
+|   |   |   └── ThrowOnFieldError ☄️
+|   |   └── Fields:
+|   |       ├── id
+|   |       ├── name
+|   |       └── user
+|   └── unprotectedQueryLevelThrow (fixtures/invalid/query_level_throw_with_ignore.ts)
+|       ├── Directives:
+|       |   └── ThrowOnFieldError ☄️
+|       └── Fields:
+|           ├── email
+|           ├── id
+|           ├── name
+|           └── user
 └── Fragments (5)
     ├── ProtectedFragment (fixtures/invalid/partial_protection.ts)
     |   ├── Directives:

@@ -1,0 +1,179 @@
+---
+source: lib/src/validate_registry.rs
+expression: result_message
+---
+Validation Result:
+❌ Found 10 validation errors:
+
+
+
+🚨 Unprotected @throwOnFieldError
+
+Query: GetFullUserUnprotected (fixtures/invalid/unprotected_nested.ts)
+Fragment: UserBasicInfoUnprotected (fixtures/invalid/unprotected_nested.ts)
+Location: UserBasicInfoUnprotected.name
+
+Query Structure:
+📄 Query: GetFullUserUnprotected (fixtures/invalid/unprotected_nested.ts)
+└── 🔍 Selections:
+    └── 🔹 Field: user
+        └── 📋 FragmentSpread: UserDetailsUnprotected ❌
+            └── Fragment Content:
+                ├── 📋 FragmentSpread: UserBasicInfoUnprotected ❌
+                |   └── Fragment Content:
+                |       ├── 🔹 Field: id
+                |       ├── 🔹 Field: name [☄️ @ThrowOnFieldError]
+                |       └── 🔹 Field: email
+                ├── 📋 FragmentSpread: UserAvatarUnprotected
+                |   └── Fragment Content:
+                |       ├── 🔹 Field: avatar
+                |       └── 🔹 Field: avatarUrl
+                └── 🔹 Field: bio
+--------------------------------------------------------------------------------
+
+
+🚨 Unprotected @throwOnFieldError
+
+Query: GetUserMixedUnprotected (fixtures/invalid/unprotected_required_throw.ts)
+Location: avatar
+
+Query Structure:
+📄 Query: GetUserMixedUnprotected (fixtures/invalid/unprotected_required_throw.ts)
+└── 🔍 Selections:
+    └── 🔹 Field: user
+        ├── 🔹 Field: id
+        ├── 🔹 Field: name [☄️ @RequiredThrow]
+        └── 🔹 Field: avatar ❌ [☄️ @ThrowOnFieldError]
+--------------------------------------------------------------------------------
+
+
+🚨 Unprotected @throwOnFieldError
+
+Query: GetUserMixedUnprotected (fixtures/invalid/unprotected_required_throw.ts)
+Location: name
+
+Query Structure:
+📄 Query: GetUserMixedUnprotected (fixtures/invalid/unprotected_required_throw.ts)
+└── 🔍 Selections:
+    └── 🔹 Field: user
+        ├── 🔹 Field: id
+        ├── 🔹 Field: name ❌ [☄️ @RequiredThrow]
+        └── 🔹 Field: avatar [☄️ @ThrowOnFieldError]
+--------------------------------------------------------------------------------
+
+
+🚨 Unprotected @throwOnFieldError
+
+Query: GetUserPartial (fixtures/invalid/unprotected_required_throw.ts)
+Location: name
+
+Query Structure:
+📄 Query: GetUserPartial (fixtures/invalid/unprotected_required_throw.ts)
+└── 🔍 Selections:
+    ├── 🔹 Field: user [🧤 @Catch]
+    |   ├── 🔹 Field: id
+    |   ├── 🔹 Field: name [☄️ @RequiredThrow]
+    |   └── 🔹 Field: email
+    └── 🔹 Field: otherUser
+        └── 🔹 Field: name ❌ [☄️ @RequiredThrow]
+--------------------------------------------------------------------------------
+
+
+🚨 Unprotected @throwOnFieldError
+
+Query: GetUserProfileUnprotected (fixtures/invalid/missing_catch.tsx)
+Location: avatar
+
+Query Structure:
+📄 Query: GetUserProfileUnprotected (fixtures/invalid/missing_catch.tsx)
+└── 🔍 Selections:
+    └── 🔹 Field: user
+        ├── 🔹 Field: id
+        ├── 🔹 Field: name
+        ├── 🔹 Field: avatar ❌ [☄️ @ThrowOnFieldError]
+        └── 🔹 Field: email
+--------------------------------------------------------------------------------
+
+
+🚨 Unprotected @throwOnFieldError
+
+Query: GetUserUnprotected (fixtures/invalid/unprotected_required_throw.ts)
+Location: name
+
+Query Structure:
+📄 Query: GetUserUnprotected (fixtures/invalid/unprotected_required_throw.ts)
+└── 🔍 Selections:
+    └── 🔹 Field: user
+        ├── 🔹 Field: id
+        ├── 🔹 Field: name ❌ [☄️ @RequiredThrow]
+        └── 🔹 Field: email
+--------------------------------------------------------------------------------
+
+
+🚨 Unprotected @throwOnFieldError
+
+Query: MixedQuery (fixtures/invalid/partial_protection.ts)
+Fragment: UnprotectedFragment (fixtures/invalid/partial_protection.ts)
+Location: UnprotectedFragment.riskyField
+
+Query Structure:
+📄 Query: MixedQuery (fixtures/invalid/partial_protection.ts)
+└── 🔍 Selections:
+    └── 🔹 Field: user
+        ├── 🔹 Field: id
+        ├── 📋 FragmentSpread: ProtectedFragment
+        |   └── Fragment Content:
+        |       ├── 🔹 Field: sensitiveData [☄️ @ThrowOnFieldError]
+        |       └── 🔹 Field: otherData
+        └── 📋 FragmentSpread: UnprotectedFragment ❌
+            └── Fragment Content:
+                ├── 🔹 Field: riskyField [☄️ @ThrowOnFieldError]
+                └── 🔹 Field: normalField
+--------------------------------------------------------------------------------
+
+
+🚨 Unprotected @throwOnFieldError
+
+Query: queryLevelThrowWithIgnore (fixtures/invalid/query_level_throw_with_ignore.ts)
+Location: query level
+
+Query Structure:
+📄 Query: queryLevelThrowWithIgnore (fixtures/invalid/query_level_throw_with_ignore.ts)
+├── 🏷️  Query Directives:
+|   └── ☄️ @ThrowOnFieldError ❌
+└── 🔍 Selections:
+    └── 🔹 Field: customerOrderProductLineItemsGroupById
+        └── 🔹 Field: startWrongDeliveryRegistrationRelativeUrl
+--------------------------------------------------------------------------------
+
+
+🚨 Unprotected @throwOnFieldError
+
+Query: queryLevelThrowWithQueryIgnore (fixtures/invalid/query_level_throw_with_ignore.ts)
+Location: query level
+
+Query Structure:
+📄 Query: queryLevelThrowWithQueryIgnore (fixtures/invalid/query_level_throw_with_ignore.ts)
+├── 🏷️  Query Directives:
+|   └── ☄️ @ThrowOnFieldError ❌
+└── 🔍 Selections:
+    └── 🔹 Field: user
+        ├── 🔹 Field: id
+        └── 🔹 Field: name
+--------------------------------------------------------------------------------
+
+
+🚨 Unprotected @throwOnFieldError
+
+Query: unprotectedQueryLevelThrow (fixtures/invalid/query_level_throw_with_ignore.ts)
+Location: query level
+
+Query Structure:
+📄 Query: unprotectedQueryLevelThrow (fixtures/invalid/query_level_throw_with_ignore.ts)
+├── 🏷️  Query Directives:
+|   └── ☄️ @ThrowOnFieldError ❌
+└── 🔍 Selections:
+    └── 🔹 Field: user
+        ├── 🔹 Field: id
+        ├── 🔹 Field: name
+        └── 🔹 Field: email

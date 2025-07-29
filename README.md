@@ -14,11 +14,12 @@ GQL Safeguard analyzes your TypeScript/TSX codebase to ensure every `@throwOnFie
 
 ## Key Features
 
-- **🚀 Fast & Efficient**: Written in Rust with parallel processing for large codebases
-- **🎯 Precise Analysis**: Uses AST parsing instead of regex to avoid false positives
-- **🌳 Fragment Resolution**: Fully resolves fragment dependencies for accurate validation  
-- **📊 Clear Error Reporting**: Rich error messages with visual query structure
-- **⚡ Memory Efficient**: Streaming file processing prevents memory issues
+- **🚀 Blazing Fast**: Optimized registry-based validation with smart subtree skipping 
+- **⚡ Parallel Processing**: Query-level parallelization for maximum performance
+- **🎯 Precise Analysis**: Uses AST parsing with accurate field alias handling
+- **🌳 Smart Fragment Resolution**: On-demand fragment expansion only when needed
+- **📊 Clear Error Reporting**: Rich error messages with precise field highlighting
+- **🛡️ Circular Fragment Safe**: Robust cycle detection prevents stack overflow
 - **🔧 CLI & Library**: Use as a command-line tool or integrate into your build pipeline
 
 ## Installation
@@ -135,29 +136,31 @@ Override with `--ignore` flag for custom patterns.
 
 ## How It Works
 
-GQL Safeguard uses a sophisticated multi-stage analysis pipeline:
+GQL Safeguard uses an optimized multi-stage analysis pipeline:
 
 ### 1. **TypeScript Extraction**
-Uses SWC AST parsing to extract GraphQL from `gql` and `graphql` tagged template literals, avoiding false positives from comments or dynamic content.
+Uses SWC AST parsing to extract GraphQL from `gql` and `graphql` tagged template literals, with proper field alias handling (`otherUser: user(id: "other")`).
 
 ### 2. **GraphQL Parsing**
 Converts extracted GraphQL strings into structured AST representations with full directive extraction and position tracking.
 
-### 3. **Fragment Resolution**
-Expands fragment spreads (`...FragmentName`) into complete dependency trees while preserving directive inheritance relationships.
+### 3. **Smart Validation Algorithm**
+Revolutionary performance optimization through intelligent subtree skipping:
 
-### 4. **Protection Validation**
-Validates that every `@throwOnFieldError` directive and every `@required(action: THROW)` directive has proper `@catch` ancestor protection using single-pass recursive traversal with O(n) complexity.
+- **Hit @catch → Skip subtree**: When a `@catch` directive is found, the entire subtree is marked as protected and skipped
+- **Hit throwing directive → Check protection**: Only validates `@throwOnFieldError`/`@required(action: THROW)` if not in protected subtree  
+- **Fragment spread → Process on-demand**: Only resolves and validates fragment content when in unprotected contexts
+
+### 4. **Parallel Processing**
+Query-level parallelization processes multiple queries concurrently with thread-safe error collection and deterministic output ordering.
 
 ## Validation Rules
 
 ### Rule 1: Protection Requirement
 Every `@throwOnFieldError` directive and every `@required(action: THROW)` directive must be protected by at least one `@catch` directive in an ancestor field, fragment, or query.
 
-### Rule 2: Useful Protection  
-Every `@catch` directive must protect at least one `@throwOnFieldError` or `@required(action: THROW)` directive in its subtree to avoid unnecessary error handling.
 
-### Rule 3: Required Action Filtering
+### Rule 2: Required Action Filtering
 Only `@required` directives with `action: THROW` are validated. Other action values (`LOG`, `WARN`, `NONE`) or missing action arguments are ignored as they don't throw exceptions.
 
 ## Ignoring Specific Fields
@@ -196,10 +199,6 @@ user @catch {
 }
 ```
 
-### Empty @catch  
-**Issue**: `@catch` directive doesn't protect any `@throwOnFieldError` or `@required(action: THROW)` directives
-
-**Fix**: Either add throwing directives to descendant fields or remove unnecessary `@catch`
 
 ## Development
 
@@ -218,10 +217,10 @@ cargo insta review
 ### Architecture
 
 - **`cli/`**: Command-line interface and argument parsing
-- **`lib/src/parsers/`**: TypeScript and GraphQL parsing logic
+- **`lib/src/parsers/`**: TypeScript and GraphQL parsing with field alias support
 - **`lib/src/registry.rs`**: Concurrent GraphQL extraction and storage
-- **`lib/src/registry_to_graph.rs`**: Fragment dependency resolution
-- **`lib/src/validate.rs`**: Core validation logic with error reporting
+- **`lib/src/registry_to_graph.rs`**: Fragment dependency resolution (legacy)
+- **`lib/src/validate_registry.rs`**: Optimized validation with smart subtree skipping
 - **`lib/src/tree_formatter.rs`**: Visual tree output formatting
 - **`fixtures/`**: Test cases for validation scenarios
 
@@ -235,10 +234,12 @@ The project uses comprehensive snapshot testing to ensure consistent behavior:
 
 ## Performance
 
-- **Parallel Processing**: Concurrent file analysis using Rayon
-- **Memory Efficient**: Streaming approach prevents memory issues on large codebases
-- **Fast Parsing**: SWC-based TypeScript parsing with early exits
-- **Optimized Traversal**: Single-pass validation with O(n) complexity
+- **Smart Subtree Skipping**: fast validation by skipping protected subtrees
+- **Query-Level Parallelization**: Concurrent query processing with rayon
+- **On-Demand Fragment Resolution**: Only expands fragments when needed
+- **Memory Efficient**: Direct registry processing avoids expensive dependency graphs
+- **Circular Fragment Safe**: Robust cycle detection prevents infinite recursion
+- **Fast Parsing**: SWC-based TypeScript parsing with field alias support
 
 ## Contributing
 

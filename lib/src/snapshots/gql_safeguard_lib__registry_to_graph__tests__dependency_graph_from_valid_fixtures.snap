@@ -34,7 +34,7 @@ Dependency Graph
 |       ├── Field: user
 |       |   ├── Field: id
 |       |   └── Field: name
-|       └── Field: user
+|       └── Field: otherUser
 |           └── Field: avatar
 ├── GetUserFieldIgnoreWithFragment (fixtures/valid/ignore_comments.ts)
 |   └── Selections:

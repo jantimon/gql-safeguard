@@ -8,7 +8,7 @@ use ignore::{WalkBuilder, WalkState};
 use rayon::prelude::*;
 use serde::{Deserialize, Serialize};
 use std::path::Path;
-use std::sync::Arc;
+use std::sync::{atomic::AtomicUsize, Arc};
 
 use crate::parsers::graphql_parser::{
     parse_graphql_to_ast, FragmentDefinition, GraphQLItem, QueryOperation,
@@ -28,6 +28,8 @@ pub struct GraphQLRegistry {
     pub fragments: FragmentRegistry,
     #[serde(with = "serde_dashmap")]
     pub queries: QueryRegistry,
+    #[serde(skip)]
+    pub file_count: usize,
 }
 
 // DashMap doesn't implement Serialize directly - need custom conversion
@@ -76,6 +78,7 @@ impl Default for GraphQLRegistry {
 impl GraphQLRegistry {
     pub fn new() -> Self {
         Self {
+            file_count: 0,
             fragments: Arc::new(DashMap::new()),
             queries: Arc::new(DashMap::new()),
         }
@@ -113,8 +116,9 @@ pub fn process_glob(
     }
     let exclude_set = Arc::new(exclude_builder.build()?);
 
-    let registry = GraphQLRegistry::new();
+    let mut registry = GraphQLRegistry::new();
     let registry_ref = &registry;
+    let file_count = Arc::new(AtomicUsize::new(0));
 
     WalkBuilder::new(root_path)
         .standard_filters(false)
@@ -123,6 +127,7 @@ pub fn process_glob(
             let include = Arc::clone(&include_set);
             let exclude = Arc::clone(&exclude_set);
             let registry = registry_ref;
+            let file_counter = Arc::clone(&file_count);
 
             Box::new(move |entry_res: Result<ignore::DirEntry, ignore::Error>| {
                 if let Ok(entry) = entry_res {
@@ -131,11 +136,14 @@ pub fn process_glob(
                         return WalkState::Skip;
                     } else if path.is_file() && include.is_match(path) {
                         parse_file(path, registry);
+                        file_counter.fetch_add(1, std::sync::atomic::Ordering::Relaxed);
                     }
                 }
                 WalkState::Continue
             })
         });
+
+    registry.file_count = file_count.load(std::sync::atomic::Ordering::Relaxed);
 
     Ok(registry)
 }

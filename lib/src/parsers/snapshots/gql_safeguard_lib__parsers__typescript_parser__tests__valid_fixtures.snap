@@ -34,7 +34,7 @@ Content:
 ---
 
 File: fixtures/valid/ignore_comments.ts
-GraphQL strings found: 3
+GraphQL strings found: 4
 
 === GraphQL String 1 ===
 BytePos: 64
@@ -79,6 +79,25 @@ Content:
         profileVersion: { type: "Int", defaultValue: 1 }
       ) {
       name   
+    }
+  }
+
+
+=== GraphQL String 4 ===
+BytePos: 982
+Content:
+
+  # gql-safeguard-ignore
+  fragment userFieldsWithIgnoreInline on User @throwOnFieldError{
+    answers {
+      ... on BlogPageCompetitionSelectionAnswer {
+        id
+        text
+        participantCount
+        selectedOption
+        submissionDate
+        contestId
+      }
     }
   }
 

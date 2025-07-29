@@ -49,7 +49,7 @@ Selections: 2
     - Field: user
       - Field: id
       - Field: name
-    - Field: user
+    - Field: otherUser
       - Field: avatar
 
 ---
@@ -80,6 +80,27 @@ Type Condition: on User
 Selections: 1
     - Field: id
       - Field: name
+
+---
+
+File: fixtures/valid/ignore_comments.ts
+GraphQL AST items: 1
+
+=== AST Item 1 ===
+Type: Fragment
+Name: userFieldsWithIgnoreInline
+File: fixtures/valid/ignore_comments.ts
+Directives: 0
+Type Condition: on User
+Selections: 1
+    - Field: answers
+      - InlineFragment on on BlogPageCompetitionSelectionAnswer
+        - Field: id
+        - Field: text
+        - Field: participantCount
+        - Field: selectedOption
+        - Field: submissionDate
+        - Field: contestId
 
 ---
 

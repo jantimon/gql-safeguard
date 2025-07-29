@@ -3,8 +3,7 @@ mod args;
 use args::{Args, Command};
 use clap::Parser;
 use gql_safeguard_lib::registry::process_glob;
-use gql_safeguard_lib::registry_to_graph::registry_to_dependency_graph;
-use gql_safeguard_lib::validate::validate_query_directives;
+use gql_safeguard_lib::validate_registry::validate_registry;
 use std::time::Instant;
 
 fn main() -> anyhow::Result<()> {
@@ -43,15 +42,18 @@ fn main() -> anyhow::Result<()> {
 
     match args.command {
         Command::Validate { show_trees } => {
-            // Expand fragments for complete validation context
-            let dependency_graph = registry_to_dependency_graph(&registry)?;
-
             if args.verbose {
-                println!("Found {} queries", dependency_graph.len());
+                let elapsed = start_time.elapsed();
+                println!("Found {} files in {elapsed:.2?}", registry.file_count);
             }
 
-            // Check @catch/@throwOnFieldError protection rules
-            let validation_result = validate_query_directives(&dependency_graph);
+            if args.verbose {
+                let elapsed = start_time.elapsed();
+                println!("Found {} queries in {elapsed:.2?}", registry.queries.len());
+            }
+
+            // Use optimized registry-based validation for better performance
+            let validation_result = validate_registry(&registry);
             if validation_result.is_valid() {
                 let elapsed = start_time.elapsed();
                 println!("✅ All GraphQL queries pass validation! (took {elapsed:.2?})");
@@ -79,20 +81,29 @@ fn main() -> anyhow::Result<()> {
                 println!("🫵  Fix this by adding @catch to a field or parent fragment.");
                 println!("Learn more: https://relay.dev/docs/next/guides/throw-on-field-error-directive/");
                 println!();
-                println!("❌ Validation failed: (took {elapsed:.2?})");
+                println!("❌ Validation failed after {elapsed:.2?}!");
+                println!("━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━");
                 println!(
-                    "Found {} queries and {} fragments",
+                    "🔍 Found {} validation error{} across {} queries and {} fragments",
+                    validation_result.errors.len(),
+                    if validation_result.errors.len() == 1 {
+                        ""
+                    } else {
+                        "s"
+                    },
                     registry.queries.len(),
                     registry.fragments.len()
                 );
+                println!("━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━");
                 std::process::exit(1);
             }
 
             if show_trees {
-                println!("\n--- Dependency Trees ---");
-                for query in &dependency_graph {
-                    println!("Query: {} ({})", query.name, query.file_path.display());
-                    // Could add tree formatting here
+                println!("\n--- Query Registry ---");
+                for query_entry in registry.queries.iter() {
+                    let query_name = query_entry.key();
+                    let query = query_entry.value();
+                    println!("Query: {} ({})", query_name, query.file_path.display());
                 }
             }
         }

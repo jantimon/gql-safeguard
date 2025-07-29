@@ -22,7 +22,7 @@ GraphQL Registry
 |   |       ├── avatar
 |   |       ├── id
 |   |       ├── name
-|   |       ├── user
+|   |       ├── otherUser
 |   |       └── user
 |   ├── GetUserFieldIgnoreWithFragment (fixtures/valid/ignore_comments.ts)
 |   |   ├── Fields:
@@ -73,7 +73,7 @@ GraphQL Registry
 |       |   └── user
 |       └── Fragment Spreads:
 |           └── RiskyUserData
-└── Fragments (7)
+└── Fragments (8)
     ├── RiskyUserData (fixtures/valid/fragment_level_catch.ts)
     |   ├── Directives:
     |   |   └── Catch 🧤
@@ -111,7 +111,16 @@ GraphQL Registry
     |   └── Fields:
     |       ├── avatar
     |       └── avatarUrl
-    └── userFieldsWithIgnore (fixtures/valid/ignore_comments.ts)
+    ├── userFieldsWithIgnore (fixtures/valid/ignore_comments.ts)
+    |   └── Fields:
+    |       ├── id
+    |       └── name
+    └── userFieldsWithIgnoreInline (fixtures/valid/ignore_comments.ts)
         └── Fields:
+            ├── answers
+            ├── contestId
             ├── id
-            └── name
+            ├── participantCount
+            ├── selectedOption
+            ├── submissionDate
+            └── text
