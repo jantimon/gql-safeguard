@@ -80,7 +80,7 @@ GraphQL AST items: 1
 
 === AST Item 1 ===
 Type: Query
-Name: GetUserMixed
+Name: GetUserMixedIgnore
 File: fixtures/valid/ignore_comments.ts
 Directives: 0
 Selections: 2
@@ -227,7 +227,7 @@ GraphQL AST items: 1
 
 === AST Item 1 ===
 Type: Query
-Name: GetUserProfile
+Name: GetUserProfileFieldCatch
 File: fixtures/valid/required_throw.ts
 Directives: 0
 Selections: 1

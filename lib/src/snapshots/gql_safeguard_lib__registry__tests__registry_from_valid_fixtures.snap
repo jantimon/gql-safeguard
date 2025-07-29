@@ -3,7 +3,7 @@ source: lib/src/registry.rs
 expression: formatted
 ---
 GraphQL Registry
-├── Queries (8)
+├── Queries (10)
 |   ├── GetFullUser (fixtures/valid/nested_fragments_protected.ts)
 |   |   ├── Fields:
 |   |   |   └── user
@@ -34,6 +34,13 @@ GraphQL Registry
 |   |       ├── id
 |   |       ├── name [RequiredThrow ☄️]
 |   |       └── user
+|   ├── GetUserMixedIgnore (fixtures/valid/ignore_comments.ts)
+|   |   └── Fields:
+|   |       ├── badField
+|   |       ├── goodField [ThrowOnFieldError ☄️]
+|   |       ├── ignoredField
+|   |       ├── user [Catch 🧤]
+|   |       └── user
 |   ├── GetUserNested (fixtures/valid/required_throw.ts)
 |   |   └── Fields:
 |   |       ├── avatar
@@ -43,7 +50,16 @@ GraphQL Registry
 |   |       ├── profile [Catch 🧤]
 |   |       ├── url [ThrowOnFieldError ☄️]
 |   |       └── user
-|   ├── GetUserProfile (fixtures/valid/required_throw.ts)
+|   ├── GetUserProfile (fixtures/valid/query_with_catch.tsx)
+|   |   ├── Directives:
+|   |   |   └── Catch 🧤
+|   |   └── Fields:
+|   |       ├── avatar [ThrowOnFieldError ☄️]
+|   |       ├── email
+|   |       ├── id
+|   |       ├── name
+|   |       └── user
+|   ├── GetUserProfileFieldCatch (fixtures/valid/required_throw.ts)
 |   |   └── Fields:
 |   |       ├── avatar [RequiredThrow ☄️]
 |   |       ├── bio

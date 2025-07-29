@@ -38,7 +38,7 @@ const GET_USER_FIELD_CATCH = gql`
 
 // Test mixed scenarios
 const GET_USER_MIXED = gql`
-  query GetUserMixed($id: ID!) {
+  query GetUserMixedIgnore($id: ID!) {
     protectedUser: user(id: $id) @catch {
       # gql-safeguard-ignore
       badField @throwOnFieldError  # Ignored

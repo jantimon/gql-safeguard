@@ -80,7 +80,7 @@ Content:
 BytePos: 1162
 Content:
 
-  query GetUserMixed($id: ID!) {
+  query GetUserMixedIgnore($id: ID!) {
     protectedUser: user(id: $id) @catch {
       # gql-safeguard-ignore
       badField @throwOnFieldError  # Ignored
@@ -207,7 +207,7 @@ Content:
 BytePos: 369
 Content:
 
-  query GetUserProfile($id: ID!) {
+  query GetUserProfileFieldCatch($id: ID!) {
     user(id: $id) @catch {
       id
       name @required(action: THROW)
@@ -218,7 +218,7 @@ Content:
 
 
 === GraphQL String 3 ===
-BytePos: 646
+BytePos: 656
 Content:
 
   query GetUserMixed($id: ID!) @catch {
@@ -232,7 +232,7 @@ Content:
 
 
 === GraphQL String 4 ===
-BytePos: 928
+BytePos: 938
 Content:
 
   query GetUserNested($id: ID!) {
