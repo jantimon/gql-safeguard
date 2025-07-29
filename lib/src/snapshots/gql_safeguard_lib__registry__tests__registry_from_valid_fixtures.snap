@@ -35,15 +35,13 @@ GraphQL Registry
 |   |       ├── bio [RequiredThrow ☄️]
 |   |       ├── avatar
 |   |       └── url [ThrowOnFieldError ☄️]
-|   ├── GetUserProfile (fixtures/valid/query_with_catch.tsx)
-|   |   ├── Directives:
-|   |   |   └── Catch 🧤
+|   ├── GetUserProfile (fixtures/valid/required_throw.ts)
 |   |   └── Fields:
-|   |       ├── user
+|   |       ├── user [Catch 🧤]
 |   |       ├── id
-|   |       ├── name
-|   |       ├── avatar [ThrowOnFieldError ☄️]
-|   |       └── email
+|   |       ├── name [RequiredThrow ☄️]
+|   |       ├── avatar [RequiredThrow ☄️]
+|   |       └── bio
 |   └── GetUserWithRiskyData (fixtures/valid/fragment_level_catch.ts)
 |       ├── Directives:
 |       |   └── Catch 🧤

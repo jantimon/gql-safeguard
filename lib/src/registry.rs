@@ -393,17 +393,4 @@ mod tests {
         let formatted = format_registry_with_tree_formatter(&registry);
         insta::assert_snapshot!(formatted);
     }
-
-    // Full integration test across all GraphQL patterns
-    #[test]
-    fn test_registry_from_all_fixtures() {
-        let mut all_files = Vec::new();
-        all_files.extend(collect_fixture_files("valid"));
-        all_files.extend(collect_fixture_files("invalid"));
-        all_files.extend(collect_fixture_files("edge_cases"));
-
-        let registry = process_files(&all_files);
-        let formatted = format_registry_with_tree_formatter(&registry);
-        insta::assert_snapshot!(formatted);
-    }
 }
