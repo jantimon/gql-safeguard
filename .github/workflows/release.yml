@@ -34,6 +34,33 @@ jobs:
       - name: Install dependencies
         run: npm install
 
+      - name: Update optional dependencies versions
+        run: |
+          # Only update during PR creation (when there are unpublished changesets)
+          CHANGESET_STATUS=$(npx changeset status --output=json)
+          HAS_CHANGESETS=$(echo "$CHANGESET_STATUS" | jq -r '.releases | length > 0')
+          
+          if [ "$HAS_CHANGESETS" = "true" ]; then
+            # Get the new version that changesets will use
+            NEW_VERSION=$(echo "$CHANGESET_STATUS" | jq -r '.releases[0].newVersion // empty')
+            
+            if [ -n "$NEW_VERSION" ]; then
+              echo "Updating optionalDependencies to version $NEW_VERSION for PR creation"
+              
+              # Update package.json optionalDependencies to use the new version
+              jq --arg version "$NEW_VERSION" '
+                .optionalDependencies = (.optionalDependencies // {} | to_entries | map(.value = $version) | from_entries)
+              ' package.json > package.json.tmp && mv package.json.tmp package.json
+              
+              echo "Updated optionalDependencies:"
+              jq '.optionalDependencies' package.json
+            else
+              echo "No version changes detected"
+            fi
+          else
+            echo "No unpublished changesets found, skipping optionalDependencies update (likely publishing mode)"
+          fi
+
       - name: Create Release Pull Request or Publish to npm
         id: changesets
         uses: changesets/action@v1
@@ -126,8 +153,18 @@ jobs:
           PACKAGE_NAME="@${{ matrix.package }}"
           OS="${{ matrix.os_name }}"
           CPU="${{ matrix.cpu }}"
+          if [[ "${{ matrix.os_name }}" == "win32" ]]; then
+            EXE_SUFFIX=".exe"
+          else
+            EXE_SUFFIX=""
+          fi
           
+          export VERSION PACKAGE_NAME OS CPU EXE_SUFFIX
           envsubst < npm/package.json.tmpl > npm-package/package.json
+          
+          # Log final package.json for debugging
+          echo "Final package.json content:"
+          cat npm-package/package.json
         shell: bash
         env:
           PACKAGE_NAME: "@${{ matrix.package }}"
