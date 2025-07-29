@@ -45,7 +45,7 @@ pub fn registry_to_dependency_graph(registry: &GraphQLRegistry) -> Result<Vec<Qu
             registry,
             &mut FxHashSet::default(),
         )
-        .with_context(|| format!("Failed to resolve selections for query '{}'", query_name))?;
+        .with_context(|| format!("Failed to resolve selections for query '{query_name}'"))?;
 
         result.push(QueryWithFragments {
             name: query.name.clone(),

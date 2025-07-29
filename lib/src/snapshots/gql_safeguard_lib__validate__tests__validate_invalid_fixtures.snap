@@ -9,11 +9,11 @@ Validation Result:
 
 🚨 Unprotected @throwOnFieldError
 
-Query: GetFullUserUnprotected (/Users/jannicklas/Desktop/gql-safeguard/fixtures/invalid/unprotected_nested.ts)
+Query: GetFullUserUnprotected (fixtures/invalid/unprotected_nested.ts)
 Location: UserBasicInfoUnprotected.name
 
 Query Structure:
-📄 Query: GetFullUserUnprotected (/Users/jannicklas/Desktop/gql-safeguard/fixtures/invalid/unprotected_nested.ts)
+📄 Query: GetFullUserUnprotected (fixtures/invalid/unprotected_nested.ts)
 └── 🔍 Selections:
     └── 🔹 Field: user
         └── 🧩 Fragment: UserDetailsUnprotected ❌
@@ -30,11 +30,11 @@ Query Structure:
 
 🚨 Unprotected @throwOnFieldError
 
-Query: GetFullUserUnprotected (/Users/jannicklas/Desktop/gql-safeguard/fixtures/invalid/unprotected_nested.ts)
+Query: GetFullUserUnprotected (fixtures/invalid/unprotected_nested.ts)
 Location: UserDetailsUnprotected...UserAvatarUnprotected
 
 Query Structure:
-📄 Query: GetFullUserUnprotected (/Users/jannicklas/Desktop/gql-safeguard/fixtures/invalid/unprotected_nested.ts)
+📄 Query: GetFullUserUnprotected (fixtures/invalid/unprotected_nested.ts)
 └── 🔍 Selections:
     └── 🔹 Field: user
         └── 🧩 Fragment: UserDetailsUnprotected ❌
@@ -51,11 +51,11 @@ Query Structure:
 
 🚨 Unprotected @throwOnFieldError
 
-Query: GetUserProfileUnprotected (/Users/jannicklas/Desktop/gql-safeguard/fixtures/invalid/missing_catch.tsx)
+Query: GetUserProfileUnprotected (fixtures/invalid/missing_catch.tsx)
 Location: avatar
 
 Query Structure:
-📄 Query: GetUserProfileUnprotected (/Users/jannicklas/Desktop/gql-safeguard/fixtures/invalid/missing_catch.tsx)
+📄 Query: GetUserProfileUnprotected (fixtures/invalid/missing_catch.tsx)
 └── 🔍 Selections:
     └── 🔹 Field: user
         ├── 🔹 Field: id
@@ -67,11 +67,11 @@ Query Structure:
 
 🚨 Unprotected @throwOnFieldError
 
-Query: MixedQuery (/Users/jannicklas/Desktop/gql-safeguard/fixtures/invalid/partial_protection.ts)
+Query: MixedQuery (fixtures/invalid/partial_protection.ts)
 Location: UnprotectedFragment.riskyField
 
 Query Structure:
-📄 Query: MixedQuery (/Users/jannicklas/Desktop/gql-safeguard/fixtures/invalid/partial_protection.ts)
+📄 Query: MixedQuery (fixtures/invalid/partial_protection.ts)
 └── 🔍 Selections:
     └── 🔹 Field: user
         ├── 🔹 Field: id

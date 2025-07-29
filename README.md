@@ -6,6 +6,8 @@ A Rust-powered static analysis tool that prevents GraphQL runtime errors by enfo
 
 When using `@throwOnFieldError` in GraphQL queries, field errors are converted to exceptions that bubble up through your component tree. Without proper `@catch` directive protection, these exceptions can crash entire pages or app sections.
 
+The reason why `@catch` is enforced instead of React Error Boundaries: Error boundaries don't work during SSR, but `@catch` does. This makes `@catch` essential for server-side rendered applications.
+
 GQL Safeguard analyzes your TypeScript/TSX codebase to ensure every `@throwOnFieldError` directive is properly protected by a `@catch` directive in an ancestor field or fragment.
 
 ## Key Features
@@ -168,17 +170,9 @@ user @catch {
 ```
 
 ### Empty @catch  
-**Issue**: `@catch` directive doesn't protect any `@throwOnFieldError` directives.
+**Issue**: `@catch` directive doesn't protect any `@throwOnFieldError` directives
 
-**Fix**: Either add `@throwOnFieldError` to descendant fields or remove unnecessary `@catch`.
-
-## Integration
-
-### CI/CD Pipeline
-```yaml
-- name: Validate GraphQL Safety
-  run: npx gql-safeguard . validate
-```
+**Fix**: Either add `@throwOnFieldError` to descendant fields or remove unnecessary `@catch`
 
 ## Development
 
