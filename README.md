@@ -48,23 +48,47 @@ npx gql-safeguard . json > graphql-analysis.json
 ### Example Validation
 
 **❌ Invalid - Unprotected @throwOnFieldError:**
+
+**user-query.ts:**
 ```typescript
 const query = gql`
   query MyQuery {
     user {
-      name @throwOnFieldError  # ❌ No @catch protection!
+      ...UserProfile  # ❌ Fragment contains unprotected @throwOnFieldError!
     }
   }
 `;
 ```
 
+**user-profile-fragment.ts:**
+```typescript
+const fragment = gql`
+  fragment UserProfile on User {
+    name @throwOnFieldError  # ❌ No @catch protection!
+    email @throwOnFieldError
+  }
+`;
+```
+
 **✅ Valid - Properly Protected:**
+
+**user-query.ts:**
 ```typescript
 const query = gql`
   query MyQuery {
-    user @catch {
-      name @throwOnFieldError  # ✅ Protected by ancestor @catch
+    user @catch {  # ✅ Catches errors from fragment
+      ...UserProfile
     }
+  }
+`;
+```
+
+**user-profile-fragment.ts:**
+```typescript
+const fragment = gql`
+  fragment UserProfile on User {
+    name @throwOnFieldError  # ✅ Protected by ancestor @catch in query
+    email @throwOnFieldError
   }
 `;
 ```

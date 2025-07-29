@@ -2,6 +2,7 @@
   "name": "${PACKAGE_NAME}",
   "version": "${VERSION}",
   "description": "Platform-specific binary for gql-safeguard",
+  "author": "Jan Nicklas",
   "repository": {
     "type": "git",
     "url": "git+https://github.com/jantimon/gql-safeguard.git"
@@ -10,10 +11,11 @@
   "os": ["${OS}"],
   "cpu": ["${CPU}"],
   "engines": {
-    "node": ">=16"
+    "node": ">=20"
   },
   "files": [
-    "gql-safeguard${EXE_SUFFIX}"
+    "gql-safeguard${EXE_SUFFIX}",
+    "README.md"
   ],
   "publishConfig": {
     "access": "public"

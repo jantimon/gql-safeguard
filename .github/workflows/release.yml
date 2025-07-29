@@ -2,17 +2,49 @@ name: Release
 
 on:
   push:
-    tags:
-      - 'v*'
-  workflow_dispatch:
+    branches:
+      - main
+
+concurrency: ${{ github.workflow }}-${{ github.ref }}
 
 env:
   CARGO_TERM_COLOR: always
 
 jobs:
+  release:
+    name: Release
+    runs-on: ubuntu-latest
+    outputs:
+      published: ${{ steps.changesets.outputs.published }}
+      publishedPackages: ${{ steps.changesets.outputs.publishedPackages }}
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Install Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+
+      - name: Install dependencies
+        run: npm install
+
+      - name: Create Release Pull Request or Publish to npm
+        id: changesets
+        uses: changesets/action@v1
+        with:
+          publish: npm run release
+          title: Release new version
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          NPM_TOKEN: ${{ secrets.NPM_TOKEN }}
   build:
     name: Build ${{ matrix.target }}
     runs-on: ${{ matrix.os }}
+    needs: release
+    if: needs.release.outputs.published == 'true'
     strategy:
       matrix:
         include:
@@ -81,8 +113,11 @@ jobs:
             EXE_SUFFIX=""
           fi
           
-          # Get version from Cargo.toml
-          VERSION=$(grep '^version' cli/Cargo.toml | sed 's/version = "\(.*\)"/\1/')
+          # Copy README for binary package
+          cp npm/README.md npm-package/
+          
+          # Get version from package.json
+          VERSION=$(node -p "require('./package.json').version")
           
           # Generate package.json from template
           PACKAGE_NAME="@${{ matrix.package }}"
@@ -93,7 +128,6 @@ jobs:
         shell: bash
         env:
           PACKAGE_NAME: "@${{ matrix.package }}"
-          VERSION: ${{ github.ref_name }}
           OS: ${{ matrix.os_name }}
           CPU: ${{ matrix.cpu }}
           EXE_SUFFIX: ${{ matrix.os_name == 'win32' && '.exe' || '' }}
@@ -109,7 +143,6 @@ jobs:
     name: Publish to NPM
     runs-on: ubuntu-latest
     needs: build
-    if: startsWith(github.ref, 'refs/tags/')
     strategy:
       matrix:
         include:
@@ -151,7 +184,6 @@ jobs:
     name: Publish base package
     runs-on: ubuntu-latest
     needs: publish
-    if: startsWith(github.ref, 'refs/tags/')
 
     steps:
       - name: Checkout
@@ -163,16 +195,11 @@ jobs:
           node-version: '18'
           registry-url: 'https://registry.npmjs.org'
 
-      - name: Update package.json version
+      - name: Copy license and changelog
         run: |
-          VERSION=${GITHUB_REF#refs/tags/v}
-          sed -i "s/\"version\": \".*\"/\"version\": \"$VERSION\"/g" package.json
-          # Update optionalDependencies versions
-          sed -i "s/\"@gql-safeguard\/.*\": \".*\"/\"@gql-safeguard\/darwin-arm64\": \"$VERSION\",/g" package.json
-          sed -i "s/\"@gql-safeguard\/darwin-x64\": \".*\"/\"@gql-safeguard\/darwin-x64\": \"$VERSION\"/g" package.json
-          sed -i "s/\"@gql-safeguard\/linux-arm64\": \".*\"/\"@gql-safeguard\/linux-arm64\": \"$VERSION\"/g" package.json
-          sed -i "s/\"@gql-safeguard\/linux-x64\": \".*\"/\"@gql-safeguard\/linux-x64\": \"$VERSION\"/g" package.json
-          sed -i "s/\"@gql-safeguard\/win32-x64\": \".*\"/\"@gql-safeguard\/win32-x64\": \"$VERSION\"/g" package.json
+          cp LICENSE ./
+          cp CHANGELOG.md ./ || echo "No changelog found, will be created by changeset"
+
 
       - name: Publish base package
         run: npm publish
