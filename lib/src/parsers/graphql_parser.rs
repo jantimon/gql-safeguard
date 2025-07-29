@@ -3,6 +3,7 @@
 //! Converts raw GraphQL strings into structured data focusing on @catch/@throwOnFieldError
 //! directives needed for runtime error prevention analysis.
 
+use std::collections::HashSet;
 use std::path::PathBuf;
 
 use crate::parsers::typescript_parser::GraphQLString;
@@ -83,6 +84,28 @@ pub struct FragmentDefinition {
     pub file_path: PathBuf,
 }
 
+// Finds lines that should be ignored based on gql-safeguard-ignore comments
+// Returns a set of line numbers (1-based) that should have their directives ignored
+fn find_ignored_lines(graphql_content: &str) -> HashSet<usize> {
+    // check if # gql-safeguard-ignore is present in the content
+    if !graphql_content.contains("# gql-safeguard-ignore") {
+        return HashSet::new();
+    }
+
+    let mut ignored_lines = HashSet::new();
+    let lines: Vec<&str> = graphql_content.lines().collect();
+
+    for (line_num, line) in lines.iter().enumerate() {
+        if line.contains("# gql-safeguard-ignore") {
+            // The next line (1-based line number) should be ignored
+            let next_line_number = line_num + 2; // Convert to 1-based and get next line
+            ignored_lines.insert(next_line_number);
+        }
+    }
+
+    ignored_lines
+}
+
 // Entry point: converts GraphQL strings to AST with safety-relevant directives
 pub fn parse_graphql_to_ast(graphql_string: &GraphQLString) -> Result<Vec<GraphQLItem>> {
     // Validate GraphQL syntax and build AST representation
@@ -105,6 +128,9 @@ pub fn parse_graphql_to_ast(graphql_string: &GraphQLString) -> Result<Vec<GraphQ
         )
     })?;
 
+    // Find all lines that should be ignored based on comments
+    let ignored_lines = find_ignored_lines(&graphql_string.content);
+
     let mut items = Vec::new();
 
     // Extract queries and fragments with their directive information
@@ -115,6 +141,7 @@ pub fn parse_graphql_to_ast(graphql_string: &GraphQLString) -> Result<Vec<GraphQ
                     op,
                     &graphql_string.file_path,
                     graphql_string.position,
+                    &ignored_lines,
                 )? {
                     items.push(GraphQLItem::Query(query));
                 }
@@ -124,6 +151,7 @@ pub fn parse_graphql_to_ast(graphql_string: &GraphQLString) -> Result<Vec<GraphQ
                     frag,
                     &graphql_string.file_path,
                     graphql_string.position,
+                    &ignored_lines,
                 )?;
                 items.push(GraphQLItem::Fragment(fragment));
             }
@@ -139,6 +167,7 @@ fn convert_operation_to_query(
     op: OperationDefinition<String>,
     file_path: &std::path::Path,
     position: u32,
+    ignored_lines: &HashSet<usize>,
 ) -> Result<Option<QueryOperation>> {
     match op {
         OperationDefinition::Query(query) => {
@@ -146,10 +175,15 @@ fn convert_operation_to_query(
             let name = query.name.unwrap_or_else(|| "AnonymousQuery".to_string());
 
             // Query-level directives affect all nested selections
-            let directives = extract_directives_from_directive_list(&query.directives, position);
+            let directives = extract_directives_from_directive_list(
+                &query.directives,
+                position,
+                ignored_lines,
+                None,
+            );
 
             // Maintain nesting for proper directive inheritance validation
-            let selections = convert_selection_set(&query.selection_set, position);
+            let selections = convert_selection_set(&query.selection_set, position, ignored_lines);
 
             Ok(Some(QueryOperation {
                 name,
@@ -175,12 +209,14 @@ fn convert_fragment_definition(
     frag: graphql_parser::query::FragmentDefinition<String>,
     file_path: &std::path::Path,
     position: u32,
+    ignored_lines: &HashSet<usize>,
 ) -> Result<FragmentDefinition> {
     // Fragment-level directives protect all contained selections
-    let directives = extract_directives_from_directive_list(&frag.directives, position);
+    let directives =
+        extract_directives_from_directive_list(&frag.directives, position, ignored_lines, None);
 
     // Maintain structure for nested directive validation
-    let selections = convert_selection_set(&frag.selection_set, position);
+    let selections = convert_selection_set(&frag.selection_set, position, ignored_lines);
 
     Ok(FragmentDefinition {
         name: frag.name,
@@ -193,18 +229,27 @@ fn convert_fragment_definition(
 
 // Builds hierarchical structure preserving directive inheritance relationships
 // Critical for validating @catch protection across nested selections
-fn convert_selection_set(selection_set: &SelectionSet<String>, position: u32) -> Vec<Selection> {
+fn convert_selection_set(
+    selection_set: &SelectionSet<String>,
+    position: u32,
+    ignored_lines: &HashSet<usize>,
+) -> Vec<Selection> {
     let mut selections = Vec::new();
 
     for selection in &selection_set.items {
         match selection {
             graphql_parser::query::Selection::Field(field) => {
                 // Field directives can provide or require protection
-                let directives =
-                    extract_directives_from_directive_list(&field.directives, position);
+                let directives = extract_directives_from_directive_list(
+                    &field.directives,
+                    position,
+                    ignored_lines,
+                    Some(field.position.line),
+                );
 
                 // Fields may contain nested selections needing validation
-                let nested_selections = convert_selection_set(&field.selection_set, position);
+                let nested_selections =
+                    convert_selection_set(&field.selection_set, position, ignored_lines);
 
                 selections.push(Selection::Field(FieldSelection {
                     name: field.name.clone(),
@@ -214,8 +259,12 @@ fn convert_selection_set(selection_set: &SelectionSet<String>, position: u32) ->
             }
             graphql_parser::query::Selection::FragmentSpread(spread) => {
                 // Spread directives can add protection before fragment expansion
-                let directives =
-                    extract_directives_from_directive_list(&spread.directives, position);
+                let directives = extract_directives_from_directive_list(
+                    &spread.directives,
+                    position,
+                    ignored_lines,
+                    None,
+                );
 
                 selections.push(Selection::FragmentSpread(FragmentSpread {
                     name: spread.fragment_name.clone(),
@@ -224,11 +273,16 @@ fn convert_selection_set(selection_set: &SelectionSet<String>, position: u32) ->
             }
             graphql_parser::query::Selection::InlineFragment(inline) => {
                 // Inline fragments can provide @catch protection
-                let directives =
-                    extract_directives_from_directive_list(&inline.directives, position);
+                let directives = extract_directives_from_directive_list(
+                    &inline.directives,
+                    position,
+                    ignored_lines,
+                    None,
+                );
 
                 // Process inline fragment contents
-                let nested_selections = convert_selection_set(&inline.selection_set, position);
+                let nested_selections =
+                    convert_selection_set(&inline.selection_set, position, ignored_lines);
 
                 selections.push(Selection::InlineFragment(InlineFragment {
                     type_condition: inline.type_condition.as_ref().map(|tc| tc.to_string()),
@@ -324,6 +378,8 @@ fn extract_fragment_spreads_from_selections(selections: &[Selection]) -> Vec<Fra
 fn extract_directives_from_directive_list(
     directives: &[graphql_parser::query::Directive<String>],
     position: u32,
+    ignored_lines: &HashSet<usize>,
+    field_line: Option<usize>,
 ) -> Vec<Directive> {
     directives
         .iter()
@@ -331,10 +387,24 @@ fn extract_directives_from_directive_list(
             // Skip directives that don't affect error handling safety
             let directive_type = match dir.name.as_str() {
                 "catch" => DirectiveType::Catch,
-                "throwOnFieldError" => DirectiveType::ThrowOnFieldError,
+                "throwOnFieldError" => {
+                    // Check if this field line should be ignored
+                    if let Some(line) = field_line {
+                        if ignored_lines.contains(&line) {
+                            return None; // Skip ignored @throwOnFieldError
+                        }
+                    }
+                    DirectiveType::ThrowOnFieldError
+                }
                 "required" => {
                     // Only process @required if it has action: THROW
                     if has_throw_action(&dir.arguments) {
+                        // Check if this field line should be ignored
+                        if let Some(line) = field_line {
+                            if ignored_lines.contains(&line) {
+                                return None; // Skip ignored @required(action: THROW)
+                            }
+                        }
                         DirectiveType::RequiredThrow
                     } else {
                         return None; // Ignore @required with other actions

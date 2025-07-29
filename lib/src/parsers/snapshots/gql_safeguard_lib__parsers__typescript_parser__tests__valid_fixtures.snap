@@ -33,6 +33,69 @@ Content:
 
 ---
 
+File: fixtures/valid/ignore_comments.ts
+GraphQL strings found: 3
+
+=== GraphQL String 1 ===
+BytePos: 141
+Content:
+
+  query GetUserWithIgnores($id: ID!) @catch {
+    user(id: $id) {
+      id
+      name @throwOnFieldError  # Protected by query-level @catch
+      
+      # gql-safeguard-ignore
+      email @throwOnFieldError  # Should be ignored by gql-safeguard
+      
+      profile {
+        # gql-safeguard-ignore
+        avatar @required(action: THROW)  # Should be ignored by gql-safeguard
+        bio @required(action: THROW)     # Should still be validated (protected by query @catch)
+      }
+    }
+  }
+
+
+=== GraphQL String 2 ===
+BytePos: 721
+Content:
+
+  query GetUserFieldCatch($id: ID!) {
+    user(id: $id) @catch {
+      id
+      # gql-safeguard-ignore
+      name @throwOnFieldError  # Should be ignored
+      email @throwOnFieldError # Protected by field-level @catch
+    }
+    
+    otherUser: user(id: "other") {
+      # gql-safeguard-ignore
+      avatar @required(action: THROW)  # Should be ignored (would normally fail)
+    }
+  }
+
+
+=== GraphQL String 3 ===
+BytePos: 1162
+Content:
+
+  query GetUserMixedIgnore($id: ID!) {
+    protectedUser: user(id: $id) @catch {
+      # gql-safeguard-ignore
+      badField @throwOnFieldError  # Ignored
+      goodField @throwOnFieldError # Protected
+    }
+    
+    unprotectedUser: user(id: "other") {
+      # gql-safeguard-ignore
+      ignoredField @required(action: THROW)  # Ignored (would normally fail)
+    }
+  }
+
+
+---
+
 File: fixtures/valid/nested_fragments_protected.ts
 GraphQL strings found: 6
 
@@ -144,7 +207,7 @@ Content:
 BytePos: 369
 Content:
 
-  query GetUserProfile($id: ID!) {
+  query GetUserProfileFieldCatch($id: ID!) {
     user(id: $id) @catch {
       id
       name @required(action: THROW)
@@ -155,7 +218,7 @@ Content:
 
 
 === GraphQL String 3 ===
-BytePos: 646
+BytePos: 656
 Content:
 
   query GetUserMixed($id: ID!) @catch {
@@ -169,7 +232,7 @@ Content:
 
 
 === GraphQL String 4 ===
-BytePos: 928
+BytePos: 938
 Content:
 
   query GetUserNested($id: ID!) {

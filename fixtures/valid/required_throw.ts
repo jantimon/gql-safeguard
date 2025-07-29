@@ -13,7 +13,7 @@ const GET_USER_BASIC = gql`
 
 // @required(action: THROW) protected by field-level @catch
 const GET_USER_PROFILE = gql`
-  query GetUserProfile($id: ID!) {
+  query GetUserProfileFieldCatch($id: ID!) {
     user(id: $id) @catch {
       id
       name @required(action: THROW)

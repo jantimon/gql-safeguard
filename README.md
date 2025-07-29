@@ -160,6 +160,27 @@ Every `@catch` directive must protect at least one `@throwOnFieldError` or `@req
 ### Rule 3: Required Action Filtering
 Only `@required` directives with `action: THROW` are validated. Other action values (`LOG`, `WARN`, `NONE`) or missing action arguments are ignored as they don't throw exceptions.
 
+## Ignoring Specific Fields
+
+You can disable validation for specific fields by placing the `gql-safeguard-ignore` comment in the line before the field:
+
+```graphql
+query GetUser {
+  user @catch {
+    name @throwOnFieldError           # ✅ Protected by @catch
+    
+    # gql-safeguard-ignore
+    email @throwOnFieldError          # ⏭️ Ignored by gql-safeguard
+    
+    profile {
+      # gql-safeguard-ignore  
+      avatar @required(action: THROW) # ⏭️ Ignored by gql-safeguard
+      bio @required(action: THROW)    # ✅ Still validated (protected by @catch)
+    }
+  }
+}
+```
+
 ## Error Types
 
 ### Unprotected Throwing Directives

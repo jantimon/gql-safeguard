@@ -29,6 +29,14 @@ Dependency Graph
 |           ├── Field: id
 |           ├── Field: name [RequiredThrow ☄️]
 |           └── Field: email [RequiredThrow ☄️]
+├── GetUserFieldCatch (fixtures/valid/ignore_comments.ts)
+|   └── Selections:
+|       ├── Field: user [Catch 🧤]
+|       |   ├── Field: id
+|       |   ├── Field: name
+|       |   └── Field: email [ThrowOnFieldError ☄️]
+|       └── Field: user
+|           └── Field: avatar
 ├── GetUserMixed (fixtures/valid/required_throw.ts)
 |   ├── Directives:
 |   |   └── Catch 🧤
@@ -38,6 +46,13 @@ Dependency Graph
 |           ├── Field: name [RequiredThrow ☄️]
 |           ├── Field: avatar [ThrowOnFieldError ☄️]
 |           └── Field: email [RequiredThrow ☄️]
+├── GetUserMixedIgnore (fixtures/valid/ignore_comments.ts)
+|   └── Selections:
+|       ├── Field: user [Catch 🧤]
+|       |   ├── Field: badField
+|       |   └── Field: goodField [ThrowOnFieldError ☄️]
+|       └── Field: user
+|           └── Field: ignoredField
 ├── GetUserNested (fixtures/valid/required_throw.ts)
 |   └── Selections:
 |       └── Field: user
@@ -47,13 +62,33 @@ Dependency Graph
 |               ├── Field: bio [RequiredThrow ☄️]
 |               └── Field: avatar
 |                   └── Field: url [ThrowOnFieldError ☄️]
-├── GetUserProfile (fixtures/valid/required_throw.ts)
+├── GetUserProfile (fixtures/valid/query_with_catch.tsx)
+|   ├── Directives:
+|   |   └── Catch 🧤
+|   └── Selections:
+|       └── Field: user
+|           ├── Field: id
+|           ├── Field: name
+|           ├── Field: avatar [ThrowOnFieldError ☄️]
+|           └── Field: email
+├── GetUserProfileFieldCatch (fixtures/valid/required_throw.ts)
 |   └── Selections:
 |       └── Field: user [Catch 🧤]
 |           ├── Field: id
 |           ├── Field: name [RequiredThrow ☄️]
 |           ├── Field: avatar [RequiredThrow ☄️]
 |           └── Field: bio
+├── GetUserWithIgnores (fixtures/valid/ignore_comments.ts)
+|   ├── Directives:
+|   |   └── Catch 🧤
+|   └── Selections:
+|       └── Field: user
+|           ├── Field: id
+|           ├── Field: name [ThrowOnFieldError ☄️]
+|           ├── Field: email
+|           └── Field: profile
+|               ├── Field: avatar
+|               └── Field: bio [RequiredThrow ☄️]
 └── GetUserWithRiskyData (fixtures/valid/fragment_level_catch.ts)
     ├── Directives:
     |   └── Catch 🧤
