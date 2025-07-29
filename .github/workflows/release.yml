@@ -34,9 +34,6 @@ jobs:
       - name: Install dependencies
         run: npm install
 
-      - name: Update optional dependencies versions
-        run: node scripts/bump-dependencies.mjs
-
       - name: Create Release Pull Request or Publish to npm
         id: changesets
         uses: changesets/action@v1
@@ -44,6 +41,9 @@ jobs:
           title: Release new version
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Update optional dependencies versions
+        run: node npm/update-optional-deps.mjs
   build:
     name: Build ${{ matrix.target }}
     runs-on: ${{ matrix.os }}
