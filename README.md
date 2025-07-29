@@ -1,6 +1,8 @@
 # GQL Safeguard
 
-A Rust-powered static analysis tool that prevents GraphQL runtime errors by enforcing proper `@catch` directive protection for `@throwOnFieldError` usage in Relay applications.
+A Rust-powered static analysis tool that prevents GraphQL runtime errors by enforcing proper `@catch` directive protection for `@throwOnFieldError` usage in Relay applications
+
+![gql-guard](https://github.com/user-attachments/assets/96ee62ce-c0b1-4c40-9fe5-59b7d492c6d9)
 
 ## Why GQL Safeguard?
 
