@@ -65,11 +65,9 @@ jobs:
         id: changesets
         uses: changesets/action@v1
         with:
-          publish: npm run release
           title: Release new version
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-          NPM_TOKEN: ${{ secrets.NPM_TOKEN }}
   build:
     name: Build ${{ matrix.target }}
     runs-on: ${{ matrix.os }}
@@ -143,8 +141,10 @@ jobs:
             EXE_SUFFIX=""
           fi
           
-          # Copy README for binary package
+          # Copy README, LICENSE, and CHANGELOG for binary package
           cp npm/README.md npm-package/
+          cp LICENSE npm-package/
+          cp CHANGELOG.md npm-package/ || echo "No changelog found"
           
           # Get version from package.json
           VERSION=$(node -p "require('./package.json').version")
@@ -234,12 +234,6 @@ jobs:
         with:
           node-version: '18'
           registry-url: 'https://registry.npmjs.org'
-
-      - name: Copy license and changelog
-        run: |
-          cp LICENSE ./
-          cp CHANGELOG.md ./ || echo "No changelog found, will be created by changeset"
-
 
       - name: Publish base package
         run: npm publish
