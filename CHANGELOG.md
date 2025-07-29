@@ -1,5 +1,11 @@
 # gql-safeguard
 
+## 0.4.0
+
+### Minor Changes
+
+- 6a24014: add bin entry for platform package.json
+
 ## 0.3.0
 
 ### Minor Changes
