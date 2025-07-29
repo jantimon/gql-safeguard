@@ -37,3 +37,19 @@ const userFields = gql`
     }
   }
 `;
+
+const userFieldsWithIgnoreInline = gql`
+  # gql-safeguard-ignore
+  fragment userFieldsWithIgnoreInline on User @throwOnFieldError{
+    answers {
+      ... on BlogPageCompetitionSelectionAnswer {
+        id
+        text
+        participantCount
+        selectedOption
+        submissionDate
+        contestId
+      }
+    }
+  }
+`;
