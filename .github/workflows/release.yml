@@ -38,14 +38,6 @@ jobs:
       - name: Install dependencies
         run: npm install
 
-      - name: Create Release Pull Request
-        id: changesets
-        uses: changesets/action@v1
-        with:
-          title: Release new version
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-
       - name: Check if publishing needed
         id: version-check
         run: |
@@ -58,6 +50,14 @@ jobs:
             echo "needs-publish=false" >> $GITHUB_OUTPUT
             echo "No publishing needed: $CURRENT_VERSION already published"
           fi
+
+      - name: Create Release Pull Request
+        id: changesets
+        uses: changesets/action@v1
+        with:
+          title: Release new version
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
       - name: Update optional dependencies versions
         run: node npm/update-optional-deps.mjs
