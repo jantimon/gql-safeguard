@@ -144,7 +144,7 @@ impl fmt::Display for ValidationError {
             let before_field = &simplified_location[..last_dot_pos];
             if let Some(last_fragment_pos) = before_field.rfind("...") {
                 let fragment_name = &before_field[last_fragment_pos + 3..];
-                format!("{}.{}", fragment_name, field_name)
+                format!("{fragment_name}.{field_name}")
             } else {
                 // No fragment found, just use the field name
                 field_name.to_string()
@@ -153,7 +153,7 @@ impl fmt::Display for ValidationError {
             simplified_location.to_string()
         };
 
-        writeln!(f, "Location: {}", final_location)?;
+        writeln!(f, "Location: {final_location}")?;
         writeln!(f)?;
 
         // Show tree visualization
@@ -186,7 +186,7 @@ impl fmt::Display for ValidationResult {
                     writeln!(f, "{}", "-".repeat(80))?;
                 }
                 writeln!(f)?;
-                write!(f, "{}", error)?;
+                write!(f, "{error}")?;
             }
             Ok(())
         }
@@ -366,7 +366,7 @@ fn validate_selections(
                     .as_ref()
                     .and_then(|tc| tc.strip_suffix("Fragment"))
                     .unwrap_or("InlineFragment");
-                let inline_location = format!("{}...{}", current_location, fragment_name);
+                let inline_location = format!("{current_location}...{fragment_name}");
 
                 // Determine if this is a resolved fragment (has type_condition ending with "Fragment")
                 let is_resolved_fragment = inline
@@ -658,7 +658,7 @@ fn format_selections_for_error(
                     .unwrap_or("InlineFragment");
 
                 let highlight = if let Some(error_loc) = error_location {
-                    if error_loc.contains(&format!("...{}", fragment_name)) {
+                    if error_loc.contains(&format!("...{fragment_name}")) {
                         " ❌"
                     } else {
                         ""
@@ -667,7 +667,7 @@ fn format_selections_for_error(
                     ""
                 };
 
-                let mut inline_text = format!("🧩 Fragment: {}{}", fragment_name, highlight);
+                let mut inline_text = format!("🧩 Fragment: {fragment_name}{highlight}");
 
                 if !inline.directives.is_empty() {
                     let directive_strs: Vec<String> = inline
