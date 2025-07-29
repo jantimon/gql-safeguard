@@ -197,7 +197,7 @@ fn convert_operation_to_query(
                 &query.directives,
                 position,
                 graphql_content,
-                None,
+                query.position.line,
             );
 
             // Maintain nesting for proper directive inheritance validation
@@ -231,7 +231,7 @@ fn convert_fragment_definition(
 ) -> Result<FragmentDefinition> {
     // Fragment-level directives protect all contained selections
     let directives =
-        extract_directives_from_directive_list(&frag.directives, position, graphql_content, None);
+        extract_directives_from_directive_list(&frag.directives, position, graphql_content, frag.position.line);
 
     // Maintain structure for nested directive validation
     let selections = convert_selection_set(&frag.selection_set, position, graphql_content);
@@ -262,7 +262,7 @@ fn convert_selection_set(
                     &field.directives,
                     position,
                     graphql_content,
-                    Some(field.position.line),
+                    field.position.line,
                 );
 
                 // Fields may contain nested selections needing validation
@@ -281,7 +281,7 @@ fn convert_selection_set(
                     &spread.directives,
                     position,
                     graphql_content,
-                    None,
+                    spread.position.line,
                 );
 
                 selections.push(Selection::FragmentSpread(FragmentSpread {
@@ -295,7 +295,7 @@ fn convert_selection_set(
                     &inline.directives,
                     position,
                     graphql_content,
-                    None,
+                    inline.position.line, 
                 );
 
                 // Process inline fragment contents
@@ -397,7 +397,7 @@ fn extract_directives_from_directive_list(
     directives: &[graphql_parser::query::Directive<String>],
     position: u32,
     graphql_content: &str,
-    directive_line: Option<usize>,
+    directive_line: usize,
 ) -> Vec<Directive> {
     directives
         .iter()
@@ -407,10 +407,8 @@ fn extract_directives_from_directive_list(
                 "catch" => DirectiveType::Catch,
                 "throwOnFieldError" => {
                     // Check if this directive should be ignored
-                    if let Some(line) = directive_line {
-                        if should_ignore_directive(graphql_content, line) {
-                            return None; // Skip ignored @throwOnFieldError
-                        }
+                    if should_ignore_directive(graphql_content, directive_line) {
+                        return None; // Skip ignored @throwOnFieldError
                     }
                     DirectiveType::ThrowOnFieldError
                 }
@@ -418,10 +416,8 @@ fn extract_directives_from_directive_list(
                     // Only process @required if it has action: THROW
                     if has_throw_action(&dir.arguments) {
                         // Check if this directive should be ignored
-                        if let Some(line) = directive_line {
-                            if should_ignore_directive(graphql_content, line) {
-                                return None; // Skip ignored @required(action: THROW)
-                            }
+                        if should_ignore_directive(graphql_content, directive_line) {
+                            return None; // Skip ignored @required(action: THROW)
                         }
                         DirectiveType::RequiredThrow
                     } else {

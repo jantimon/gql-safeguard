@@ -43,11 +43,18 @@ fn main() -> anyhow::Result<()> {
 
     match args.command {
         Command::Validate { show_trees } => {
+
+            if args.verbose {
+                let elapsed = start_time.elapsed();
+                println!("Found {} files in {elapsed:.2?}", registry.file_count);
+            }
+
             // Expand fragments for complete validation context
             let dependency_graph = registry_to_dependency_graph(&registry)?;
 
             if args.verbose {
-                println!("Found {} queries", dependency_graph.len());
+                let elapsed = start_time.elapsed();
+                println!("Found {} queries in {elapsed:.2?}", dependency_graph.len());
             }
 
             // Check @catch/@throwOnFieldError protection rules
