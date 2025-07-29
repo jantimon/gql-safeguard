@@ -15,6 +15,20 @@ Dependency Graph
 |               |   ├── Field: avatar
 |               |   └── Field: avatarUrl
 |               └── Field: bio
+├── GetUserMixedUnprotected (fixtures/invalid/unprotected_required_throw.ts)
+|   └── Selections:
+|       └── Field: user
+|           ├── Field: id
+|           ├── Field: name [RequiredThrow ☄️]
+|           └── Field: avatar [ThrowOnFieldError ☄️]
+├── GetUserPartial (fixtures/invalid/unprotected_required_throw.ts)
+|   └── Selections:
+|       ├── Field: user [Catch 🧤]
+|       |   ├── Field: id
+|       |   ├── Field: name [RequiredThrow ☄️]
+|       |   └── Field: email
+|       └── Field: user
+|           └── Field: name [RequiredThrow ☄️]
 ├── GetUserProfileUnprotected (fixtures/invalid/missing_catch.tsx)
 |   └── Selections:
 |       └── Field: user

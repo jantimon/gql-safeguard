@@ -130,23 +130,23 @@ Content:
   query GetUserPartial($id: ID!) {
     user(id: $id) @catch {
       id
-      name @required(action: THROW)  // ✅ Protected
+      name @required(action: THROW)  # ✅ Protected
       email
     }
     otherUser: user(id: "other") {
-      name @required(action: THROW)  // ❌ Unprotected
+      name @required(action: THROW)  # ❌ Unprotected
     }
   }
 
 
 === GraphQL String 3 ===
-BytePos: 669
+BytePos: 667
 Content:
 
   query GetUserMixedUnprotected($id: ID!) {
     user(id: $id) {
       id
-      name @required(action: THROW)  // ❌ Unprotected
-      avatar @throwOnFieldError      // ❌ Unprotected
+      name @required(action: THROW)  # ❌ Unprotected
+      avatar @throwOnFieldError      # ❌ Unprotected
     }
   }

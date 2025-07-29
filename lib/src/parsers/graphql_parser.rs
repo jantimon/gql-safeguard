@@ -87,9 +87,17 @@ pub struct FragmentDefinition {
 pub fn parse_graphql_to_ast(graphql_string: &GraphQLString) -> Result<Vec<GraphQLItem>> {
     // Validate GraphQL syntax and build AST representation
     let document: QueryDocument<String> = parse_query(&graphql_string.content).map_err(|e| {
+        // Normalize path to relative for consistent error messages
+        let git_root = PathBuf::from(env!("CARGO_MANIFEST_DIR"))
+            .parent()
+            .unwrap()
+            .to_path_buf();
+        let relative_path = graphql_string.file_path.strip_prefix(&git_root)
+            .unwrap_or(&graphql_string.file_path);
+        
         anyhow::anyhow!(
             "GraphQL syntax error in {} at position {}: {:?}",
-            graphql_string.file_path.display(),
+            relative_path.display(),
             graphql_string.position,
             e
         )
@@ -557,9 +565,17 @@ mod tests {
                                     results.push(result);
                                 }
                                 Err(e) => {
+                                    // Normalize path to relative for consistent test output
+                                    let git_root = PathBuf::from(env!("CARGO_MANIFEST_DIR"))
+                                        .parent()
+                                        .unwrap()
+                                        .to_path_buf();
+                                    let relative_path = file_path.strip_prefix(&git_root)
+                                        .unwrap_or(&file_path);
+                                    
                                     results.push(format!(
                                         "File: {}\nGraphQL Parse Error: {}\nContent: {}\n\n",
-                                        file_path.display(),
+                                        relative_path.display(),
                                         e,
                                         graphql_string.content
                                     ));
@@ -568,9 +584,17 @@ mod tests {
                         }
                     }
                     Err(e) => {
+                        // Normalize path to relative for consistent test output
+                        let git_root = PathBuf::from(env!("CARGO_MANIFEST_DIR"))
+                            .parent()
+                            .unwrap()
+                            .to_path_buf();
+                        let relative_path = file_path.strip_prefix(&git_root)
+                            .unwrap_or(&file_path);
+                        
                         results.push(format!(
                             "File: {}\nTypeScript Parse Error: {}\n\n",
-                            file_path.display(),
+                            relative_path.display(),
                             e
                         ));
                     }

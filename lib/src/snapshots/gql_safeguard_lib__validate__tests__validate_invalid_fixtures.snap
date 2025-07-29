@@ -3,7 +3,7 @@ source: lib/src/validate.rs
 expression: result_message
 ---
 Validation Result:
-❌ Found 5 validation errors:
+❌ Found 8 validation errors:
 
 
 
@@ -46,6 +46,53 @@ Query Structure:
             |   ├── 🔹 Field: avatar
             |   └── 🔹 Field: avatarUrl
             └── 🔹 Field: bio
+--------------------------------------------------------------------------------
+
+
+🚨 Unprotected @throwOnFieldError
+
+Query: GetUserMixedUnprotected (fixtures/invalid/unprotected_required_throw.ts)
+Location: name
+
+Query Structure:
+📄 Query: GetUserMixedUnprotected (fixtures/invalid/unprotected_required_throw.ts)
+└── 🔍 Selections:
+    └── 🔹 Field: user
+        ├── 🔹 Field: id
+        ├── 🔹 Field: name ❌ [☄️ @RequiredThrow]
+        └── 🔹 Field: avatar [☄️ @ThrowOnFieldError]
+--------------------------------------------------------------------------------
+
+
+🚨 Unprotected @throwOnFieldError
+
+Query: GetUserMixedUnprotected (fixtures/invalid/unprotected_required_throw.ts)
+Location: avatar
+
+Query Structure:
+📄 Query: GetUserMixedUnprotected (fixtures/invalid/unprotected_required_throw.ts)
+└── 🔍 Selections:
+    └── 🔹 Field: user
+        ├── 🔹 Field: id
+        ├── 🔹 Field: name [☄️ @RequiredThrow]
+        └── 🔹 Field: avatar ❌ [☄️ @ThrowOnFieldError]
+--------------------------------------------------------------------------------
+
+
+🚨 Unprotected @throwOnFieldError
+
+Query: GetUserPartial (fixtures/invalid/unprotected_required_throw.ts)
+Location: name
+
+Query Structure:
+📄 Query: GetUserPartial (fixtures/invalid/unprotected_required_throw.ts)
+└── 🔍 Selections:
+    ├── 🔹 Field: user [🧤 @Catch]
+    |   ├── 🔹 Field: id
+    |   ├── 🔹 Field: name ❌ [☄️ @RequiredThrow]
+    |   └── 🔹 Field: email
+    └── 🔹 Field: user
+        └── 🔹 Field: name ❌ [☄️ @RequiredThrow]
 --------------------------------------------------------------------------------
 
 

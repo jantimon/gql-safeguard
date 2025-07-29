@@ -144,30 +144,34 @@ Selections: 1
 
 ---
 
-File: /Users/jannicklas/Desktop/gql-safeguard/fixtures/invalid/unprotected_required_throw.ts
-GraphQL Parse Error: GraphQL syntax error in /Users/jannicklas/Desktop/gql-safeguard/fixtures/invalid/unprotected_required_throw.ts at position 345: ParseError("Parse error at 5:38\nUnexpected unexpected character '/'\nExpected }\n")
-Content: 
-  query GetUserPartial($id: ID!) {
-    user(id: $id) @catch {
-      id
-      name @required(action: THROW)  // ✅ Protected
-      email
-    }
-    otherUser: user(id: "other") {
-      name @required(action: THROW)  // ❌ Unprotected
-    }
-  }
+File: fixtures/invalid/unprotected_required_throw.ts
+GraphQL AST items: 1
 
+=== AST Item 1 ===
+Type: Query
+Name: GetUserPartial
+File: fixtures/invalid/unprotected_required_throw.ts
+Directives: 0
+Selections: 2
+    - Field: user [Catch 🧤]
+      - Field: id
+      - Field: name [RequiredThrow ☄️]
+      - Field: email
+    - Field: user
+      - Field: name [RequiredThrow ☄️]
 
 ---
 
-File: /Users/jannicklas/Desktop/gql-safeguard/fixtures/invalid/unprotected_required_throw.ts
-GraphQL Parse Error: GraphQL syntax error in /Users/jannicklas/Desktop/gql-safeguard/fixtures/invalid/unprotected_required_throw.ts at position 669: ParseError("Parse error at 5:38\nUnexpected unexpected character '/'\nExpected }\n")
-Content: 
-  query GetUserMixedUnprotected($id: ID!) {
-    user(id: $id) {
-      id
-      name @required(action: THROW)  // ❌ Unprotected
-      avatar @throwOnFieldError      // ❌ Unprotected
-    }
-  }
+File: fixtures/invalid/unprotected_required_throw.ts
+GraphQL AST items: 1
+
+=== AST Item 1 ===
+Type: Query
+Name: GetUserMixedUnprotected
+File: fixtures/invalid/unprotected_required_throw.ts
+Directives: 0
+Selections: 1
+    - Field: user
+      - Field: id
+      - Field: name [RequiredThrow ☄️]
+      - Field: avatar [ThrowOnFieldError ☄️]
