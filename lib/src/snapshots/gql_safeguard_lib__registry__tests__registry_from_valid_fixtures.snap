@@ -3,7 +3,7 @@ source: lib/src/registry.rs
 expression: formatted
 ---
 GraphQL Registry
-├── Queries (6)
+├── Queries (8)
 |   ├── GetFullUser (fixtures/valid/nested_fragments_protected.ts)
 |   |   ├── Fields:
 |   |   |   └── user
@@ -16,6 +16,14 @@ GraphQL Registry
 |   |       ├── email [RequiredThrow ☄️]
 |   |       ├── id
 |   |       ├── name [RequiredThrow ☄️]
+|   |       └── user
+|   ├── GetUserFieldCatch (fixtures/valid/ignore_comments.ts)
+|   |   └── Fields:
+|   |       ├── avatar
+|   |       ├── email [ThrowOnFieldError ☄️]
+|   |       ├── id
+|   |       ├── name
+|   |       ├── user [Catch 🧤]
 |   |       └── user
 |   ├── GetUserMixed (fixtures/valid/required_throw.ts)
 |   |   ├── Directives:
@@ -42,6 +50,17 @@ GraphQL Registry
 |   |       ├── id
 |   |       ├── name [RequiredThrow ☄️]
 |   |       └── user [Catch 🧤]
+|   ├── GetUserWithIgnores (fixtures/valid/ignore_comments.ts)
+|   |   ├── Directives:
+|   |   |   └── Catch 🧤
+|   |   └── Fields:
+|   |       ├── avatar
+|   |       ├── bio [RequiredThrow ☄️]
+|   |       ├── email
+|   |       ├── id
+|   |       ├── name [ThrowOnFieldError ☄️]
+|   |       ├── profile
+|   |       └── user
 |   └── GetUserWithRiskyData (fixtures/valid/fragment_level_catch.ts)
 |       ├── Directives:
 |       |   └── Catch 🧤

@@ -37,6 +37,61 @@ Selections: 1
 
 ---
 
+File: fixtures/valid/ignore_comments.ts
+GraphQL AST items: 1
+
+=== AST Item 1 ===
+Type: Query
+Name: GetUserWithIgnores
+File: fixtures/valid/ignore_comments.ts
+Directives: 1
+  - Catch 🧤
+Selections: 1
+    - Field: user
+      - Field: id
+      - Field: name [ThrowOnFieldError ☄️]
+      - Field: email
+      - Field: profile
+        - Field: avatar
+        - Field: bio [RequiredThrow ☄️]
+
+---
+
+File: fixtures/valid/ignore_comments.ts
+GraphQL AST items: 1
+
+=== AST Item 1 ===
+Type: Query
+Name: GetUserFieldCatch
+File: fixtures/valid/ignore_comments.ts
+Directives: 0
+Selections: 2
+    - Field: user [Catch 🧤]
+      - Field: id
+      - Field: name
+      - Field: email [ThrowOnFieldError ☄️]
+    - Field: user
+      - Field: avatar
+
+---
+
+File: fixtures/valid/ignore_comments.ts
+GraphQL AST items: 1
+
+=== AST Item 1 ===
+Type: Query
+Name: GetUserMixed
+File: fixtures/valid/ignore_comments.ts
+Directives: 0
+Selections: 2
+    - Field: user [Catch 🧤]
+      - Field: badField
+      - Field: goodField [ThrowOnFieldError ☄️]
+    - Field: user
+      - Field: ignoredField
+
+---
+
 File: fixtures/valid/nested_fragments_protected.ts
 GraphQL AST items: 1
 
