@@ -11,6 +11,15 @@ use crate::parsers::graphql_parser::{DirectiveType, Selection};
 use crate::registry_to_graph::QueryWithFragments;
 use crate::tree_formatter::TreeFormatter;
 
+struct ValidationContext<'a> {
+    query: &'a QueryWithFragments,
+    catch_ancestors: &'a mut FxHashSet<u32>,
+    protecting_catches: &'a mut FxHashSet<u32>,
+    result: &'a mut ValidationResult,
+    current_fragment_file: Option<PathBuf>,
+    current_fragment_name: Option<String>,
+}
+
 // Different safety violations require different remediation strategies
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub enum ValidationErrorType {
@@ -87,21 +96,35 @@ impl fmt::Display for ValidationError {
         writeln!(f, "\n🚨 {}", self.error_type)?;
         writeln!(f)?;
 
-        // Show query and file information
+        // Git root for relative paths in snapshots
+        let git_root = PathBuf::from(env!("CARGO_MANIFEST_DIR"))
+            .parent()
+            .unwrap()
+            .to_path_buf();
+
+        // Show query and file information with relative paths
+        let query_relative_path = self
+            .context
+            .query_file
+            .strip_prefix(&git_root)
+            .unwrap_or(&self.context.query_file);
         writeln!(
             f,
             "Query: {} ({})",
             self.context.query_name,
-            self.context.query_file.display()
+            query_relative_path.display()
         )?;
         if let (Some(fragment_name), Some(fragment_file)) =
             (&self.context.fragment_name, &self.context.fragment_file)
         {
+            let fragment_relative_path = fragment_file
+                .strip_prefix(&git_root)
+                .unwrap_or(fragment_file);
             writeln!(
                 f,
                 "Fragment: {} ({})",
                 fragment_name,
-                fragment_file.display()
+                fragment_relative_path.display()
             )?;
         }
         // Show simplified location (fragment.field format)
@@ -200,34 +223,37 @@ fn validate_query(query: &QueryWithFragments, result: &mut ValidationResult) {
     }
 
     // Recursive validation with protection context
+    let mut ctx = ValidationContext {
+        query,
+        catch_ancestors: &mut catch_ancestors,
+        protecting_catches: &mut protecting_catches,
+        result,
+        current_fragment_file: None, // No fragment context at query level
+        current_fragment_name: None,
+    };
     validate_selections(
         &query.selections,
-        query,
         "query",
-        &mut catch_ancestors,
-        &mut protecting_catches,
-        result,
-        None, // No fragment context at query level
-        None,
+        &mut ctx,
     );
 
     // Report unused @catch that protect nothing
     for directive in &query.directives {
         if directive.directive_type == DirectiveType::Catch
-            && !protecting_catches.contains(&directive.position)
+            && !ctx.protecting_catches.contains(&directive.position)
         {
             let context = ErrorContext {
-                query_name: query.name.clone(),
-                query_file: query.file_path.clone(),
+                query_name: ctx.query.name.clone(),
+                query_file: ctx.query.file_path.clone(),
                 location_path: "query level".to_string(),
                 fragment_file: None,
                 fragment_name: None,
             };
 
-            let tree_visualization = create_query_tree_visualization(query, Some("query level"));
+            let tree_visualization = create_query_tree_visualization(ctx.query, Some("query level"));
             let explanation = create_empty_catch_explanation();
 
-            result.add_error(ValidationError {
+            ctx.result.add_error(ValidationError {
                 error_type: ValidationErrorType::EmptyCatch,
                 context,
                 tree_visualization,
@@ -240,13 +266,8 @@ fn validate_query(query: &QueryWithFragments, result: &mut ValidationResult) {
 // Core validation logic - maintains @catch ancestry during tree traversal
 fn validate_selections(
     selections: &[Selection],
-    query: &QueryWithFragments,
     current_location: &str,
-    catch_ancestors: &mut FxHashSet<u32>,
-    protecting_catches: &mut FxHashSet<u32>,
-    result: &mut ValidationResult,
-    current_fragment_file: Option<PathBuf>,
-    current_fragment_name: Option<String>,
+    ctx: &mut ValidationContext,
 ) {
     for selection in selections {
         match selection {
@@ -256,17 +277,12 @@ fn validate_selections(
                 // Check field-level directives
                 validate_field_directives(
                     field,
-                    query,
                     &field_location,
-                    catch_ancestors,
-                    protecting_catches,
-                    result,
-                    current_fragment_file.clone(),
-                    current_fragment_name.clone(),
+                    ctx,
                 );
 
                 // Create new ancestor context for this field's nested selections
-                let mut field_catch_ancestors = catch_ancestors.clone();
+                let mut field_catch_ancestors = ctx.catch_ancestors.clone();
 
                 // Add field-level @catch directives to ancestors for nested selections
                 for directive in &field.directives {
@@ -276,35 +292,38 @@ fn validate_selections(
                 }
 
                 // Recursively validate nested selections
+                let mut nested_ctx = ValidationContext {
+                    query: ctx.query,
+                    catch_ancestors: &mut field_catch_ancestors,
+                    protecting_catches: ctx.protecting_catches,
+                    result: ctx.result,
+                    current_fragment_file: ctx.current_fragment_file.clone(),
+                    current_fragment_name: ctx.current_fragment_name.clone(),
+                };
                 validate_selections(
                     &field.selections,
-                    query,
                     &field_location,
-                    &mut field_catch_ancestors,
-                    protecting_catches,
-                    result,
-                    current_fragment_file.clone(),
-                    current_fragment_name.clone(),
+                    &mut nested_ctx,
                 );
 
                 // Check for empty @catch directives at field level
                 for directive in &field.directives {
                     if directive.directive_type == DirectiveType::Catch
-                        && !protecting_catches.contains(&directive.position)
+                        && !ctx.protecting_catches.contains(&directive.position)
                     {
                         let context = ErrorContext {
-                            query_name: query.name.clone(),
-                            query_file: query.file_path.clone(),
+                            query_name: ctx.query.name.clone(),
+                            query_file: ctx.query.file_path.clone(),
                             location_path: field_location.clone(),
-                            fragment_file: current_fragment_file.clone(),
-                            fragment_name: current_fragment_name.clone(),
+                            fragment_file: ctx.current_fragment_file.clone(),
+                            fragment_name: ctx.current_fragment_name.clone(),
                         };
 
                         let tree_visualization =
-                            create_query_tree_visualization(query, Some(&field_location));
+                            create_query_tree_visualization(ctx.query, Some(&field_location));
                         let explanation = create_empty_catch_explanation();
 
-                        result.add_error(ValidationError {
+                        ctx.result.add_error(ValidationError {
                             error_type: ValidationErrorType::EmptyCatch,
                             context,
                             tree_visualization,
@@ -320,20 +339,20 @@ fn validate_selections(
                 for directive in &spread.directives {
                     match directive.directive_type {
                         DirectiveType::ThrowOnFieldError => {
-                            if catch_ancestors.is_empty() {
+                            if ctx.catch_ancestors.is_empty() {
                                 let context = ErrorContext {
-                                    query_name: query.name.clone(),
-                                    query_file: query.file_path.clone(),
+                                    query_name: ctx.query.name.clone(),
+                                    query_file: ctx.query.file_path.clone(),
                                     location_path: spread_location.clone(),
-                                    fragment_file: current_fragment_file.clone(),
+                                    fragment_file: ctx.current_fragment_file.clone(),
                                     fragment_name: Some(spread.name.clone()),
                                 };
 
                                 let tree_visualization =
-                                    create_query_tree_visualization(query, Some(&spread_location));
+                                    create_query_tree_visualization(ctx.query, Some(&spread_location));
                                 let explanation = create_unprotected_throw_explanation();
 
-                                result.add_error(ValidationError {
+                                ctx.result.add_error(ValidationError {
                                     error_type: ValidationErrorType::UnprotectedThrowOnFieldError,
                                     context,
                                     tree_visualization,
@@ -341,7 +360,7 @@ fn validate_selections(
                                 });
                             } else {
                                 // Mark all ancestor @catch directives as protecting
-                                protecting_catches.extend(catch_ancestors.iter());
+                                ctx.protecting_catches.extend(ctx.catch_ancestors.iter());
                             }
                         }
                         DirectiveType::Catch => {
@@ -368,35 +387,35 @@ fn validate_selections(
                 let fragment_context_file = if is_resolved_fragment {
                     // TODO: We would need to track fragment file paths through the resolution process
                     // For now, we'll use the current fragment file or None
-                    current_fragment_file.clone()
+                    ctx.current_fragment_file.clone()
                 } else {
-                    current_fragment_file.clone()
+                    ctx.current_fragment_file.clone()
                 };
 
                 let fragment_context_name = if is_resolved_fragment {
                     Some(fragment_name.to_string())
                 } else {
-                    current_fragment_name.clone()
+                    ctx.current_fragment_name.clone()
                 };
 
                 // Check inline fragment directives
                 for directive in &inline.directives {
                     match directive.directive_type {
                         DirectiveType::ThrowOnFieldError => {
-                            if catch_ancestors.is_empty() {
+                            if ctx.catch_ancestors.is_empty() {
                                 let context = ErrorContext {
-                                    query_name: query.name.clone(),
-                                    query_file: query.file_path.clone(),
+                                    query_name: ctx.query.name.clone(),
+                                    query_file: ctx.query.file_path.clone(),
                                     location_path: inline_location.clone(),
                                     fragment_file: fragment_context_file.clone(),
                                     fragment_name: fragment_context_name.clone(),
                                 };
 
                                 let tree_visualization =
-                                    create_query_tree_visualization(query, Some(&inline_location));
+                                    create_query_tree_visualization(ctx.query, Some(&inline_location));
                                 let explanation = create_unprotected_throw_explanation();
 
-                                result.add_error(ValidationError {
+                                ctx.result.add_error(ValidationError {
                                     error_type: ValidationErrorType::UnprotectedThrowOnFieldError,
                                     context,
                                     tree_visualization,
@@ -404,7 +423,7 @@ fn validate_selections(
                                 });
                             } else {
                                 // Mark all ancestor @catch directives as protecting
-                                protecting_catches.extend(catch_ancestors.iter());
+                                ctx.protecting_catches.extend(ctx.catch_ancestors.iter());
                             }
                         }
                         DirectiveType::Catch => {
@@ -414,7 +433,7 @@ fn validate_selections(
                 }
 
                 // Create new ancestor context for this fragment's nested selections
-                let mut fragment_catch_ancestors = catch_ancestors.clone();
+                let mut fragment_catch_ancestors = ctx.catch_ancestors.clone();
 
                 // Add fragment-level @catch directives to ancestors for nested selections
                 for directive in &inline.directives {
@@ -424,35 +443,38 @@ fn validate_selections(
                 }
 
                 // Recursively validate fragment selections
+                let mut fragment_ctx = ValidationContext {
+                    query: ctx.query,
+                    catch_ancestors: &mut fragment_catch_ancestors,
+                    protecting_catches: ctx.protecting_catches,
+                    result: ctx.result,
+                    current_fragment_file: fragment_context_file.clone(),
+                    current_fragment_name: fragment_context_name.clone(),
+                };
                 validate_selections(
                     &inline.selections,
-                    query,
                     &inline_location,
-                    &mut fragment_catch_ancestors,
-                    protecting_catches,
-                    result,
-                    fragment_context_file.clone(),
-                    fragment_context_name.clone(),
+                    &mut fragment_ctx,
                 );
 
                 // Check for empty @catch directives at fragment level
                 for directive in &inline.directives {
                     if directive.directive_type == DirectiveType::Catch
-                        && !protecting_catches.contains(&directive.position)
+                        && !ctx.protecting_catches.contains(&directive.position)
                     {
                         let context = ErrorContext {
-                            query_name: query.name.clone(),
-                            query_file: query.file_path.clone(),
+                            query_name: ctx.query.name.clone(),
+                            query_file: ctx.query.file_path.clone(),
                             location_path: inline_location.clone(),
                             fragment_file: fragment_context_file.clone(),
                             fragment_name: fragment_context_name.clone(),
                         };
 
                         let tree_visualization =
-                            create_query_tree_visualization(query, Some(&inline_location));
+                            create_query_tree_visualization(ctx.query, Some(&inline_location));
                         let explanation = create_empty_catch_explanation();
 
-                        result.add_error(ValidationError {
+                        ctx.result.add_error(ValidationError {
                             error_type: ValidationErrorType::EmptyCatch,
                             context,
                             tree_visualization,
@@ -468,31 +490,26 @@ fn validate_selections(
 // Field-level validation with protection context from ancestors
 fn validate_field_directives(
     field: &crate::parsers::graphql_parser::FieldSelection,
-    query: &QueryWithFragments,
     field_location: &str,
-    catch_ancestors: &FxHashSet<u32>,
-    protecting_catches: &mut FxHashSet<u32>,
-    result: &mut ValidationResult,
-    current_fragment_file: Option<PathBuf>,
-    current_fragment_name: Option<String>,
+    ctx: &mut ValidationContext,
 ) {
     for directive in &field.directives {
         match directive.directive_type {
             DirectiveType::ThrowOnFieldError => {
-                if catch_ancestors.is_empty() {
+                if ctx.catch_ancestors.is_empty() {
                     let context = ErrorContext {
-                        query_name: query.name.clone(),
-                        query_file: query.file_path.clone(),
+                        query_name: ctx.query.name.clone(),
+                        query_file: ctx.query.file_path.clone(),
                         location_path: field_location.to_string(),
-                        fragment_file: current_fragment_file.clone(),
-                        fragment_name: current_fragment_name.clone(),
+                        fragment_file: ctx.current_fragment_file.clone(),
+                        fragment_name: ctx.current_fragment_name.clone(),
                     };
 
                     let tree_visualization =
-                        create_query_tree_visualization(query, Some(field_location));
+                        create_query_tree_visualization(ctx.query, Some(field_location));
                     let explanation = create_unprotected_throw_explanation();
 
-                    result.add_error(ValidationError {
+                    ctx.result.add_error(ValidationError {
                         error_type: ValidationErrorType::UnprotectedThrowOnFieldError,
                         context,
                         tree_visualization,
@@ -500,7 +517,7 @@ fn validate_field_directives(
                     });
                 } else {
                     // Mark all ancestor @catch directives as protecting
-                    protecting_catches.extend(catch_ancestors.iter());
+                    ctx.protecting_catches.extend(ctx.catch_ancestors.iter());
                 }
             }
             DirectiveType::Catch => {
@@ -517,8 +534,11 @@ fn create_query_tree_visualization(
 ) -> String {
     let mut formatter = TreeFormatter::new();
 
-    // Git root for relative paths
-    let git_root = std::env::current_dir().unwrap_or_else(|_| PathBuf::from("."));
+    // Git root for relative paths in snapshots
+    let git_root = PathBuf::from(env!("CARGO_MANIFEST_DIR"))
+        .parent()
+        .unwrap()
+        .to_path_buf();
 
     let relative_path = query
         .file_path

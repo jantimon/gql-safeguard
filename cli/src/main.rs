@@ -70,15 +70,15 @@ fn main() -> anyhow::Result<()> {
 
                 let elapsed = start_time.elapsed();
                 println!();
-                println!("💡 About @catch and @throwOnFieldError:");
+                println!("💡 About @catch and @throwOnFieldError");
+                println!();
+                println!("The reason why @catch is enforced instead of Error Boundaries is that");
+                println!("Error boundaries don't work during SSR");
+                println!();
                 println!(
-                    "The @throwOnFieldError directive requires protection by a @catch directive"
+                    "Without @catch protection, field errors will throw exceptions that bubble up"
                 );
-                println!(
-                    "in an ancestor field or a parent GraphQL fragment. Without proper @catch"
-                );
-                println!("protection, field errors will throw exceptions that bubble up and can");
-                println!("break the entire Page");
+                println!("and will break the entire page during server-side rendering.");
                 println!();
                 println!("Fix by adding @catch to a parent field or fragment.");
                 println!("Learn more: https://relay.dev/docs/next/guides/throw-on-field-error-directive/");
