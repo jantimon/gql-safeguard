@@ -1,0 +1,25 @@
+{
+  "changesets": [
+    {
+      "releases": [
+        {
+          "name": "gql-safeguard",
+          "type": "patch"
+        }
+      ],
+      "summary": "Fix optional dependency linking",
+      "id": "many-cases-strive"
+    }
+  ],
+  "releases": [
+    {
+      "name": "gql-safeguard",
+      "type": "patch",
+      "oldVersion": "0.1.1",
+      "changesets": [
+        "many-cases-strive"
+      ],
+      "newVersion": "0.1.2"
+    }
+  ]
+}
