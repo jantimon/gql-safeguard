@@ -19,9 +19,9 @@ Query Structure:
         └── 🧩 Fragment: UserDetailsUnprotected ❌
             ├── 🧩 Fragment: UserBasicInfoUnprotected ❌
             |   ├── 🔹 Field: id
-            |   ├── 🔹 Field: name ❌ [⚠️ @ThrowOnFieldError]
+            |   ├── 🔹 Field: name ❌ [☄️ @ThrowOnFieldError]
             |   └── 🔹 Field: email
-            ├── 🧩 Fragment: UserAvatarUnprotected [⚠️ @ThrowOnFieldError]
+            ├── 🧩 Fragment: UserAvatarUnprotected [☄️ @ThrowOnFieldError]
             |   ├── 🔹 Field: avatar
             |   └── 🔹 Field: avatarUrl
             └── 🔹 Field: bio
@@ -40,9 +40,9 @@ Query Structure:
         └── 🧩 Fragment: UserDetailsUnprotected ❌
             ├── 🧩 Fragment: UserBasicInfoUnprotected
             |   ├── 🔹 Field: id
-            |   ├── 🔹 Field: name [⚠️ @ThrowOnFieldError]
+            |   ├── 🔹 Field: name [☄️ @ThrowOnFieldError]
             |   └── 🔹 Field: email
-            ├── 🧩 Fragment: UserAvatarUnprotected ❌ [⚠️ @ThrowOnFieldError]
+            ├── 🧩 Fragment: UserAvatarUnprotected ❌ [☄️ @ThrowOnFieldError]
             |   ├── 🔹 Field: avatar
             |   └── 🔹 Field: avatarUrl
             └── 🔹 Field: bio
@@ -60,7 +60,7 @@ Query Structure:
     └── 🔹 Field: user
         ├── 🔹 Field: id
         ├── 🔹 Field: name
-        ├── 🔹 Field: avatar ❌ [⚠️ @ThrowOnFieldError]
+        ├── 🔹 Field: avatar ❌ [☄️ @ThrowOnFieldError]
         └── 🔹 Field: email
 --------------------------------------------------------------------------------
 
@@ -75,7 +75,7 @@ Query Structure:
 └── 🔍 Selections:
     └── 🔹 Field: user
         ├── 🔹 Field: id
-        ├── 🔹 Field: name ❌ [⚠️ @RequiredThrow]
+        ├── 🔹 Field: name ❌ [☄️ @RequiredThrow]
         └── 🔹 Field: email
 --------------------------------------------------------------------------------
 
@@ -91,8 +91,8 @@ Query Structure:
     └── 🔹 Field: user
         ├── 🔹 Field: id
         ├── 🧩 Fragment: ProtectedFragment [🧤 @Catch]
-        |   ├── 🔹 Field: sensitiveData [⚠️ @ThrowOnFieldError]
+        |   ├── 🔹 Field: sensitiveData [☄️ @ThrowOnFieldError]
         |   └── 🔹 Field: otherData
         └── 🧩 Fragment: UnprotectedFragment ❌
-            ├── 🔹 Field: riskyField ❌ [⚠️ @ThrowOnFieldError]
+            ├── 🔹 Field: riskyField ❌ [☄️ @ThrowOnFieldError]
             └── 🔹 Field: normalField

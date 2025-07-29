@@ -207,7 +207,7 @@ mod tests {
                         let emoji = match directive.directive_type {
                             crate::parsers::graphql_parser::DirectiveType::Catch => "🧤",
                             crate::parsers::graphql_parser::DirectiveType::ThrowOnFieldError
-                            | crate::parsers::graphql_parser::DirectiveType::RequiredThrow => "⚠️",
+                            | crate::parsers::graphql_parser::DirectiveType::RequiredThrow => "☄️",
                         };
                         formatter.add_line(4, &format!("{:?} {}", directive.directive_type, emoji));
                     }
@@ -224,7 +224,7 @@ mod tests {
                                 let emoji = match d.directive_type {
                                     crate::parsers::graphql_parser::DirectiveType::Catch => "🧤",
                                     crate::parsers::graphql_parser::DirectiveType::ThrowOnFieldError |
-                                    crate::parsers::graphql_parser::DirectiveType::RequiredThrow => "⚠️",
+                                    crate::parsers::graphql_parser::DirectiveType::RequiredThrow => "☄️",
                                 };
                                 format!("{:?} {}", d.directive_type, emoji)
                             }).collect();
@@ -245,7 +245,7 @@ mod tests {
                                 let emoji = match d.directive_type {
                                     crate::parsers::graphql_parser::DirectiveType::Catch => "🧤",
                                     crate::parsers::graphql_parser::DirectiveType::ThrowOnFieldError |
-                                    crate::parsers::graphql_parser::DirectiveType::RequiredThrow => "⚠️",
+                                    crate::parsers::graphql_parser::DirectiveType::RequiredThrow => "☄️",
                                 };
                                 format!("{:?} {}", d.directive_type, emoji)
                             }).collect();
@@ -282,7 +282,7 @@ mod tests {
                         let emoji = match directive.directive_type {
                             crate::parsers::graphql_parser::DirectiveType::Catch => "🧤",
                             crate::parsers::graphql_parser::DirectiveType::ThrowOnFieldError
-                            | crate::parsers::graphql_parser::DirectiveType::RequiredThrow => "⚠️",
+                            | crate::parsers::graphql_parser::DirectiveType::RequiredThrow => "☄️",
                         };
                         formatter.add_line(4, &format!("{:?} {}", directive.directive_type, emoji));
                     }
@@ -299,7 +299,7 @@ mod tests {
                                 let emoji = match d.directive_type {
                                     crate::parsers::graphql_parser::DirectiveType::Catch => "🧤",
                                     crate::parsers::graphql_parser::DirectiveType::ThrowOnFieldError |
-                                    crate::parsers::graphql_parser::DirectiveType::RequiredThrow => "⚠️",
+                                    crate::parsers::graphql_parser::DirectiveType::RequiredThrow => "☄️",
                                 };
                                 format!("{:?} {}", d.directive_type, emoji)
                             }).collect();
@@ -320,7 +320,7 @@ mod tests {
                                 let emoji = match d.directive_type {
                                     crate::parsers::graphql_parser::DirectiveType::Catch => "🧤",
                                     crate::parsers::graphql_parser::DirectiveType::ThrowOnFieldError |
-                                    crate::parsers::graphql_parser::DirectiveType::RequiredThrow => "⚠️",
+                                    crate::parsers::graphql_parser::DirectiveType::RequiredThrow => "☄️",
                                 };
                                 format!("{:?} {}", d.directive_type, emoji)
                             }).collect();

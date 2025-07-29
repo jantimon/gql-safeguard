@@ -14,13 +14,13 @@ GraphQL Registry
 |   |       ├── user
 |   |       ├── id
 |   |       ├── name
-|   |       ├── avatar [ThrowOnFieldError ⚠️]
+|   |       ├── avatar [ThrowOnFieldError ☄️]
 |   |       └── email
 |   ├── GetUserUnprotected (fixtures/invalid/unprotected_required_throw.ts)
 |   |   └── Fields:
 |   |       ├── user
 |   |       ├── id
-|   |       ├── name [RequiredThrow ⚠️]
+|   |       ├── name [RequiredThrow ☄️]
 |   |       └── email
 |   └── MixedQuery (fixtures/invalid/partial_protection.ts)
 |       ├── Fields:
@@ -34,22 +34,22 @@ GraphQL Registry
     |   ├── Directives:
     |   |   └── Catch 🧤
     |   └── Fields:
-    |       ├── sensitiveData [ThrowOnFieldError ⚠️]
+    |       ├── sensitiveData [ThrowOnFieldError ☄️]
     |       └── otherData
     ├── UnprotectedFragment (fixtures/invalid/partial_protection.ts)
     |   └── Fields:
-    |       ├── riskyField [ThrowOnFieldError ⚠️]
+    |       ├── riskyField [ThrowOnFieldError ☄️]
     |       └── normalField
     ├── UserAvatarUnprotected (fixtures/invalid/unprotected_nested.ts)
     |   ├── Directives:
-    |   |   └── ThrowOnFieldError ⚠️
+    |   |   └── ThrowOnFieldError ☄️
     |   └── Fields:
     |       ├── avatar
     |       └── avatarUrl
     ├── UserBasicInfoUnprotected (fixtures/invalid/unprotected_nested.ts)
     |   └── Fields:
     |       ├── id
-    |       ├── name [ThrowOnFieldError ⚠️]
+    |       ├── name [ThrowOnFieldError ☄️]
     |       └── email
     └── UserDetailsUnprotected (fixtures/invalid/unprotected_nested.ts)
         ├── Fields:

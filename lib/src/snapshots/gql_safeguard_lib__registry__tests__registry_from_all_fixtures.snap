@@ -3,12 +3,12 @@ source: lib/src/registry.rs
 expression: formatted
 ---
 GraphQL Registry
-├── Queries (16)
+├── Queries (21)
 |   ├── AdditionalQueryEdgeCase (fixtures/edge_cases/additional-queries.ts)
 |   |   └── Fields:
 |   |       ├── user
 |   |       ├── id
-|   |       └── importedField [ThrowOnFieldError ⚠️]
+|   |       └── importedField [ThrowOnFieldError ☄️]
 |   ├── BaseQueryDynamic (fixtures/edge_cases/dynamic_imports.tsx)
 |   |   ├── Directives:
 |   |   |   └── Catch 🧤
@@ -16,7 +16,7 @@ GraphQL Registry
 |   |       ├── user
 |   |       ├── id
 |   |       ├── name
-|   |       └── dynamicField [ThrowOnFieldError ⚠️]
+|   |       └── dynamicField [ThrowOnFieldError ☄️]
 |   ├── CircularQueryTest (fixtures/edge_cases/circular_fragments.ts)
 |   |   ├── Fields:
 |   |   |   └── user
@@ -38,46 +38,84 @@ GraphQL Registry
 |   |   └── Fields:
 |   |       ├── user
 |   |       ├── id
-|   |       ├── name [RequiredThrow ⚠️]
-|   |       └── email [RequiredThrow ⚠️]
+|   |       ├── name [RequiredThrow ☄️]
+|   |       └── email [RequiredThrow ☄️]
+|   ├── GetUserComplex (fixtures/edge_cases/required_variants.ts)
+|   |   ├── Directives:
+|   |   |   └── Catch 🧤
+|   |   └── Fields:
+|   |       ├── user
+|   |       ├── id
+|   |       ├── profile
+|   |       ├── name
+|   |       ├── displayName [RequiredThrow ☄️]
+|   |       ├── avatar [ThrowOnFieldError ☄️]
+|   |       ├── bio [Catch 🧤]
+|   |       ├── text [RequiredThrow ☄️]
+|   |       └── lastModified
+|   ├── GetUserLogAction (fixtures/edge_cases/required_variants.ts)
+|   |   └── Fields:
+|   |       ├── user
+|   |       ├── id
+|   |       ├── name
+|   |       └── email [RequiredThrow ☄️, Catch 🧤]
 |   ├── GetUserMixed (fixtures/valid/required_throw.ts)
 |   |   ├── Directives:
 |   |   |   └── Catch 🧤
 |   |   └── Fields:
 |   |       ├── user
 |   |       ├── id
-|   |       ├── name [RequiredThrow ⚠️]
-|   |       ├── avatar [ThrowOnFieldError ⚠️]
-|   |       └── email [RequiredThrow ⚠️]
+|   |       ├── name [RequiredThrow ☄️]
+|   |       ├── avatar [ThrowOnFieldError ☄️]
+|   |       └── email [RequiredThrow ☄️]
 |   ├── GetUserNested (fixtures/valid/required_throw.ts)
 |   |   └── Fields:
 |   |       ├── user
 |   |       ├── id
 |   |       ├── profile [Catch 🧤]
-|   |       ├── displayName [RequiredThrow ⚠️]
-|   |       ├── bio [RequiredThrow ⚠️]
+|   |       ├── displayName [RequiredThrow ☄️]
+|   |       ├── bio [RequiredThrow ☄️]
 |   |       ├── avatar
-|   |       └── url [ThrowOnFieldError ⚠️]
+|   |       └── url [ThrowOnFieldError ☄️]
+|   ├── GetUserNoAction (fixtures/edge_cases/required_variants.ts)
+|   |   └── Fields:
+|   |       ├── user
+|   |       ├── id
+|   |       ├── name
+|   |       └── email [RequiredThrow ☄️, Catch 🧤]
+|   ├── GetUserOtherActions (fixtures/edge_cases/required_variants.ts)
+|   |   └── Fields:
+|   |       ├── user
+|   |       ├── id
+|   |       ├── name
+|   |       ├── email
+|   |       └── bio [RequiredThrow ☄️, Catch 🧤]
 |   ├── GetUserProfile (fixtures/valid/required_throw.ts)
 |   |   └── Fields:
 |   |       ├── user [Catch 🧤]
 |   |       ├── id
-|   |       ├── name [RequiredThrow ⚠️]
-|   |       ├── avatar [RequiredThrow ⚠️]
+|   |       ├── name [RequiredThrow ☄️]
+|   |       ├── avatar [RequiredThrow ☄️]
 |   |       └── bio
 |   ├── GetUserProfileUnprotected (fixtures/invalid/missing_catch.tsx)
 |   |   └── Fields:
 |   |       ├── user
 |   |       ├── id
 |   |       ├── name
-|   |       ├── avatar [ThrowOnFieldError ⚠️]
+|   |       ├── avatar [ThrowOnFieldError ☄️]
 |   |       └── email
 |   ├── GetUserUnprotected (fixtures/invalid/unprotected_required_throw.ts)
 |   |   └── Fields:
 |   |       ├── user
 |   |       ├── id
-|   |       ├── name [RequiredThrow ⚠️]
+|   |       ├── name [RequiredThrow ☄️]
 |   |       └── email
+|   ├── GetUserWithFragment (fixtures/edge_cases/required_variants.ts)
+|   |   ├── Fields:
+|   |   |   ├── user [Catch 🧤]
+|   |   |   └── id
+|   |   └── Fragment Spreads:
+|   |       └── UserInfo
 |   ├── GetUserWithRiskyData (fixtures/valid/fragment_level_catch.ts)
 |   |   ├── Directives:
 |   |   |   └── Catch 🧤
@@ -85,7 +123,7 @@ GraphQL Registry
 |   |   |   ├── user
 |   |   |   ├── id
 |   |   |   ├── name
-|   |   |   └── friends [ThrowOnFieldError ⚠️]
+|   |   |   └── friends [ThrowOnFieldError ☄️]
 |   |   └── Fragment Spreads:
 |   |       └── RiskyUserData
 |   ├── GraphQLQuery (fixtures/edge_cases/additional-queries.ts)
@@ -94,7 +132,7 @@ GraphQL Registry
 |   |   └── Fields:
 |   |       ├── user
 |   |       ├── id
-|   |       └── protectedField [ThrowOnFieldError ⚠️]
+|   |       └── protectedField [ThrowOnFieldError ☄️]
 |   ├── MixedQuery (fixtures/invalid/partial_protection.ts)
 |   |   ├── Fields:
 |   |   |   ├── user
@@ -106,7 +144,7 @@ GraphQL Registry
 |   |   └── Fields:
 |   |       ├── user
 |   |       ├── id
-|   |       └── dynamicField [ThrowOnFieldError ⚠️]
+|   |       └── dynamicField [ThrowOnFieldError ☄️]
 |   └── ValidQueryCommented (fixtures/edge_cases/commented_graphql.ts)
 |       ├── Directives:
 |       |   └── Catch 🧤
@@ -114,8 +152,8 @@ GraphQL Registry
 |           ├── user
 |           ├── id
 |           ├── name
-|           └── avatar [ThrowOnFieldError ⚠️]
-└── Fragments (13)
+|           └── avatar [ThrowOnFieldError ☄️]
+└── Fragments (14)
     ├── FragmentACircular (fixtures/edge_cases/circular_fragments.ts)
     |   ├── Fields:
     |   |   ├── id
@@ -132,18 +170,18 @@ GraphQL Registry
     |   ├── Directives:
     |   |   └── Catch 🧤
     |   └── Fields:
-    |       ├── sensitiveData [ThrowOnFieldError ⚠️]
+    |       ├── sensitiveData [ThrowOnFieldError ☄️]
     |       └── otherData
     ├── RiskyUserData (fixtures/valid/fragment_level_catch.ts)
     |   ├── Directives:
     |   |   └── Catch 🧤
     |   └── Fields:
-    |       ├── sensitiveInfo [ThrowOnFieldError ⚠️]
-    |       ├── backupEmail [ThrowOnFieldError ⚠️]
+    |       ├── sensitiveInfo [ThrowOnFieldError ☄️]
+    |       ├── backupEmail [ThrowOnFieldError ☄️]
     |       └── internalId
     ├── UnprotectedFragment (fixtures/invalid/partial_protection.ts)
     |   └── Fields:
-    |       ├── riskyField [ThrowOnFieldError ⚠️]
+    |       ├── riskyField [ThrowOnFieldError ☄️]
     |       └── normalField
     ├── UserAvatar (fixtures/valid/nested_fragments_protected.ts)
     |   ├── Directives:
@@ -154,7 +192,7 @@ GraphQL Registry
     |       └── avatarImage
     ├── UserAvatarUnprotected (fixtures/invalid/unprotected_nested.ts)
     |   ├── Directives:
-    |   |   └── ThrowOnFieldError ⚠️
+    |   |   └── ThrowOnFieldError ☄️
     |   └── Fields:
     |       ├── avatar
     |       └── avatarUrl
@@ -166,16 +204,16 @@ GraphQL Registry
     ├── UserBasicInfoUnprotected (fixtures/invalid/unprotected_nested.ts)
     |   └── Fields:
     |       ├── id
-    |       ├── name [ThrowOnFieldError ⚠️]
+    |       ├── name [ThrowOnFieldError ☄️]
     |       └── email
     ├── UserBio (fixtures/valid/nested_fragments_protected.ts)
     |   └── Fields:
     |       ├── bioText
-    |       └── bioImage [ThrowOnFieldError ⚠️]
+    |       └── bioImage [ThrowOnFieldError ☄️]
     ├── UserDetails (fixtures/valid/nested_fragments_protected.ts)
     |   ├── Fields:
     |   |   ├── details [Catch 🧤]
-    |   |   └── bio [ThrowOnFieldError ⚠️]
+    |   |   └── bio [ThrowOnFieldError ☄️]
     |   └── Fragment Spreads:
     |       ├── UserBasicInfo
     |       ├── UserAvatar
@@ -186,9 +224,14 @@ GraphQL Registry
     |   └── Fragment Spreads:
     |       ├── UserBasicInfoUnprotected
     |       └── UserAvatarUnprotected
+    ├── UserInfo (fixtures/edge_cases/required_variants.ts)
+    |   └── Fields:
+    |       ├── name
+    |       ├── email [RequiredThrow ☄️]
+    |       └── avatar [ThrowOnFieldError ☄️]
     └── avatarImage (fixtures/valid/nested_fragments_protected.ts)
         ├── Directives:
-        |   └── ThrowOnFieldError ⚠️
+        |   └── ThrowOnFieldError ☄️
         └── Fields:
             ├── avatar
             └── avatarUrl

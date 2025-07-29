@@ -128,88 +128,102 @@ Selections: 1
 
 ---
 
-File: /Users/jannicklas/Desktop/gql-safeguard/fixtures/edge_cases/required_variants.ts
-GraphQL Parse Error: GraphQL syntax error in /Users/jannicklas/Desktop/gql-safeguard/fixtures/edge_cases/required_variants.ts at position 118: ParseError("Parse error at 5:38\nUnexpected unexpected character '/'\nExpected }\n")
-Content: 
-  query GetUserLogAction($id: ID!) {
-    user(id: $id) {
-      id
-      name @required(action: LOG)    // Should be ignored - no @catch needed
-      email @required(action: THROW) @catch  // Should validate - needs protection
-    }
-  }
+File: fixtures/edge_cases/required_variants.ts
+GraphQL AST items: 1
 
-
----
-
-File: /Users/jannicklas/Desktop/gql-safeguard/fixtures/edge_cases/required_variants.ts
-GraphQL Parse Error: GraphQL syntax error in /Users/jannicklas/Desktop/gql-safeguard/fixtures/edge_cases/required_variants.ts at position 441: ParseError("Parse error at 5:38\nUnexpected unexpected character '/'\nExpected }\n")
-Content: 
-  query GetUserNoAction($id: ID!) {
-    user(id: $id) {
-      id
-      name @required                 // Should be ignored - no action specified
-      email @required(action: THROW) @catch  // Should validate
-    }
-  }
-
+=== AST Item 1 ===
+Type: Query
+Name: GetUserLogAction
+File: fixtures/edge_cases/required_variants.ts
+Directives: 0
+Selections: 1
+    - Field: user
+      - Field: id
+      - Field: name
+      - Field: email [RequiredThrow ☄️, Catch 🧤]
 
 ---
 
-File: /Users/jannicklas/Desktop/gql-safeguard/fixtures/edge_cases/required_variants.ts
-GraphQL Parse Error: GraphQL syntax error in /Users/jannicklas/Desktop/gql-safeguard/fixtures/edge_cases/required_variants.ts at position 752: ParseError("Parse error at 5:38\nUnexpected unexpected character '/'\nExpected }\n")
-Content: 
-  query GetUserOtherActions($id: ID!) {
-    user(id: $id) {
-      id
-      name @required(action: WARN)   // Should be ignored
-      email @required(action: NONE)  // Should be ignored
-      bio @required(action: THROW) @catch    // Should validate
-    }
-  }
+File: fixtures/edge_cases/required_variants.ts
+GraphQL AST items: 1
 
-
----
-
-File: /Users/jannicklas/Desktop/gql-safeguard/fixtures/edge_cases/required_variants.ts
-GraphQL Parse Error: GraphQL syntax error in /Users/jannicklas/Desktop/gql-safeguard/fixtures/edge_cases/required_variants.ts at position 1095: ParseError("Parse error at 6:40\nUnexpected unexpected character '/'\nExpected }\n")
-Content: 
-  query GetUserComplex($id: ID!) @catch {
-    user(id: $id) {
-      id
-      profile {
-        name @required(action: LOG)    // Should be ignored
-        displayName @required(action: THROW)  // Should validate (protected by query @catch)
-        avatar @throwOnFieldError      // Should validate (protected by query @catch)
-        bio @catch {
-          text @required(action: THROW)  // Should validate (protected by bio @catch)
-          lastModified @required(action: WARN)  // Should be ignored
-        }
-      }
-    }
-  }
-
+=== AST Item 1 ===
+Type: Query
+Name: GetUserNoAction
+File: fixtures/edge_cases/required_variants.ts
+Directives: 0
+Selections: 1
+    - Field: user
+      - Field: id
+      - Field: name
+      - Field: email [RequiredThrow ☄️, Catch 🧤]
 
 ---
 
-File: /Users/jannicklas/Desktop/gql-safeguard/fixtures/edge_cases/required_variants.ts
-GraphQL Parse Error: GraphQL syntax error in /Users/jannicklas/Desktop/gql-safeguard/fixtures/edge_cases/required_variants.ts at position 1698: ParseError("Parse error at 3:38\nUnexpected unexpected character '/'\nExpected }\n")
-Content: 
-  fragment UserInfo on User {
-    name @required(action: LOG)      // Should be ignored
-    email @required(action: THROW)   // Should validate when fragment is used
-    avatar @throwOnFieldError        // Should validate when fragment is used
-  }
+File: fixtures/edge_cases/required_variants.ts
+GraphQL AST items: 1
 
+=== AST Item 1 ===
+Type: Query
+Name: GetUserOtherActions
+File: fixtures/edge_cases/required_variants.ts
+Directives: 0
+Selections: 1
+    - Field: user
+      - Field: id
+      - Field: name
+      - Field: email
+      - Field: bio [RequiredThrow ☄️, Catch 🧤]
 
 ---
 
-File: /Users/jannicklas/Desktop/gql-safeguard/fixtures/edge_cases/required_variants.ts
-GraphQL Parse Error: GraphQL syntax error in /Users/jannicklas/Desktop/gql-safeguard/fixtures/edge_cases/required_variants.ts at position 1986: ParseError("Parse error at 5:20\nUnexpected unexpected character '/'\nExpected }\n")
-Content: 
-  query GetUserWithFragment($id: ID!) {
-    user(id: $id) @catch {
-      id
-      ...UserInfo  // Fragment spreads should inherit protection
-    }
-  }
+File: fixtures/edge_cases/required_variants.ts
+GraphQL AST items: 1
+
+=== AST Item 1 ===
+Type: Query
+Name: GetUserComplex
+File: fixtures/edge_cases/required_variants.ts
+Directives: 1
+  - Catch 🧤
+Selections: 1
+    - Field: user
+      - Field: id
+      - Field: profile
+        - Field: name
+        - Field: displayName [RequiredThrow ☄️]
+        - Field: avatar [ThrowOnFieldError ☄️]
+        - Field: bio [Catch 🧤]
+          - Field: text [RequiredThrow ☄️]
+          - Field: lastModified
+
+---
+
+File: fixtures/edge_cases/required_variants.ts
+GraphQL AST items: 1
+
+=== AST Item 1 ===
+Type: Fragment
+Name: UserInfo
+File: fixtures/edge_cases/required_variants.ts
+Directives: 0
+Type Condition: on User
+Selections: 3
+    - Field: name
+    - Field: email [RequiredThrow ☄️]
+    - Field: avatar [ThrowOnFieldError ☄️]
+
+---
+
+File: fixtures/edge_cases/required_variants.ts
+GraphQL AST items: 1
+
+=== AST Item 1 ===
+Type: Query
+Name: GetUserWithFragment
+File: fixtures/edge_cases/required_variants.ts
+Directives: 0
+Selections: 1
+    - Field: user [Catch 🧤]
+      - Field: id
+      - FragmentSpread: UserInfo

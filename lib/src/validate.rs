@@ -545,7 +545,7 @@ fn create_query_tree_visualization(
         for directive in &query.directives {
             let emoji = match directive.directive_type {
                 DirectiveType::Catch => "🧤",
-                DirectiveType::ThrowOnFieldError | DirectiveType::RequiredThrow => "⚠️",
+                DirectiveType::ThrowOnFieldError | DirectiveType::RequiredThrow => "☄️",
             };
             let highlight = if let Some(error_loc) = error_location {
                 if error_loc == "query level" {
@@ -602,7 +602,7 @@ fn format_selections_for_error(
                             let emoji = match d.directive_type {
                                 DirectiveType::Catch => "🧤",
                                 DirectiveType::ThrowOnFieldError | DirectiveType::RequiredThrow => {
-                                    "⚠️"
+                                    "☄️"
                                 }
                             };
                             format!("{} @{:?}", emoji, d.directive_type)
@@ -643,7 +643,7 @@ fn format_selections_for_error(
                             let emoji = match d.directive_type {
                                 DirectiveType::Catch => "🧤",
                                 DirectiveType::ThrowOnFieldError | DirectiveType::RequiredThrow => {
-                                    "⚠️"
+                                    "☄️"
                                 }
                             };
                             format!("{} @{:?}", emoji, d.directive_type)
@@ -681,7 +681,7 @@ fn format_selections_for_error(
                             let emoji = match d.directive_type {
                                 DirectiveType::Catch => "🧤",
                                 DirectiveType::ThrowOnFieldError | DirectiveType::RequiredThrow => {
-                                    "⚠️"
+                                    "☄️"
                                 }
                             };
                             format!("{} @{:?}", emoji, d.directive_type)
