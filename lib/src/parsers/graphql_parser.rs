@@ -230,8 +230,12 @@ fn convert_fragment_definition(
     graphql_content: &str,
 ) -> Result<FragmentDefinition> {
     // Fragment-level directives protect all contained selections
-    let directives =
-        extract_directives_from_directive_list(&frag.directives, position, graphql_content, frag.position.line);
+    let directives = extract_directives_from_directive_list(
+        &frag.directives,
+        position,
+        graphql_content,
+        frag.position.line,
+    );
 
     // Maintain structure for nested directive validation
     let selections = convert_selection_set(&frag.selection_set, position, graphql_content);
@@ -295,7 +299,7 @@ fn convert_selection_set(
                     &inline.directives,
                     position,
                     graphql_content,
-                    inline.position.line, 
+                    inline.position.line,
                 );
 
                 // Process inline fragment contents

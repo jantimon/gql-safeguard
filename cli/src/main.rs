@@ -43,7 +43,6 @@ fn main() -> anyhow::Result<()> {
 
     match args.command {
         Command::Validate { show_trees } => {
-
             if args.verbose {
                 let elapsed = start_time.elapsed();
                 println!("Found {} files in {elapsed:.2?}", registry.file_count);

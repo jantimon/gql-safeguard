@@ -2,7 +2,7 @@
 //!
 //! Uses DashMap for thread-safe concurrent access during parallel file parsing.
 use anyhow::Result;
-use dashmap::{DashMap};
+use dashmap::DashMap;
 use globset::{Glob, GlobSetBuilder};
 use ignore::{WalkBuilder, WalkState};
 use rayon::prelude::*;
@@ -29,7 +29,7 @@ pub struct GraphQLRegistry {
     #[serde(with = "serde_dashmap")]
     pub queries: QueryRegistry,
     #[serde(skip)]
-    pub file_count: usize
+    pub file_count: usize,
 }
 
 // DashMap doesn't implement Serialize directly - need custom conversion
