@@ -17,7 +17,7 @@ Query Structure:
 └── 🔍 Selections:
     └── 🔹 Field: user
         ├── 🔹 Field: id
-        └── 🔹 Field: importedField ❌ [☄️ @ThrowOnFieldError]
+        └── 🔹 Field: importedField ❌ [☄️ @throwOnFieldError]
 --------------------------------------------------------------------------------
 
 
@@ -32,7 +32,7 @@ Query Structure:
     └── 🔹 Field: user
         ├── 🔹 Field: id
         ├── 🔹 Field: name
-        └── 🔹 Field: email ❌ [☄️ @RequiredThrow, 🧤 @Catch]
+        └── 🔹 Field: email ❌ [☄️ @requiredThrow, 🧤 @catch]
 --------------------------------------------------------------------------------
 
 
@@ -47,7 +47,7 @@ Query Structure:
     └── 🔹 Field: user
         ├── 🔹 Field: id
         ├── 🔹 Field: name
-        └── 🔹 Field: email ❌ [☄️ @RequiredThrow, 🧤 @Catch]
+        └── 🔹 Field: email ❌ [☄️ @requiredThrow, 🧤 @catch]
 --------------------------------------------------------------------------------
 
 
@@ -63,7 +63,7 @@ Query Structure:
         ├── 🔹 Field: id
         ├── 🔹 Field: name
         ├── 🔹 Field: email
-        └── 🔹 Field: bio ❌ [☄️ @RequiredThrow, 🧤 @Catch]
+        └── 🔹 Field: bio ❌ [☄️ @requiredThrow, 🧤 @catch]
 --------------------------------------------------------------------------------
 
 
@@ -77,4 +77,4 @@ Query Structure:
 └── 🔍 Selections:
     └── 🔹 Field: user
         ├── 🔹 Field: id
-        └── 🔹 Field: dynamicField ❌ [☄️ @ThrowOnFieldError]
+        └── 🔹 Field: dynamicField ❌ [☄️ @throwOnFieldError]

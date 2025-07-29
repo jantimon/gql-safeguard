@@ -593,7 +593,7 @@ fn create_optimized_tree_visualization(
                 };
                 formatter.add_line(
                     2,
-                    &format!("{} @{:?}{}", emoji, directive.directive_type, highlight),
+                    &format!("{} @{}{}", emoji, directive.directive_type, highlight),
                 );
             }
         }
@@ -652,7 +652,7 @@ fn format_selections_for_optimized_visualization_with_path(
                                     "☄️"
                                 }
                             };
-                            format!("{} @{:?}", emoji, d.directive_type)
+                            format!("{} @{}", emoji, d.directive_type)
                         })
                         .collect();
                     field_text.push_str(&format!(" [{}]", directive_strs.join(", ")));
@@ -695,7 +695,7 @@ fn format_selections_for_optimized_visualization_with_path(
                                     "☄️"
                                 }
                             };
-                            format!("{} @{:?}", emoji, d.directive_type)
+                            format!("{} @{}", emoji, d.directive_type)
                         })
                         .collect();
                     spread_text.push_str(&format!(" [{}]", directive_strs.join(", ")));
@@ -749,7 +749,7 @@ fn format_selections_for_optimized_visualization_with_path(
                                     "☄️"
                                 }
                             };
-                            format!("{} @{:?}", emoji, d.directive_type)
+                            format!("{} @{}", emoji, d.directive_type)
                         })
                         .collect();
                     inline_text.push_str(&format!(" [{}]", directive_strs.join(", ")));
