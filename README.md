@@ -59,7 +59,7 @@ npx gql-safeguard . json > graphql-analysis.json
 const query = gql`
   query MyQuery {
     user {
-      ...UserProfile  # ❌ Fragment contains unprotected directives!
+      ...UserProfile @throwOnFieldError  # ❌ No @catch protection!
     }
   }
 `;
@@ -69,7 +69,7 @@ const query = gql`
 ```typescript
 const fragment = gql`
   fragment UserProfile on User {
-    name @throwOnFieldError           # ❌ No @catch protection!
+    name
     email @required(action: THROW)    # ❌ No @catch protection!
   }
 `;
@@ -82,7 +82,7 @@ const fragment = gql`
 const query = gql`
   query MyQuery {
     user @catch {  # ✅ Catches errors from fragment
-      ...UserProfile
+      ...UserProfile @throwOnFieldError
     }
   }
 `;
@@ -91,9 +91,9 @@ const query = gql`
 **user-profile-fragment.ts:**
 ```typescript
 const fragment = gql`
-  fragment UserProfile on User {
-    name @throwOnFieldError           # ✅ Protected by ancestor @catch in query
-    email @required(action: THROW)    # ✅ Protected by ancestor @catch in query
+  fragment UserProfile on User @throwOnFieldError { # ✅ Protected by ancestor @catch
+    name                              
+    email @required(action: THROW)    # ✅ Protected by ancestor @catch
   }
 `;
 ```
@@ -170,15 +170,15 @@ You can disable validation for specific fields by placing the `gql-safeguard-ign
 ```graphql
 query GetUser {
   user @catch {
-    name @throwOnFieldError           # ✅ Protected by @catch
+    ...UserFragment @throwOnFieldError  # ✅ Protected by @catch
     
     # gql-safeguard-ignore
-    email @throwOnFieldError          # ⏭️ Ignored by gql-safeguard
+    ...OtherFragment @throwOnFieldError # ⏭️ Ignored by gql-safeguard
     
     profile {
       # gql-safeguard-ignore  
-      avatar @required(action: THROW) # ⏭️ Ignored by gql-safeguard
-      bio @required(action: THROW)    # ✅ Still validated (protected by @catch)
+      avatar @required(action: THROW)   # ⏭️ Ignored by gql-safeguard
+      bio @required(action: THROW)      # ✅ Still validated (protected by @catch)
     }
   }
 }
