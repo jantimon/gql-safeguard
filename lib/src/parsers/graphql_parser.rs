@@ -1,31 +1,7 @@
-//! GraphQL Parser and Directive Extraction
+//! GraphQL AST parsing with directive extraction for safety validation
 //!
-//! This module provides functionality for parsing GraphQL strings into structured AST
-//! representations and extracting GraphQL directives for analysis. It handles the
-//! conversion from raw GraphQL template literals (extracted by `typescript_parser`)
-//! into typed data structures suitable for directive validation and dependency analysis.
-//!
-//! # Architecture
-//!
-//! The parsing pipeline consists of two main phases:
-//!
-//! ## 1. GraphQL AST Parsing
-//! - **Input**: Raw GraphQL strings from TypeScript template literals
-//! - **Process**: Parse using `graphql-parser` crate for syntax validation
-//! - **Output**: Structured `GraphQLItem` representations (queries and fragments)
-//!
-//! ## 2. Directive Extraction
-//! - **Input**: Parsed GraphQL AST nodes
-//! - **Process**: Extract `@catch` and `@throwOnFieldError` directives with locations
-//! - **Output**: Typed directive data structures for validation analysis
-//!
-//! # Supported GraphQL Constructs
-//!
-//! - **Queries**: Named and anonymous query operations with field selections
-//! - **Fragments**: Named fragment definitions with type conditions
-//! - **Fragment Spreads**: References to other fragments via `...FragmentName`
-//! - **Directives**: `@catch` and `@throwOnFieldError` directives on various locations
-//! - **Fields**: Individual field selections with optional directives
+//! Converts raw GraphQL strings into structured data focusing on @catch/@throwOnFieldError
+//! directives needed for runtime error prevention analysis.
 
 use std::path::PathBuf;
 
@@ -37,7 +13,7 @@ use graphql_parser::query::{
 };
 use serde::{Deserialize, Serialize};
 
-/// Legacy flat field structure for compatibility
+// Backward compatibility for modules expecting flat field lists
 #[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
 pub struct Field {
     pub name: String,
@@ -106,14 +82,9 @@ pub struct FragmentDefinition {
     pub file_path: PathBuf,
 }
 
-/// Parses a GraphQL string into structured AST items with directive extraction.
-///
-/// This function takes a raw GraphQL string (extracted from TypeScript template literals)
-/// and converts it into typed data structures representing queries, fragments, and their
-/// associated directives. It performs syntax validation and extracts only the information
-/// relevant for directive protection analysis
+// Entry point: converts GraphQL strings to AST with safety-relevant directives
 pub fn parse_graphql_to_ast(graphql_string: &GraphQLString) -> Result<Vec<GraphQLItem>> {
-    // Parse the GraphQL string using the graphql-parser library
+    // Validate GraphQL syntax and build AST representation
     let document: QueryDocument<String> = parse_query(&graphql_string.content).map_err(|e| {
         anyhow::anyhow!(
             "GraphQL syntax error in {} at position {}: {:?}",
@@ -125,7 +96,7 @@ pub fn parse_graphql_to_ast(graphql_string: &GraphQLString) -> Result<Vec<GraphQ
 
     let mut items = Vec::new();
 
-    // Process each definition in the GraphQL document
+    // Extract queries and fragments with their directive information
     for definition in document.definitions {
         match definition {
             Definition::Operation(op) => {
@@ -151,12 +122,8 @@ pub fn parse_graphql_to_ast(graphql_string: &GraphQLString) -> Result<Vec<GraphQ
     Ok(items)
 }
 
-/// Converts a GraphQL operation definition to our internal QueryOperation representation.
-///
-/// This function processes query operations from the parsed GraphQL AST and extracts
-/// the information needed for directive validation. It focuses on query operations
-/// since mutations and subscriptions are not typically relevant for `@throwOnFieldError`
-/// protection analysis
+// Converts parsed operations to internal format for validation
+// Focuses on queries since @throwOnFieldError is query-specific
 fn convert_operation_to_query(
     op: OperationDefinition<String>,
     file_path: &std::path::Path,
@@ -164,13 +131,13 @@ fn convert_operation_to_query(
 ) -> Result<Option<QueryOperation>> {
     match op {
         OperationDefinition::Query(query) => {
-            // Assign a name to anonymous queries for tracking purposes
+            // Anonymous queries need names for error reporting
             let name = query.name.unwrap_or_else(|| "AnonymousQuery".to_string());
 
-            // Extract directives from the query operation
+            // Query-level directives affect all nested selections
             let directives = extract_directives_from_directive_list(&query.directives, position);
 
-            // Process the selection set to build hierarchical structure
+            // Maintain nesting for proper directive inheritance validation
             let selections = convert_selection_set(&query.selection_set, position);
 
             Ok(Some(QueryOperation {
@@ -181,33 +148,27 @@ fn convert_operation_to_query(
             }))
         }
         OperationDefinition::Mutation(_) | OperationDefinition::Subscription(_) => {
-            // Skip mutations and subscriptions as they're not typically relevant
-            // for @throwOnFieldError protection analysis
+            // @throwOnFieldError is primarily used in data-fetching queries
             Ok(None)
         }
         OperationDefinition::SelectionSet(_) => {
-            // Skip bare selection sets for now - these are less common in practice
-            // and would need additional handling for anonymous operation tracking
+            // Rare pattern - focus on named operations for now
             Ok(None)
         }
     }
 }
 
-/// Converts a GraphQL fragment definition to our internal FragmentDefinition representation.
-///
-/// This function processes fragment definitions from the parsed GraphQL AST and extracts
-/// all information needed for directive validation and dependency analysis. Fragments
-/// are critical for protection analysis since `@catch` directives on fragments can
-/// protect nested `@throwOnFieldError` directives
+// Converts fragments for dependency resolution and validation
+// Fragments are key for @catch protection inheritance
 fn convert_fragment_definition(
     frag: graphql_parser::query::FragmentDefinition<String>,
     file_path: &std::path::Path,
     position: u32,
 ) -> Result<FragmentDefinition> {
-    // Extract directives from the fragment definition
+    // Fragment-level directives protect all contained selections
     let directives = extract_directives_from_directive_list(&frag.directives, position);
 
-    // Process the selection set to build hierarchical structure
+    // Maintain structure for nested directive validation
     let selections = convert_selection_set(&frag.selection_set, position);
 
     Ok(FragmentDefinition {
@@ -219,23 +180,19 @@ fn convert_fragment_definition(
     })
 }
 
-/// Converts a GraphQL selection set into hierarchical Selection structures.
-///
-/// This function processes the selection set from queries or fragments and builds
-/// a hierarchical structure that preserves the nesting relationships between
-/// fields and fragments. This is crucial for directive validation since
-/// protection rules need to understand the parent-child relationships.
+// Builds hierarchical structure preserving directive inheritance relationships
+// Critical for validating @catch protection across nested selections
 fn convert_selection_set(selection_set: &SelectionSet<String>, position: u32) -> Vec<Selection> {
     let mut selections = Vec::new();
 
     for selection in &selection_set.items {
         match selection {
             graphql_parser::query::Selection::Field(field) => {
-                // Extract directives from the field selection
+                // Field directives can provide or require protection
                 let directives =
                     extract_directives_from_directive_list(&field.directives, position);
 
-                // Recursively process nested selection set
+                // Fields may contain nested selections needing validation
                 let nested_selections = convert_selection_set(&field.selection_set, position);
 
                 selections.push(Selection::Field(FieldSelection {
@@ -245,7 +202,7 @@ fn convert_selection_set(selection_set: &SelectionSet<String>, position: u32) ->
                 }));
             }
             graphql_parser::query::Selection::FragmentSpread(spread) => {
-                // Extract directives from the fragment spread
+                // Spread directives can add protection before fragment expansion
                 let directives =
                     extract_directives_from_directive_list(&spread.directives, position);
 
@@ -255,11 +212,11 @@ fn convert_selection_set(selection_set: &SelectionSet<String>, position: u32) ->
                 }));
             }
             graphql_parser::query::Selection::InlineFragment(inline) => {
-                // Extract directives from the inline fragment
+                // Inline fragments can provide @catch protection
                 let directives =
                     extract_directives_from_directive_list(&inline.directives, position);
 
-                // Recursively process nested selection set
+                // Process inline fragment contents
                 let nested_selections = convert_selection_set(&inline.selection_set, position);
 
                 selections.push(Selection::InlineFragment(InlineFragment {
@@ -274,32 +231,32 @@ fn convert_selection_set(selection_set: &SelectionSet<String>, position: u32) ->
     selections
 }
 
-/// Helper functions for backward compatibility with modules expecting flat structures
+// Backward compatibility: convert hierarchical structure to flat lists
 impl QueryOperation {
-    /// Extract all fields from the hierarchical selection structure (flattened)
+    // Legacy API: flatten hierarchy to simple field list
     pub fn fields(&self) -> Vec<Field> {
         extract_fields_from_selections(&self.selections)
     }
 
-    /// Extract all fragment spreads from the hierarchical selection structure (flattened)
+    // Legacy API: collect all fragment references
     pub fn fragments(&self) -> Vec<FragmentSpread> {
         extract_fragment_spreads_from_selections(&self.selections)
     }
 }
 
 impl FragmentDefinition {
-    /// Extract all fields from the hierarchical selection structure (flattened)
+    // Legacy API: flatten hierarchy to simple field list
     pub fn fields(&self) -> Vec<Field> {
         extract_fields_from_selections(&self.selections)
     }
 
-    /// Extract all fragment spreads from the hierarchical selection structure (flattened)
+    // Legacy API: collect all fragment references
     pub fn fragments(&self) -> Vec<FragmentSpread> {
         extract_fragment_spreads_from_selections(&self.selections)
     }
 }
 
-/// Recursively extract all fields from a selection hierarchy (flattened)
+// Depth-first traversal to collect all field selections
 fn extract_fields_from_selections(selections: &[Selection]) -> Vec<Field> {
     let mut fields = Vec::new();
 
@@ -310,15 +267,15 @@ fn extract_fields_from_selections(selections: &[Selection]) -> Vec<Field> {
                     name: field_selection.name.clone(),
                     directives: field_selection.directives.clone(),
                 });
-                // Recursively extract nested fields
+                // Collect fields from nested selections
                 fields.extend(extract_fields_from_selections(&field_selection.selections));
             }
             Selection::InlineFragment(inline) => {
-                // Recursively extract fields from inline fragments
+                // Inline fragments may contain additional fields
                 fields.extend(extract_fields_from_selections(&inline.selections));
             }
             Selection::FragmentSpread(_) => {
-                // Fragment spreads don't contain fields directly
+                // Spreads reference external fragments
             }
         }
     }
@@ -326,14 +283,14 @@ fn extract_fields_from_selections(selections: &[Selection]) -> Vec<Field> {
     fields
 }
 
-/// Recursively extract all fragment spreads from a selection hierarchy (flattened)
+// Collect all fragment references for dependency analysis
 fn extract_fragment_spreads_from_selections(selections: &[Selection]) -> Vec<FragmentSpread> {
     let mut spreads = Vec::new();
 
     for selection in selections {
         match selection {
             Selection::Field(field_selection) => {
-                // Recursively extract fragment spreads from nested fields
+                // Check nested selections for more fragment spreads
                 spreads.extend(extract_fragment_spreads_from_selections(
                     &field_selection.selections,
                 ));
@@ -342,7 +299,7 @@ fn extract_fragment_spreads_from_selections(selections: &[Selection]) -> Vec<Fra
                 spreads.push(spread.clone());
             }
             Selection::InlineFragment(inline) => {
-                // Recursively extract fragment spreads from inline fragments
+                // Inline fragments may reference other fragments
                 spreads.extend(extract_fragment_spreads_from_selections(&inline.selections));
             }
         }
@@ -351,12 +308,8 @@ fn extract_fragment_spreads_from_selections(selections: &[Selection]) -> Vec<Fra
     spreads
 }
 
-/// Extracts relevant GraphQL directives from a list of directive AST nodes.
-///
-/// This function processes the directive list from the GraphQL parser and converts
-/// only the directives relevant to protection analysis (`@catch` and `@throwOnFieldError`)
-/// into our internal `Directive` representation. Other directives are ignored since
-/// they don't affect the safety analysis
+// Filters and converts directives to internal representation
+// Only processes @catch and @throwOnFieldError - ignores irrelevant directives
 fn extract_directives_from_directive_list(
     directives: &[graphql_parser::query::Directive<String>],
     position: u32,
@@ -364,7 +317,7 @@ fn extract_directives_from_directive_list(
     directives
         .iter()
         .filter_map(|dir| {
-            // Only process directives relevant to protection analysis
+            // Skip directives that don't affect error handling safety
             let directive_type = match dir.name.as_str() {
                 "catch" => DirectiveType::Catch,
                 "throwOnFieldError" => DirectiveType::ThrowOnFieldError,
@@ -386,7 +339,7 @@ mod tests {
     use std::fs;
     use std::path::PathBuf;
 
-    /// Helper function to format selections recursively with proper indentation
+    // Builds hierarchical visualization of parsed GraphQL structure
     fn format_selections(result: &mut String, selections: &[Selection], indent_level: usize) {
         let indent = "  ".repeat(indent_level);
 
@@ -410,7 +363,7 @@ mod tests {
                     }
                     result.push_str("\n");
 
-                    // Recursively format nested selections
+                    // Show nested structure with increased indentation
                     if !field.selections.is_empty() {
                         format_selections(result, &field.selections, indent_level + 1);
                     }
@@ -454,7 +407,7 @@ mod tests {
                     }
                     result.push_str("\n");
 
-                    // Recursively format nested selections
+                    // Show fragment content structure
                     if !inline.selections.is_empty() {
                         format_selections(result, &inline.selections, indent_level + 1);
                     }
@@ -463,12 +416,12 @@ mod tests {
         }
     }
 
-    /// Formats GraphQL AST items for snapshot testing with detailed structure visualization
+    // Consistent test output showing complete AST structure
     fn format_graphql_ast_result(
         file_path: &std::path::Path,
         graphql_items: &[GraphQLItem],
     ) -> String {
-        // Convert to relative path from git root for portable snapshots
+        // Portable paths prevent test differences across machines
         let git_root = PathBuf::from(env!("CARGO_MANIFEST_DIR"))
             .parent()
             .unwrap()
@@ -486,14 +439,14 @@ mod tests {
                     result.push_str(&format!("Type: Query\n"));
                     result.push_str(&format!("Name: {}\n", query.name));
 
-                    // Use relative path for file location in AST items too
+                    // Ensure all paths are portable in test output
                     let query_file_relative = query
                         .file_path
                         .strip_prefix(&git_root)
                         .unwrap_or(&query.file_path);
                     result.push_str(&format!("File: {}\n", query_file_relative.display()));
 
-                    // Show query-level directives with emojis
+                    // Visual indicators help identify directive types
                     result.push_str(&format!("Directives: {}\n", query.directives.len()));
                     for directive in &query.directives {
                         let emoji = match directive.directive_type {
@@ -503,7 +456,7 @@ mod tests {
                         result.push_str(&format!("  - {:?} {}\n", directive.directive_type, emoji));
                     }
 
-                    // Show selections with hierarchical structure
+                    // Display complete query structure for debugging
                     result.push_str(&format!("Selections: {}\n", query.selections.len()));
                     format_selections(&mut result, &query.selections, 2);
                 }
@@ -511,14 +464,14 @@ mod tests {
                     result.push_str(&format!("Type: Fragment\n"));
                     result.push_str(&format!("Name: {}\n", fragment.name));
 
-                    // Use relative path for file location in AST items too
+                    // Consistent path formatting across all test output
                     let fragment_file_relative = fragment
                         .file_path
                         .strip_prefix(&git_root)
                         .unwrap_or(&fragment.file_path);
                     result.push_str(&format!("File: {}\n", fragment_file_relative.display()));
 
-                    // Show fragment-level directives with emojis
+                    // Visual markers for quick directive identification
                     result.push_str(&format!("Directives: {}\n", fragment.directives.len()));
                     for directive in &fragment.directives {
                         let emoji = match directive.directive_type {
@@ -528,10 +481,10 @@ mod tests {
                         result.push_str(&format!("  - {:?} {}\n", directive.directive_type, emoji));
                     }
 
-                    // Show type condition for fragments
+                    // Display fragment target type for context
                     result.push_str(&format!("Type Condition: {}\n", fragment.type_condition));
 
-                    // Show selections with hierarchical structure
+                    // Complete fragment structure for analysis
                     result.push_str(&format!("Selections: {}\n", fragment.selections.len()));
                     format_selections(&mut result, &fragment.selections, 2);
                 }
@@ -542,7 +495,7 @@ mod tests {
         result
     }
 
-    /// Processes all GraphQL strings from a fixture directory and parses them to AST
+    // Comprehensive testing across all fixture files with detailed AST output
     fn process_fixture_directory_to_ast(dir_name: &str) -> String {
         let fixture_dir = PathBuf::from(env!("CARGO_MANIFEST_DIR"))
             .parent()
@@ -563,16 +516,16 @@ mod tests {
                 })
                 .collect();
 
-            // Sort files by name for consistent snapshot ordering
+            // Deterministic ordering prevents test flakiness
             files.sort_by_key(|entry| entry.file_name());
 
             for entry in files {
                 let file_path = entry.path();
 
-                // First extract GraphQL strings from TypeScript
+                // Two-stage parsing: TS extraction then GraphQL parsing
                 match typescript_parser::extract_graphql_from_file(&file_path) {
                     Ok(graphql_strings) => {
-                        // Then parse each GraphQL string to AST
+                        // Convert extracted strings to structured AST
                         for graphql_string in graphql_strings {
                             match parse_graphql_to_ast(&graphql_string) {
                                 Ok(graphql_items) => {
@@ -605,21 +558,21 @@ mod tests {
         results.join("---\n\n")
     }
 
-    /// Tests GraphQL AST parsing from all valid fixture files
+    // Validates AST generation for well-formed GraphQL
     #[test]
     fn test_parse_valid_fixtures_to_ast() {
         let result = process_fixture_directory_to_ast("valid");
         insta::assert_snapshot!(result);
     }
 
-    /// Tests GraphQL AST parsing from all invalid fixture files
+    // Ensures parser handles problematic GraphQL gracefully
     #[test]
     fn test_parse_invalid_fixtures_to_ast() {
         let result = process_fixture_directory_to_ast("invalid");
         insta::assert_snapshot!(result);
     }
 
-    /// Tests GraphQL AST parsing from all edge case fixture files
+    // Complex scenarios like nested fragments and unusual patterns
     #[test]
     fn test_parse_edge_case_fixtures_to_ast() {
         let result = process_fixture_directory_to_ast("edge_cases");

@@ -11,7 +11,7 @@ fn main() -> anyhow::Result<()> {
     let start_time = Instant::now();
     let args = Args::parse();
 
-    // Change working directory if specified
+    // Support project-relative execution
     if let Some(cwd) = &args.cwd {
         std::env::set_current_dir(cwd)?;
         if args.verbose {
@@ -19,7 +19,7 @@ fn main() -> anyhow::Result<()> {
         }
     }
 
-    // Set default ignore pattern if none provided
+    // Skip common build artifacts and dependencies
     let ignore_patterns = match args.ignore.as_deref() {
         Some(pattern) => vec![pattern],
         None => vec![
@@ -37,20 +37,20 @@ fn main() -> anyhow::Result<()> {
         println!("Ignore pattern: {}", ignore_patterns.join(", "));
     }
 
-    // Process files using the streaming approach
+    // Memory-efficient processing for large codebases
     let patterns = vec![args.pattern.as_str()];
     let registry = process_glob(&args.path, &patterns, &ignore_patterns)?;
 
     match args.command {
         Command::Validate { show_trees } => {
-            // Build dependency graph
+            // Expand fragments for complete validation context
             let dependency_graph = registry_to_dependency_graph(&registry)?;
 
             if args.verbose {
                 println!("Found {} queries", dependency_graph.len());
             }
 
-            // Validate the queries
+            // Check @catch/@throwOnFieldError protection rules
             let validation_result = validate_query_directives(&dependency_graph);
             if validation_result.is_valid() {
                 let elapsed = start_time.elapsed();
@@ -101,7 +101,7 @@ fn main() -> anyhow::Result<()> {
             }
         }
         Command::Json => {
-            // Serialize registry to JSON
+            // Export extracted GraphQL for external analysis
             let json_output = serde_json::to_string_pretty(&registry)?;
             println!("{}", json_output);
         }

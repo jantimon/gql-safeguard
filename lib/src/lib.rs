@@ -7,6 +7,7 @@ pub mod validate;
 pub mod analyzer {
     use std::path::Path;
 
+    // Placeholder for future directory analysis features
     pub fn analyze_directory(path: &Path, pattern: &str) {
         println!(
             "Would analyze directory: {} with pattern: {}",

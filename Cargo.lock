@@ -360,6 +360,16 @@ dependencies = [
 ]
 
 [[package]]
+name = "gql-safeguard"
+version = "0.1.0"
+dependencies = [
+ "anyhow",
+ "clap",
+ "gql-safeguard-lib",
+ "serde_json",
+]
+
+[[package]]
 name = "gql-safeguard-lib"
 version = "0.1.0"
 dependencies = [
@@ -376,16 +386,6 @@ dependencies = [
  "swc_ecma_ast 0.110.17",
  "swc_ecma_parser 0.144.3",
  "walkdir",
-]
-
-[[package]]
-name = "graphql-directive-analyzer"
-version = "0.1.0"
-dependencies = [
- "anyhow",
- "clap",
- "gql-safeguard-lib",
- "serde_json",
 ]
 
 [[package]]

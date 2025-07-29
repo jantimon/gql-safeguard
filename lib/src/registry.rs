@@ -1,11 +1,6 @@
-//! GraphQL Extraction Registry
+//! Concurrent GraphQL registry for fast file processing
 //!
-
-/// A dashmap registry with:
-/// process_files()
-///
-/// a dashmap regisry for all fragments (key fragment name)
-/// a dashmap registry for all queries (key query name)
+//! Uses DashMap for thread-safe concurrent access during parallel file parsing.
 use anyhow::Result;
 use dashmap::DashMap;
 use globset::{Glob, GlobSetBuilder};
@@ -20,13 +15,13 @@ use crate::parsers::graphql_parser::{
 };
 use crate::parsers::typescript_parser::extract_graphql_from_file;
 
-/// Registry for GraphQL fragments
+// Thread-safe storage for reusable GraphQL fragments
 pub type FragmentRegistry = Arc<DashMap<String, FragmentDefinition>>;
 
-/// Registry for GraphQL queries
+// Thread-safe storage for main GraphQL operations
 pub type QueryRegistry = Arc<DashMap<String, QueryOperation>>;
 
-/// Main registry that holds both fragments and queries
+// Central store combining fragments and queries for validation
 #[derive(Serialize, Deserialize)]
 pub struct GraphQLRegistry {
     #[serde(with = "serde_dashmap")]
@@ -35,7 +30,7 @@ pub struct GraphQLRegistry {
     pub queries: QueryRegistry,
 }
 
-/// Custom serialization for DashMap
+// DashMap doesn't implement Serialize directly - need custom conversion
 mod serde_dashmap {
     use super::*;
     use serde::{Deserializer, Serializer};
@@ -87,7 +82,7 @@ impl GraphQLRegistry {
     }
 }
 
-/// Function which returns a new GraphQL registry for the given file list
+// Parallel processing of file lists using rayon for performance
 pub fn process_files(files: &[String]) -> GraphQLRegistry {
     let registry = GraphQLRegistry::new();
 
@@ -98,7 +93,7 @@ pub fn process_files(files: &[String]) -> GraphQLRegistry {
     registry
 }
 
-/// Function which processes files matching a glob pattern using streaming
+// Streaming approach avoids loading all files into memory at once
 pub fn process_glob(
     root_path: &Path,
     include_patterns: &[&str], // e.g. &["**/*.ts", "**/*.tsx"]
@@ -175,7 +170,7 @@ mod tests {
     use std::fs;
     use std::path::PathBuf;
 
-    /// Formats a GraphQL registry using TreeFormatter for snapshot testing
+    // Ensures consistent test output across different environments
     fn format_registry_with_tree_formatter(registry: &GraphQLRegistry) -> String {
         let mut formatter = TreeFormatter::new();
 
@@ -338,7 +333,7 @@ mod tests {
         formatter.to_string()
     }
 
-    /// Collects all TypeScript/TSX files from a fixture directory
+    // Sorted file collection for deterministic test behavior
     fn collect_fixture_files(dir_name: &str) -> Vec<String> {
         let fixture_dir = PathBuf::from(env!("CARGO_MANIFEST_DIR"))
             .parent()
@@ -370,7 +365,7 @@ mod tests {
         files
     }
 
-    /// Tests registry building from valid fixture files
+    // Validates that correct GraphQL is properly extracted
     #[test]
     fn test_registry_from_valid_fixtures() {
         let files = collect_fixture_files("valid");
@@ -379,7 +374,7 @@ mod tests {
         insta::assert_snapshot!(formatted);
     }
 
-    /// Tests registry building from invalid fixture files
+    // Ensures problematic GraphQL doesn't crash the parser
     #[test]
     fn test_registry_from_invalid_fixtures() {
         let files = collect_fixture_files("invalid");
@@ -388,7 +383,7 @@ mod tests {
         insta::assert_snapshot!(formatted);
     }
 
-    /// Tests registry building from edge case fixture files
+    // Covers complex scenarios like circular dependencies
     #[test]
     fn test_registry_from_edge_case_fixtures() {
         let files = collect_fixture_files("edge_cases");
@@ -397,7 +392,7 @@ mod tests {
         insta::assert_snapshot!(formatted);
     }
 
-    /// Tests registry building from all fixture files combined
+    // Full integration test across all GraphQL patterns
     #[test]
     fn test_registry_from_all_fixtures() {
         let mut all_files = Vec::new();

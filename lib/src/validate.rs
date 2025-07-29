@@ -1,11 +1,7 @@
-//! GraphQL Directive Validation
+//! Prevents GraphQL runtime errors by enforcing @catch protection
 //!
-//! This module validates that GraphQL queries follow proper error handling patterns:
-//! - Every `@catch` directive must protect at least one `@throwOnFieldError` in its subtree
-//! - Every `@throwOnFieldError` directive must be protected by at least one `@catch` ancestor
-//!
-//! The validation uses a single-pass recursive traversal with O(n) time complexity,
-//! tracking ancestor `@catch` directives to ensure proper protection relationships.
+//! Validates @throwOnFieldError directives have proper @catch protection to prevent
+//! uncaught exceptions from breaking entire pages in Relay applications.
 
 use rustc_hash::FxHashSet;
 use std::fmt;
@@ -15,12 +11,12 @@ use crate::parsers::graphql_parser::{DirectiveType, Selection};
 use crate::registry_to_graph::QueryWithFragments;
 use crate::tree_formatter::TreeFormatter;
 
-/// Validation error types for directive protection violations
+// Different safety violations require different remediation strategies
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub enum ValidationErrorType {
-    /// A `@throwOnFieldError` directive without any protecting `@catch` ancestor
+    // Dangerous: field errors will propagate as exceptions
     UnprotectedThrowOnFieldError,
-    /// A `@catch` directive that doesn't protect any `@throwOnFieldError` in its subtree
+    // Unnecessary: no throwing fields to protect from
     EmptyCatch,
 }
 
@@ -37,7 +33,7 @@ impl fmt::Display for ValidationErrorType {
     }
 }
 
-/// Context about where an error occurred in the query structure
+// Rich location info helps developers quickly find and fix issues
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub struct ErrorContext {
     pub query_name: String,
@@ -47,7 +43,7 @@ pub struct ErrorContext {
     pub fragment_name: Option<String>,  // Set if error is in a fragment
 }
 
-/// A validation error with rich context and tree visualization
+// Combines error details with visual query structure for easy debugging
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub struct ValidationError {
     pub error_type: ValidationErrorType,
@@ -56,7 +52,7 @@ pub struct ValidationError {
     pub explanation: String,
 }
 
-/// Collection of all validation errors found during validation
+// Aggregates all issues to show complete safety picture
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub struct ValidationResult {
     pub errors: Vec<ValidationError>,
@@ -176,21 +172,8 @@ impl fmt::Display for ValidationResult {
 
 impl std::error::Error for ValidationError {}
 
-/// Validates that all GraphQL queries follow proper directive protection patterns
-///
-/// This function ensures that:
-/// 1. Every `@catch` directive protects at least one `@throwOnFieldError` in its subtree
-/// 2. Every `@throwOnFieldError` directive has at least one `@catch` ancestor
-///
-/// # Arguments
-/// * `queries` - The queries with resolved fragment dependencies to validate
-///
-/// # Returns
-/// * `ValidationResult` containing all validation errors found, with rich context and explanations
-///
-/// # Performance
-/// * Time complexity: O(n) where n is the total number of selections across all queries
-/// * Space complexity: O(d) where d is the maximum depth of nested selections
+// Entry point for comprehensive GraphQL safety validation
+// Prevents runtime exceptions by ensuring proper @catch/@throw protection patterns
 pub fn validate_query_directives(queries: &[QueryWithFragments]) -> ValidationResult {
     let mut result = ValidationResult::new();
 
@@ -201,22 +184,22 @@ pub fn validate_query_directives(queries: &[QueryWithFragments]) -> ValidationRe
     result
 }
 
-/// Validates a single query for proper directive protection patterns
+// Per-query validation with ancestor tracking for protection chains
 fn validate_query(query: &QueryWithFragments, result: &mut ValidationResult) {
-    // Track which @catch directives in this query protect at least one @throwOnFieldError
+    // Identifies useful @catch directives (vs unused ones)
     let mut protecting_catches = FxHashSet::default();
 
-    // Track ancestor @catch directives (positions) during traversal
+    // Maintains protection context as we traverse query tree
     let mut catch_ancestors = FxHashSet::default();
 
-    // Add query-level @catch directives to ancestors
+    // Query-level @catch protects all nested selections
     for directive in &query.directives {
         if directive.directive_type == DirectiveType::Catch {
             catch_ancestors.insert(directive.position);
         }
     }
 
-    // Validate all selections in the query
+    // Recursive validation with protection context
     validate_selections(
         &query.selections,
         query,
@@ -228,7 +211,7 @@ fn validate_query(query: &QueryWithFragments, result: &mut ValidationResult) {
         None,
     );
 
-    // Check for empty @catch directives at query level
+    // Report unused @catch that protect nothing
     for directive in &query.directives {
         if directive.directive_type == DirectiveType::Catch
             && !protecting_catches.contains(&directive.position)
@@ -254,7 +237,7 @@ fn validate_query(query: &QueryWithFragments, result: &mut ValidationResult) {
     }
 }
 
-/// Recursively validates selections with ancestor tracking
+// Core validation logic - maintains @catch ancestry during tree traversal
 fn validate_selections(
     selections: &[Selection],
     query: &QueryWithFragments,
@@ -482,7 +465,7 @@ fn validate_selections(
     }
 }
 
-/// Validates directives on a specific field
+// Field-level validation with protection context from ancestors
 fn validate_field_directives(
     field: &crate::parsers::graphql_parser::FieldSelection,
     query: &QueryWithFragments,
@@ -527,7 +510,7 @@ fn validate_field_directives(
     }
 }
 
-/// Creates a tree visualization of the query structure, highlighting the error location
+// Visual debugging aid to quickly locate problems in complex queries
 fn create_query_tree_visualization(
     query: &QueryWithFragments,
     error_location: Option<&str>,
@@ -580,7 +563,7 @@ fn create_query_tree_visualization(
     formatter.to_string()
 }
 
-/// Recursively formats selections for error visualization, highlighting the error location
+// Builds visual tree showing query structure with error markers
 fn format_selections_for_error(
     formatter: &mut TreeFormatter,
     selections: &[Selection],
@@ -707,12 +690,12 @@ fn format_selections_for_error(
     }
 }
 
-/// Creates an explanation for unprotected @throwOnFieldError errors
+// Guidance text helping developers understand protection requirements
 fn create_unprotected_throw_explanation() -> String {
     String::new() // No individual explanations needed since we have global explanation
 }
 
-/// Creates an explanation for empty @catch errors  
+// Explains why unused @catch directives should be removed
 fn create_empty_catch_explanation() -> String {
     String::new() // No individual explanations needed since we have global explanation
 }
@@ -725,7 +708,7 @@ mod tests {
     use std::fs;
     use std::path::PathBuf;
 
-    /// Collects all TypeScript/TSX files from a fixture directory
+    // Deterministic test file ordering for consistent snapshots
     fn collect_fixture_files(dir_name: &str) -> Vec<String> {
         let fixture_dir = PathBuf::from(env!("CARGO_MANIFEST_DIR"))
             .parent()

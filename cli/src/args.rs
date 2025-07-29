@@ -2,43 +2,43 @@ use clap::Parser;
 use std::path::PathBuf;
 
 #[derive(Parser, Debug)]
-#[command(name = "graphql-directive-analyzer")]
+#[command(name = "gql-safeguard")]
 #[command(about = "Analyze GraphQL operations for missing @catch directives")]
 #[command(version)]
 pub struct Args {
-    /// Path to scan for TypeScript/TSX files
+    // Root directory for GraphQL extraction
     #[arg(default_value = ".")]
     pub path: PathBuf,
 
-    /// File glob pattern to match
+    // Which files contain GraphQL template literals
     #[arg(long, default_value = "**/*.{ts,tsx}")]
     pub pattern: String,
 
-    /// File glob pattern to ignore (defaults to "**/node_modules/**")
+    // Skip build artifacts and dependencies
     #[arg(long)]
     pub ignore: Option<String>,
 
-    /// Change working directory before executing
+    // Enable project-relative path execution
     #[arg(long)]
     pub cwd: Option<PathBuf>,
 
-    /// Command to execute
+    // Primary operation mode
     #[command(subcommand)]
     pub command: Command,
 
-    /// Show processing details
+    // Enable debug output for troubleshooting
     #[arg(long, short)]
     pub verbose: bool,
 }
 
 #[derive(clap::Subcommand, Debug)]
 pub enum Command {
-    /// Validate GraphQL operations for missing @catch directives
+    // Check @throwOnFieldError protection patterns
     Validate {
-        /// Show dependency trees in output
+        // Display fragment resolution for debugging
         #[arg(long)]
         show_trees: bool,
     },
-    /// Output registry information in JSON format
+    // Export extracted GraphQL for external tools
     Json,
 }

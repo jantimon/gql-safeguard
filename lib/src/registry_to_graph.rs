@@ -1,8 +1,7 @@
-//! Registry to Dependency Graph Conversion
+//! Converts flat fragment registry into resolved dependency trees
 //!
-//! This module transforms a GraphQL registry into a hierarchical dependency graph structure
-//! where queries contain their fragment dependencies as nested trees. This enables easier
-//! analysis of directive protection inheritance and dependency relationships.
+//! Enables validation by expanding fragment spreads into complete query structures
+//! while preserving directive inheritance and protection relationships.
 
 use anyhow::{Context, Result};
 use rustc_hash::FxHashSet;
@@ -12,7 +11,7 @@ use std::path::PathBuf;
 use crate::parsers::graphql_parser::{Directive, Selection};
 use crate::registry::GraphQLRegistry;
 
-/// A query with its complete fragment dependency tree resolved
+// Query with all fragment spreads replaced by actual fragment content
 #[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
 pub struct QueryWithFragments {
     pub name: String,
@@ -21,7 +20,7 @@ pub struct QueryWithFragments {
     pub selections: Vec<Selection>, // Now hierarchical
 }
 
-/// A fragment node in the dependency tree with its children recursively resolved
+// Fragment with all nested dependencies expanded for validation
 #[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
 pub struct FragmentNode {
     pub name: String,
@@ -30,21 +29,8 @@ pub struct FragmentNode {
     pub selections: Vec<Selection>, // Now hierarchical
 }
 
-/// Converts a GraphQL registry into a dependency graph with resolved fragment trees
-///
-/// This function takes all queries from the registry and builds complete dependency trees
-/// by recursively resolving fragment spreads. Each query becomes a `QueryWithFragments`
-/// containing its nested fragment dependencies as a tree structure.
-///
-/// # Arguments
-/// * `registry` - The GraphQL registry containing queries and fragments
-///
-/// # Returns
-/// * `Vec<QueryWithFragments>` - All queries with their resolved fragment dependency trees
-///
-/// # Errors
-/// * Returns error if circular dependencies are detected
-/// * Returns error if a fragment spread references a non-existent fragment
+// Main entry point: expands all fragment dependencies for validation
+// Transforms queries from flat registry into complete hierarchical structures
 pub fn registry_to_dependency_graph(registry: &GraphQLRegistry) -> Result<Vec<QueryWithFragments>> {
     let mut result = Vec::new();
 
@@ -53,7 +39,7 @@ pub fn registry_to_dependency_graph(registry: &GraphQLRegistry) -> Result<Vec<Qu
         let query_name = query_entry.key();
         let query = query_entry.value();
 
-        // Build hierarchical selections with resolved fragments
+        // Expand fragment spreads into complete dependency tree
         let resolved_selections = resolve_selections_with_fragments(
             &query.selections,
             registry,
@@ -69,29 +55,14 @@ pub fn registry_to_dependency_graph(registry: &GraphQLRegistry) -> Result<Vec<Qu
         });
     }
 
-    // Sort by query name for consistent output
+    // Deterministic ordering for reliable snapshots and diffs
     result.sort_by(|a, b| a.name.cmp(&b.name));
 
     Ok(result)
 }
 
-/// Recursively resolves selections with fragment dependencies in hierarchical structure
-///
-/// This function processes a list of selections and resolves any fragment spreads
-/// by substituting them with their actual definitions while preserving the
-/// hierarchical nesting structure. It maintains a visiting set to detect circular dependencies.
-///
-/// # Arguments
-/// * `selections` - The selections to resolve (fields, fragment spreads, inline fragments)
-/// * `registry` - The GraphQL registry containing fragment definitions
-/// * `visiting` - Set of fragment names currently being visited (for cycle detection)
-///
-/// # Returns
-/// * `Vec<Selection>` - The resolved hierarchical selections with fragments expanded
-///
-/// # Errors
-/// * Returns error if circular dependency is detected
-/// * Returns error if a fragment spread references a non-existent fragment
+// Core resolution algorithm: replaces fragment spreads with actual fragment content
+// Uses cycle detection to prevent infinite recursion from circular dependencies
 fn resolve_selections_with_fragments(
     selections: &[Selection],
     registry: &GraphQLRegistry,
@@ -102,7 +73,7 @@ fn resolve_selections_with_fragments(
     for selection in selections {
         match selection {
             Selection::Field(field_selection) => {
-                // Recursively resolve nested selections in the field
+                // Fields may contain fragment spreads that need resolution
                 let resolved_nested = resolve_selections_with_fragments(
                     &field_selection.selections,
                     registry,
@@ -118,7 +89,7 @@ fn resolve_selections_with_fragments(
                 ));
             }
             Selection::FragmentSpread(spread) => {
-                // Resolve the fragment spread by replacing it with the fragment's content
+                // Replace ...FragmentName with actual fragment selections
                 let fragment_entry = registry
                     .fragments
                     .get(&spread.name)
@@ -126,7 +97,7 @@ fn resolve_selections_with_fragments(
 
                 let fragment = fragment_entry.value();
 
-                // Check for circular dependency
+                // Prevent infinite recursion from fragment cycles
                 if visiting.contains(&spread.name) {
                     return Err(anyhow::anyhow!(
                         "Circular dependency detected involving fragment '{}'",
@@ -134,22 +105,22 @@ fn resolve_selections_with_fragments(
                     ));
                 }
 
-                // Add to visiting set
+                // Track current path to detect cycles
                 visiting.insert(spread.name.clone());
 
-                // Recursively resolve the fragment's selections
+                // Fragment may contain other fragments needing expansion
                 let resolved_fragment_selections =
                     resolve_selections_with_fragments(&fragment.selections, registry, visiting)?;
 
-                // Remove from visiting set (backtrack)
+                // Clean up cycle detection after processing
                 visiting.remove(&spread.name);
 
-                // Create a fragment node that contains the resolved selections
-                // This preserves the fragment boundary while expanding its content
+                // Preserve fragment identity while expanding its content for validation
                 resolved_selections.push(Selection::InlineFragment(
                     crate::parsers::graphql_parser::InlineFragment {
-                        type_condition: Some(format!("{}Fragment", spread.name)), // Mark as resolved fragment
+                        type_condition: Some(format!("{}Fragment", spread.name)), // Distinguish resolved fragments
                         directives: {
+                            // Merge spread and fragment directives for protection inheritance
                             let mut combined_directives = spread.directives.clone();
                             combined_directives.extend(fragment.directives.clone());
                             combined_directives
@@ -159,7 +130,7 @@ fn resolve_selections_with_fragments(
                 ));
             }
             Selection::InlineFragment(inline) => {
-                // Recursively resolve nested selections in the inline fragment
+                // Inline fragments may also contain spreads needing resolution
                 let resolved_nested =
                     resolve_selections_with_fragments(&inline.selections, registry, visiting)?;
 
@@ -185,11 +156,11 @@ mod tests {
     use std::fs;
     use std::path::PathBuf;
 
-    /// Formats a dependency graph using TreeFormatter for snapshot testing
+    // Consistent test output format for regression testing
     fn format_dependency_graph_with_tree_formatter(queries: &[QueryWithFragments]) -> String {
         let mut formatter = TreeFormatter::new();
 
-        // Git root for relative paths in snapshots
+        // Portable paths across different development environments
         let git_root = PathBuf::from(env!("CARGO_MANIFEST_DIR"))
             .parent()
             .unwrap()
@@ -231,7 +202,7 @@ mod tests {
         formatter.to_string()
     }
 
-    /// Recursively formats hierarchical selections preserving nesting structure
+    // Visual representation maintains query structure hierarchy
     fn format_selections(
         formatter: &mut TreeFormatter,
         selections: &[Selection],
@@ -241,7 +212,7 @@ mod tests {
         for selection in selections {
             match selection {
                 Selection::Field(field_selection) => {
-                    // Format field with its directives
+                    // Show field-level protection directives
                     let mut field_text = format!("Field: {}", field_selection.name);
                     if !field_selection.directives.is_empty() {
                         let directive_strs: Vec<String> = field_selection.directives.iter().map(|d| {
@@ -255,7 +226,7 @@ mod tests {
                     }
                     formatter.add_line(depth, &field_text);
 
-                    // Recursively format nested selections with increased depth
+                    // Maintain visual hierarchy for nested structures
                     if !field_selection.selections.is_empty() {
                         format_selections(
                             formatter,
@@ -266,7 +237,7 @@ mod tests {
                     }
                 }
                 Selection::FragmentSpread(spread) => {
-                    // Format fragment spread with its directives
+                    // Show spread-level directives before expansion
                     let mut spread_text = format!("FragmentSpread: {}", spread.name);
                     if !spread.directives.is_empty() {
                         let directive_strs: Vec<String> = spread.directives.iter().map(|d| {
@@ -281,11 +252,11 @@ mod tests {
                     formatter.add_line(depth, &spread_text);
                 }
                 Selection::InlineFragment(inline) => {
-                    // Format inline fragment (this represents resolved fragments)
+                    // Show expanded fragment content with preserved identity
                     let mut inline_text = "ResolvedFragment:".to_string();
                     if let Some(type_condition) = &inline.type_condition {
                         if type_condition.ends_with("Fragment") {
-                            // Extract original fragment name
+                            // Restore readable fragment name for display
                             let fragment_name = type_condition
                                 .strip_suffix("Fragment")
                                 .unwrap_or(type_condition);
@@ -305,7 +276,7 @@ mod tests {
                     }
                     formatter.add_line(depth, &inline_text);
 
-                    // Recursively format the fragment's content with increased depth
+                    // Show expanded fragment structure
                     if !inline.selections.is_empty() {
                         format_selections(formatter, &inline.selections, depth + 1, git_root);
                     }
@@ -314,7 +285,7 @@ mod tests {
         }
     }
 
-    /// Collects all TypeScript/TSX files from a fixture directory
+    // Deterministic file ordering for consistent test snapshots
     fn collect_fixture_files(dir_name: &str) -> Vec<String> {
         let fixture_dir = PathBuf::from(env!("CARGO_MANIFEST_DIR"))
             .parent()
@@ -335,7 +306,7 @@ mod tests {
                 })
                 .collect();
 
-            // Sort files by name for consistent ordering
+            // Prevents flaky tests from filesystem ordering differences
             file_entries.sort_by_key(|entry| entry.file_name());
 
             for entry in file_entries {
@@ -346,7 +317,7 @@ mod tests {
         files
     }
 
-    /// Tests dependency graph building from valid fixture files
+    // Validates correct fragment resolution for well-formed GraphQL
     #[test]
     fn test_dependency_graph_from_valid_fixtures() {
         let files = collect_fixture_files("valid");
@@ -357,7 +328,7 @@ mod tests {
         insta::assert_snapshot!(formatted);
     }
 
-    /// Tests dependency graph building from invalid fixture files
+    // Ensures invalid GraphQL still produces parseable structures
     #[test]
     fn test_dependency_graph_from_invalid_fixtures() {
         let files = collect_fixture_files("invalid");
@@ -368,13 +339,13 @@ mod tests {
         insta::assert_snapshot!(formatted);
     }
 
-    /// Tests dependency graph building from edge case fixture files
+    // Handles complex scenarios like circular dependencies gracefully
     #[test]
     fn test_dependency_graph_from_edge_case_fixtures() {
         let files = collect_fixture_files("edge_cases");
         let registry = process_files(&files);
 
-        // Edge cases might include circular dependencies, so we handle the error case
+        // Circular dependencies should fail gracefully with clear error messages
         match registry_to_dependency_graph(&registry) {
             Ok(dependency_graph) => {
                 let formatted = format_dependency_graph_with_tree_formatter(&dependency_graph);

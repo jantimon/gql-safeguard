@@ -1,10 +1,10 @@
 [package]
-name = "graphql-directive-analyzer"
+name = "gql-safeguard"
 version = "0.1.0"
 edition = "2021"
 
 [[bin]]
-name = "graphql-directive-analyzer"
+name = "gql-safeguard"
 path = "src/main.rs"
 
 [dependencies]

@@ -23,21 +23,13 @@ impl TreeFormatter {
         }
     }
 
-    /// Adds a line to the tree structure
-    ///
-    /// # Arguments
-    /// * `depth` - The depth level (0 = root, 1 = first level, etc.)
-    /// * `text` - The text content to display
+    /// Enables hierarchical output with proper visual indentation
     pub fn add_line(&mut self, depth: usize, text: &str) {
         self.lines.push((depth, text.to_string()));
         self.max_depth = self.max_depth.max(depth);
     }
 
-    /// Adds an entire TreeFormatter as a subtree at the specified depth
-    ///
-    /// # Arguments
-    /// * `depth` - The depth level to add the subtree at
-    /// * `tree` - The TreeFormatter to add as a subtree
+    /// Supports composable tree building from multiple sources
     pub fn add_tree(&mut self, depth: usize, tree: &TreeFormatter) {
         for (line_depth, text) in &tree.lines {
             let new_depth = depth + line_depth;
@@ -46,7 +38,7 @@ impl TreeFormatter {
         }
     }
 
-    /// Formats the entire tree structure as a string
+    /// Converts tree to string with proper ASCII art connections
     fn format_tree(&self) -> String {
         let mut result = String::new();
         let max_level = self.max_depth + 1;
@@ -64,7 +56,7 @@ impl TreeFormatter {
         result
     }
 
-    /// Helper to determine if a line is the last sibling at its level
+    /// Needed to choose correct ASCII connector (├── vs └──)
     fn is_last_sibling(&self, line_index: usize, level: usize) -> bool {
         // Look for the next line at the same level or shallower
         for i in (line_index + 1)..self.lines.len() {
@@ -82,7 +74,7 @@ impl TreeFormatter {
         true
     }
 
-    /// Internal method to format a single line using pre-computed last_at_levels
+    /// Builds the visual tree structure with correct branching symbols
     fn format_line_internal(
         &self,
         depth: usize,

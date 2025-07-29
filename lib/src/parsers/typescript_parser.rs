@@ -1,6 +1,6 @@
-//! TypeScript/TSX Parser for GraphQL Template Literals
+//! Robust GraphQL extraction using SWC AST parsing
 //!
-//! Uses SWC AST parsing instead of regex to avoid false positives from commented GraphQL.
+//! Avoids regex false positives from comments, strings, and complex TypeScript syntax.
 
 use anyhow::Result;
 use std::fs;
@@ -18,12 +18,11 @@ pub struct GraphQLString {
     pub position: u32,
 }
 
-/// Extracts GraphQL from `gql` and `graphql` tagged template literals.
-/// Skips templates with interpolation since they can't be statically analyzed.
+// Finds GraphQL in TS/TSX files while avoiding dynamic content that can't be validated
 pub fn extract_graphql_from_file(file_path: &Path) -> Result<Vec<GraphQLString>> {
     let source_code = fs::read_to_string(file_path)?;
 
-    // Quick string check to avoid expensive AST parsing if no GraphQL is present
+    // Performance optimization: skip AST parsing for files without GraphQL
     if !source_code.contains("gql") && !source_code.contains("graphql") {
         return Ok(Vec::new());
     }
@@ -64,10 +63,7 @@ struct GraphQLVisitor {
 }
 
 impl GraphQLVisitor {
-    /// Creates a new visitor for the specified file path.
-    ///
-    /// # Arguments
-    /// * `file_path` - Path to the file being processed
+    // Initialize visitor state for file processing
     fn new(file_path: std::path::PathBuf) -> Self {
         Self {
             file_path,
@@ -75,25 +71,17 @@ impl GraphQLVisitor {
         }
     }
 
-    /// Extracts GraphQL content from a tagged template literal if it matches our criteria.
-    ///
-    /// This method checks if the tagged template uses `gql` or `graphql` as the tag,
-    /// and if so, extracts the template content.
-    ///
-    /// Skips templates with interpolation since those cannot be statically analyzed
-    ///
+    // Core extraction logic: identifies GraphQL templates and extracts static content
     fn extract_graphql_from_tagged_template(&mut self, tpl: &TaggedTpl) {
         // Check if this is a GraphQL tagged template (gql`...` or graphql`...`)
         if let Expr::Ident(ident) = &*tpl.tag {
             if ident.sym.as_ref() == "gql" || ident.sym.as_ref() == "graphql" {
-                // Skip template literals with interpolation (more than one quasi)
-                // These cannot be statically analyzed since the interpolated values
-                // are determined at runtime and could affect GraphQL structure
+                // Skip dynamic templates - runtime values could change GraphQL structure
                 if tpl.tpl.quasis.len() > 1 {
                     return;
                 }
 
-                // Extract the GraphQL content from the template literal
+                // Capture static GraphQL string with position info for error reporting
                 if let Some(first_quasi) = tpl.tpl.quasis.first() {
                     let content = first_quasi.raw.as_ref();
                     self.graphql_strings.push(GraphQLString {
@@ -107,18 +95,14 @@ impl GraphQLVisitor {
     }
 }
 
-/// Implementation of SWC's Visit trait for GraphQLVisitor.
+// SWC visitor pattern for AST traversal
 impl Visit for GraphQLVisitor {
-    /// Visits tagged template literal nodes in the AST.
-    ///
-    /// This method is called automatically by SWC's visitor framework whenever
-    /// a tagged template literal is encountered during AST traversal. It processes
-    /// the node for GraphQL extraction and then continues traversing child nodes.
+    // Automatically called by SWC for each tagged template in the AST
     fn visit_tagged_tpl(&mut self, tpl: &TaggedTpl) {
-        // Process this tagged template for GraphQL extraction
+        // Check if this template contains GraphQL content
         self.extract_graphql_from_tagged_template(tpl);
 
-        // Continue visiting child nodes in the AST
+        // Ensure complete AST traversal for nested templates
         tpl.visit_children_with(self);
     }
 }
@@ -129,20 +113,9 @@ mod tests {
     use std::fs;
     use std::path::PathBuf;
 
-    /// Formats extraction results for snapshot testing with relative file paths.
-    ///
-    /// This helper function converts extraction results into a consistent string format
-    /// suitable for snapshot testing. It uses relative paths from the git root to
-    /// ensure snapshots are portable across different development environments.
-    ///
-    /// # Arguments
-    /// * `file_path` - Absolute path to the processed file
-    /// * `graphql_strings` - List of extracted GraphQL strings
-    ///
-    /// # Returns
-    /// Formatted string showing file path, count, and each GraphQL string with metadata
+    // Consistent test output format with portable file paths
     fn format_extraction_result(file_path: &Path, graphql_strings: &[GraphQLString]) -> String {
-        // Convert to relative path from git root for portable snapshots
+        // Portable paths prevent test failures across different machines
         let git_root = PathBuf::from(env!("CARGO_MANIFEST_DIR"))
             .parent()
             .unwrap()
@@ -166,17 +139,7 @@ mod tests {
         result
     }
 
-    /// Tests extraction from all files in a fixture directory.
-    ///
-    /// This helper function processes all TypeScript/TSX files in the specified
-    /// fixture directory and formats the results for snapshot comparison. It ensures
-    /// consistent ordering by sorting files by name.
-    ///
-    /// # Arguments
-    /// * `dir_name` - Name of the fixture directory (valid, invalid, edge_cases)
-    ///
-    /// # Returns
-    /// Formatted string containing extraction results from all files in the directory
+    // Process entire fixture directory for comprehensive testing
     fn test_fixture_directory(dir_name: &str) -> String {
         let fixture_dir = PathBuf::from(env!("CARGO_MANIFEST_DIR"))
             .parent()
@@ -197,7 +160,7 @@ mod tests {
                 })
                 .collect();
 
-            // Sort files by name for consistent snapshot ordering
+            // Deterministic ordering prevents flaky tests
             files.sort_by_key(|entry| entry.file_name());
 
             for entry in files {
@@ -217,33 +180,21 @@ mod tests {
         results.join("---\n\n")
     }
 
-    /// Tests GraphQL extraction from all valid fixture files.
-    ///
-    /// This test processes all files in the `fixtures/valid/` directory and creates
-    /// a snapshot of the extraction results. Valid fixtures should contain properly
-    /// structured GraphQL with appropriate `@catch` and `@throwOnFieldError` directives.
+    // Validates extraction from well-formed GraphQL template literals
     #[test]
     fn test_valid_fixtures() {
         let result = test_fixture_directory("valid");
         insta::assert_snapshot!(result);
     }
 
-    /// Tests GraphQL extraction from all invalid fixture files.
-    ///
-    /// This test processes all files in the `fixtures/invalid/` directory and creates
-    /// a snapshot of the extraction results. Invalid fixtures contain GraphQL that
-    /// violates the `@catch` protection rules.
+    // Ensures extraction works even for GraphQL with validation issues
     #[test]
     fn test_invalid_fixtures() {
         let result = test_fixture_directory("invalid");
         insta::assert_snapshot!(result);
     }
 
-    /// Tests GraphQL extraction from all edge case fixture files.
-    ///
-    /// This test processes all files in the `fixtures/edge_cases/` directory and creates
-    /// a snapshot of the extraction results. Edge cases include scenarios like commented
-    /// GraphQL, circular fragment dependencies, and complex nesting patterns.
+    // Tests complex scenarios like comments, interpolation, and nested templates
     #[test]
     fn test_edge_case_fixtures() {
         let result = test_fixture_directory("edge_cases");

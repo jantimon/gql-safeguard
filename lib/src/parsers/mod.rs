@@ -1,7 +1,6 @@
-//! GraphQL and TypeScript Parsing Module
+//! Two-stage parsing: extract GraphQL from TypeScript, then parse to AST
 //!
-//! This module provides parsers for extracting and parsing GraphQL
-//! content from TypeScript/TSX source files.
+//! Separation enables robust extraction from complex TS/TSX without GraphQL syntax errors.
 
 pub mod graphql_parser;
 pub mod typescript_parser;
