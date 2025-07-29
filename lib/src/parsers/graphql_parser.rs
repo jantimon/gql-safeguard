@@ -3,7 +3,6 @@
 //! Converts raw GraphQL strings into structured data focusing on @catch/@throwOnFieldError
 //! directives needed for runtime error prevention analysis.
 
-use std::collections::HashSet;
 use std::path::PathBuf;
 
 use crate::parsers::typescript_parser::GraphQLString;
@@ -84,26 +83,48 @@ pub struct FragmentDefinition {
     pub file_path: PathBuf,
 }
 
-// Finds lines that should be ignored based on gql-safeguard-ignore comments
-// Returns a set of line numbers (1-based) that should have their directives ignored
-fn find_ignored_lines(graphql_content: &str) -> HashSet<usize> {
-    // check if # gql-safeguard-ignore is present in the content
+// Checks if a directive at a specific line should be ignored based on gql-safeguard-ignore comments
+// Searches both backwards and forwards from the directive line to find the nearest ignore comment
+fn should_ignore_directive(graphql_content: &str, directive_line: usize) -> bool {
+    // Early exit if no ignore comments present
     if !graphql_content.contains("# gql-safeguard-ignore") {
-        return HashSet::new();
+        return false;
     }
 
-    let mut ignored_lines = HashSet::new();
     let lines: Vec<&str> = graphql_content.lines().collect();
 
-    for (line_num, line) in lines.iter().enumerate() {
-        if line.contains("# gql-safeguard-ignore") {
-            // The next line (1-based line number) should be ignored
-            let next_line_number = line_num + 2; // Convert to 1-based and get next line
-            ignored_lines.insert(next_line_number);
+    // Convert to 0-based index and ensure it's within bounds
+    if directive_line == 0 || directive_line > lines.len() {
+        return false;
+    }
+
+    let directive_line_index = directive_line - 1; // Convert to 0-based
+
+    // Search backwards from the directive line to find ignore comment
+    // Look at most 5 lines back to avoid matching distant ignore comments
+    let search_start_back = directive_line_index.saturating_sub(5);
+
+    for line_index in (search_start_back..directive_line_index).rev() {
+        if lines[line_index].contains("# gql-safeguard-ignore") {
+            return true;
         }
     }
 
-    ignored_lines
+    // Search forwards from the directive line to find ignore comment
+    // Look at most 5 lines forward to avoid matching distant ignore comments
+    let search_end_forward = (directive_line_index + 5).min(lines.len());
+
+    for line in lines
+        .iter()
+        .take(search_end_forward)
+        .skip(directive_line_index + 1)
+    {
+        if line.contains("# gql-safeguard-ignore") {
+            return true;
+        }
+    }
+
+    false
 }
 
 // Entry point: converts GraphQL strings to AST with safety-relevant directives
@@ -128,9 +149,6 @@ pub fn parse_graphql_to_ast(graphql_string: &GraphQLString) -> Result<Vec<GraphQ
         )
     })?;
 
-    // Find all lines that should be ignored based on comments
-    let ignored_lines = find_ignored_lines(&graphql_string.content);
-
     let mut items = Vec::new();
 
     // Extract queries and fragments with their directive information
@@ -141,7 +159,7 @@ pub fn parse_graphql_to_ast(graphql_string: &GraphQLString) -> Result<Vec<GraphQ
                     op,
                     &graphql_string.file_path,
                     graphql_string.position,
-                    &ignored_lines,
+                    &graphql_string.content,
                 )? {
                     items.push(GraphQLItem::Query(query));
                 }
@@ -151,7 +169,7 @@ pub fn parse_graphql_to_ast(graphql_string: &GraphQLString) -> Result<Vec<GraphQ
                     frag,
                     &graphql_string.file_path,
                     graphql_string.position,
-                    &ignored_lines,
+                    &graphql_string.content,
                 )?;
                 items.push(GraphQLItem::Fragment(fragment));
             }
@@ -167,7 +185,7 @@ fn convert_operation_to_query(
     op: OperationDefinition<String>,
     file_path: &std::path::Path,
     position: u32,
-    ignored_lines: &HashSet<usize>,
+    graphql_content: &str,
 ) -> Result<Option<QueryOperation>> {
     match op {
         OperationDefinition::Query(query) => {
@@ -178,12 +196,12 @@ fn convert_operation_to_query(
             let directives = extract_directives_from_directive_list(
                 &query.directives,
                 position,
-                ignored_lines,
+                graphql_content,
                 None,
             );
 
             // Maintain nesting for proper directive inheritance validation
-            let selections = convert_selection_set(&query.selection_set, position, ignored_lines);
+            let selections = convert_selection_set(&query.selection_set, position, graphql_content);
 
             Ok(Some(QueryOperation {
                 name,
@@ -209,14 +227,14 @@ fn convert_fragment_definition(
     frag: graphql_parser::query::FragmentDefinition<String>,
     file_path: &std::path::Path,
     position: u32,
-    ignored_lines: &HashSet<usize>,
+    graphql_content: &str,
 ) -> Result<FragmentDefinition> {
     // Fragment-level directives protect all contained selections
     let directives =
-        extract_directives_from_directive_list(&frag.directives, position, ignored_lines, None);
+        extract_directives_from_directive_list(&frag.directives, position, graphql_content, None);
 
     // Maintain structure for nested directive validation
-    let selections = convert_selection_set(&frag.selection_set, position, ignored_lines);
+    let selections = convert_selection_set(&frag.selection_set, position, graphql_content);
 
     Ok(FragmentDefinition {
         name: frag.name,
@@ -232,7 +250,7 @@ fn convert_fragment_definition(
 fn convert_selection_set(
     selection_set: &SelectionSet<String>,
     position: u32,
-    ignored_lines: &HashSet<usize>,
+    graphql_content: &str,
 ) -> Vec<Selection> {
     let mut selections = Vec::new();
 
@@ -243,13 +261,13 @@ fn convert_selection_set(
                 let directives = extract_directives_from_directive_list(
                     &field.directives,
                     position,
-                    ignored_lines,
+                    graphql_content,
                     Some(field.position.line),
                 );
 
                 // Fields may contain nested selections needing validation
                 let nested_selections =
-                    convert_selection_set(&field.selection_set, position, ignored_lines);
+                    convert_selection_set(&field.selection_set, position, graphql_content);
 
                 selections.push(Selection::Field(FieldSelection {
                     name: field.name.clone(),
@@ -262,7 +280,7 @@ fn convert_selection_set(
                 let directives = extract_directives_from_directive_list(
                     &spread.directives,
                     position,
-                    ignored_lines,
+                    graphql_content,
                     None,
                 );
 
@@ -276,13 +294,13 @@ fn convert_selection_set(
                 let directives = extract_directives_from_directive_list(
                     &inline.directives,
                     position,
-                    ignored_lines,
+                    graphql_content,
                     None,
                 );
 
                 // Process inline fragment contents
                 let nested_selections =
-                    convert_selection_set(&inline.selection_set, position, ignored_lines);
+                    convert_selection_set(&inline.selection_set, position, graphql_content);
 
                 selections.push(Selection::InlineFragment(InlineFragment {
                     type_condition: inline.type_condition.as_ref().map(|tc| tc.to_string()),
@@ -378,8 +396,8 @@ fn extract_fragment_spreads_from_selections(selections: &[Selection]) -> Vec<Fra
 fn extract_directives_from_directive_list(
     directives: &[graphql_parser::query::Directive<String>],
     position: u32,
-    ignored_lines: &HashSet<usize>,
-    field_line: Option<usize>,
+    graphql_content: &str,
+    directive_line: Option<usize>,
 ) -> Vec<Directive> {
     directives
         .iter()
@@ -388,9 +406,9 @@ fn extract_directives_from_directive_list(
             let directive_type = match dir.name.as_str() {
                 "catch" => DirectiveType::Catch,
                 "throwOnFieldError" => {
-                    // Check if this field line should be ignored
-                    if let Some(line) = field_line {
-                        if ignored_lines.contains(&line) {
+                    // Check if this directive should be ignored
+                    if let Some(line) = directive_line {
+                        if should_ignore_directive(graphql_content, line) {
                             return None; // Skip ignored @throwOnFieldError
                         }
                     }
@@ -399,9 +417,9 @@ fn extract_directives_from_directive_list(
                 "required" => {
                     // Only process @required if it has action: THROW
                     if has_throw_action(&dir.arguments) {
-                        // Check if this field line should be ignored
-                        if let Some(line) = field_line {
-                            if ignored_lines.contains(&line) {
+                        // Check if this directive should be ignored
+                        if let Some(line) = directive_line {
+                            if should_ignore_directive(graphql_content, line) {
                                 return None; // Skip ignored @required(action: THROW)
                             }
                         }
