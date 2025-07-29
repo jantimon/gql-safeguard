@@ -28,7 +28,8 @@
   },
   "scripts": {
     "postinstall": "node install.js",
-    "changeset": "changeset"
+    "changeset": "changeset",
+    "release": "changeset publish"
   },
   "files": [
     "bin/",
