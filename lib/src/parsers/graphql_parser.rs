@@ -92,9 +92,11 @@ pub fn parse_graphql_to_ast(graphql_string: &GraphQLString) -> Result<Vec<GraphQ
             .parent()
             .unwrap()
             .to_path_buf();
-        let relative_path = graphql_string.file_path.strip_prefix(&git_root)
+        let relative_path = graphql_string
+            .file_path
+            .strip_prefix(&git_root)
             .unwrap_or(&graphql_string.file_path);
-        
+
         anyhow::anyhow!(
             "GraphQL syntax error in {} at position {}: {:?}",
             relative_path.display(),
@@ -570,9 +572,9 @@ mod tests {
                                         .parent()
                                         .unwrap()
                                         .to_path_buf();
-                                    let relative_path = file_path.strip_prefix(&git_root)
-                                        .unwrap_or(&file_path);
-                                    
+                                    let relative_path =
+                                        file_path.strip_prefix(&git_root).unwrap_or(&file_path);
+
                                     results.push(format!(
                                         "File: {}\nGraphQL Parse Error: {}\nContent: {}\n\n",
                                         relative_path.display(),
@@ -589,9 +591,8 @@ mod tests {
                             .parent()
                             .unwrap()
                             .to_path_buf();
-                        let relative_path = file_path.strip_prefix(&git_root)
-                            .unwrap_or(&file_path);
-                        
+                        let relative_path = file_path.strip_prefix(&git_root).unwrap_or(&file_path);
+
                         results.push(format!(
                             "File: {}\nTypeScript Parse Error: {}\n\n",
                             relative_path.display(),
