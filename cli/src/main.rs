@@ -67,17 +67,16 @@ fn main() -> anyhow::Result<()> {
 
                 let elapsed = start_time.elapsed();
                 println!();
-                println!("💡 About @catch and @throwOnFieldError");
-                println!();
-                println!("The reason why @catch is enforced instead of Error Boundaries is that");
-                println!("Error boundaries don't work during SSR");
-                println!();
+                println!("❌ @throwOnFieldError must not be used outside of @catch");
                 println!(
                     "Without @catch protection, field errors will throw exceptions that bubble up"
                 );
-                println!("and will break the entire page during server-side rendering.");
+                println!("and will break the entire page during client and server-side rendering.");
                 println!();
-                println!("Fix by adding @catch to a parent field or fragment.");
+                println!("The reason why @catch is enforced instead of Error Boundaries is that");
+                println!("Error boundaries don't catch Errors during SSR");
+                println!();
+                println!("🫵  Fix this by adding @catch to a field or parent fragment.");
                 println!("Learn more: https://relay.dev/docs/next/guides/throw-on-field-error-directive/");
                 println!();
                 println!("❌ Validation failed: (took {elapsed:.2?})");

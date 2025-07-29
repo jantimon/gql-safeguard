@@ -125,3 +125,53 @@ Directives: 0
 Selections: 1
     - Field: user
       - FragmentSpread: UserDetailsUnprotected
+
+---
+
+File: fixtures/invalid/unprotected_required_throw.ts
+GraphQL AST items: 1
+
+=== AST Item 1 ===
+Type: Query
+Name: GetUserUnprotected
+File: fixtures/invalid/unprotected_required_throw.ts
+Directives: 0
+Selections: 1
+    - Field: user
+      - Field: id
+      - Field: name [RequiredThrow ☄️]
+      - Field: email
+
+---
+
+File: fixtures/invalid/unprotected_required_throw.ts
+GraphQL AST items: 1
+
+=== AST Item 1 ===
+Type: Query
+Name: GetUserPartial
+File: fixtures/invalid/unprotected_required_throw.ts
+Directives: 0
+Selections: 2
+    - Field: user [Catch 🧤]
+      - Field: id
+      - Field: name [RequiredThrow ☄️]
+      - Field: email
+    - Field: user
+      - Field: name [RequiredThrow ☄️]
+
+---
+
+File: fixtures/invalid/unprotected_required_throw.ts
+GraphQL AST items: 1
+
+=== AST Item 1 ===
+Type: Query
+Name: GetUserMixedUnprotected
+File: fixtures/invalid/unprotected_required_throw.ts
+Directives: 0
+Selections: 1
+    - Field: user
+      - Field: id
+      - Field: name [RequiredThrow ☄️]
+      - Field: avatar [ThrowOnFieldError ☄️]

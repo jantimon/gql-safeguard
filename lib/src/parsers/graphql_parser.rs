@@ -24,6 +24,7 @@ pub struct Field {
 pub enum DirectiveType {
     Catch,
     ThrowOnFieldError,
+    RequiredThrow,
 }
 
 #[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
@@ -86,9 +87,19 @@ pub struct FragmentDefinition {
 pub fn parse_graphql_to_ast(graphql_string: &GraphQLString) -> Result<Vec<GraphQLItem>> {
     // Validate GraphQL syntax and build AST representation
     let document: QueryDocument<String> = parse_query(&graphql_string.content).map_err(|e| {
+        // Normalize path to relative for consistent error messages
+        let git_root = PathBuf::from(env!("CARGO_MANIFEST_DIR"))
+            .parent()
+            .unwrap()
+            .to_path_buf();
+        let relative_path = graphql_string
+            .file_path
+            .strip_prefix(&git_root)
+            .unwrap_or(&graphql_string.file_path);
+
         anyhow::anyhow!(
             "GraphQL syntax error in {} at position {}: {:?}",
-            graphql_string.file_path.display(),
+            relative_path.display(),
             graphql_string.position,
             e
         )
@@ -309,7 +320,7 @@ fn extract_fragment_spreads_from_selections(selections: &[Selection]) -> Vec<Fra
 }
 
 // Filters and converts directives to internal representation
-// Only processes @catch and @throwOnFieldError - ignores irrelevant directives
+// Only processes @catch, @throwOnFieldError, and @required(action: THROW) - ignores irrelevant directives
 fn extract_directives_from_directive_list(
     directives: &[graphql_parser::query::Directive<String>],
     position: u32,
@@ -321,6 +332,14 @@ fn extract_directives_from_directive_list(
             let directive_type = match dir.name.as_str() {
                 "catch" => DirectiveType::Catch,
                 "throwOnFieldError" => DirectiveType::ThrowOnFieldError,
+                "required" => {
+                    // Only process @required if it has action: THROW
+                    if has_throw_action(&dir.arguments) {
+                        DirectiveType::RequiredThrow
+                    } else {
+                        return None; // Ignore @required with other actions
+                    }
+                }
                 _ => return None,
             };
 
@@ -330,6 +349,14 @@ fn extract_directives_from_directive_list(
             })
         })
         .collect()
+}
+
+// Helper function to check if @required directive has action: THROW
+fn has_throw_action(arguments: &[(String, graphql_parser::query::Value<String>)]) -> bool {
+    arguments.iter().any(|(name, value)| {
+        name == "action"
+            && matches!(value, graphql_parser::query::Value::Enum(action) if action == "THROW")
+    })
 }
 
 #[cfg(test)]
@@ -355,7 +382,9 @@ mod tests {
                             }
                             let emoji = match directive.directive_type {
                                 DirectiveType::Catch => "🧤",
-                                DirectiveType::ThrowOnFieldError => "☄️",
+                                DirectiveType::ThrowOnFieldError | DirectiveType::RequiredThrow => {
+                                    "☄️"
+                                }
                             };
                             result.push_str(&format!("{:?} {}", directive.directive_type, emoji));
                         }
@@ -378,7 +407,9 @@ mod tests {
                             }
                             let emoji = match directive.directive_type {
                                 DirectiveType::Catch => "🧤",
-                                DirectiveType::ThrowOnFieldError => "☄️",
+                                DirectiveType::ThrowOnFieldError | DirectiveType::RequiredThrow => {
+                                    "☄️"
+                                }
                             };
                             result.push_str(&format!("{:?} {}", directive.directive_type, emoji));
                         }
@@ -399,7 +430,9 @@ mod tests {
                             }
                             let emoji = match directive.directive_type {
                                 DirectiveType::Catch => "🧤",
-                                DirectiveType::ThrowOnFieldError => "☄️",
+                                DirectiveType::ThrowOnFieldError | DirectiveType::RequiredThrow => {
+                                    "☄️"
+                                }
                             };
                             result.push_str(&format!("{:?} {}", directive.directive_type, emoji));
                         }
@@ -451,7 +484,7 @@ mod tests {
                     for directive in &query.directives {
                         let emoji = match directive.directive_type {
                             DirectiveType::Catch => "🧤",
-                            DirectiveType::ThrowOnFieldError => "☄️",
+                            DirectiveType::ThrowOnFieldError | DirectiveType::RequiredThrow => "☄️",
                         };
                         result.push_str(&format!("  - {:?} {}\n", directive.directive_type, emoji));
                     }
@@ -476,7 +509,7 @@ mod tests {
                     for directive in &fragment.directives {
                         let emoji = match directive.directive_type {
                             DirectiveType::Catch => "🧤",
-                            DirectiveType::ThrowOnFieldError => "☄️",
+                            DirectiveType::ThrowOnFieldError | DirectiveType::RequiredThrow => "☄️",
                         };
                         result.push_str(&format!("  - {:?} {}\n", directive.directive_type, emoji));
                     }
@@ -534,9 +567,17 @@ mod tests {
                                     results.push(result);
                                 }
                                 Err(e) => {
+                                    // Normalize path to relative for consistent test output
+                                    let git_root = PathBuf::from(env!("CARGO_MANIFEST_DIR"))
+                                        .parent()
+                                        .unwrap()
+                                        .to_path_buf();
+                                    let relative_path =
+                                        file_path.strip_prefix(&git_root).unwrap_or(&file_path);
+
                                     results.push(format!(
                                         "File: {}\nGraphQL Parse Error: {}\nContent: {}\n\n",
-                                        file_path.display(),
+                                        relative_path.display(),
                                         e,
                                         graphql_string.content
                                     ));
@@ -545,9 +586,16 @@ mod tests {
                         }
                     }
                     Err(e) => {
+                        // Normalize path to relative for consistent test output
+                        let git_root = PathBuf::from(env!("CARGO_MANIFEST_DIR"))
+                            .parent()
+                            .unwrap()
+                            .to_path_buf();
+                        let relative_path = file_path.strip_prefix(&git_root).unwrap_or(&file_path);
+
                         results.push(format!(
                             "File: {}\nTypeScript Parse Error: {}\n\n",
-                            file_path.display(),
+                            relative_path.display(),
                             e
                         ));
                     }

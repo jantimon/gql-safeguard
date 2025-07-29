@@ -203,28 +203,38 @@ mod tests {
                 // Query directives
                 if !query.directives.is_empty() {
                     formatter.add_line(3, "Directives:");
-                    for directive in &query.directives {
+                    let mut sorted_directives = query.directives.clone();
+                    sorted_directives.sort_by(|a, b| {
+                        format!("{:?}", a.directive_type).cmp(&format!("{:?}", b.directive_type))
+                    });
+                    for directive in &sorted_directives {
                         let emoji = match directive.directive_type {
                             crate::parsers::graphql_parser::DirectiveType::Catch => "🧤",
-                            crate::parsers::graphql_parser::DirectiveType::ThrowOnFieldError => {
-                                "⚠️"
-                            }
+                            crate::parsers::graphql_parser::DirectiveType::ThrowOnFieldError
+                            | crate::parsers::graphql_parser::DirectiveType::RequiredThrow => "☄️",
                         };
                         formatter.add_line(4, &format!("{:?} {}", directive.directive_type, emoji));
                     }
                 }
 
                 // Query fields
-                let query_fields = query.fields();
+                let mut query_fields = query.fields();
                 if !query_fields.is_empty() {
+                    query_fields.sort_by(|a, b| a.name.cmp(&b.name));
                     formatter.add_line(3, "Fields:");
                     for field in &query_fields {
                         let mut field_text = field.name.clone();
                         if !field.directives.is_empty() {
-                            let directive_strs: Vec<String> = field.directives.iter().map(|d| {
+                            let mut sorted_field_directives = field.directives.clone();
+                            sorted_field_directives.sort_by(|a, b| {
+                                format!("{:?}", a.directive_type)
+                                    .cmp(&format!("{:?}", b.directive_type))
+                            });
+                            let directive_strs: Vec<String> = sorted_field_directives.iter().map(|d| {
                                 let emoji = match d.directive_type {
                                     crate::parsers::graphql_parser::DirectiveType::Catch => "🧤",
-                                    crate::parsers::graphql_parser::DirectiveType::ThrowOnFieldError => "⚠️",
+                                    crate::parsers::graphql_parser::DirectiveType::ThrowOnFieldError |
+                                    crate::parsers::graphql_parser::DirectiveType::RequiredThrow => "☄️",
                                 };
                                 format!("{:?} {}", d.directive_type, emoji)
                             }).collect();
@@ -235,16 +245,23 @@ mod tests {
                 }
 
                 // Query fragment spreads
-                let query_fragments = query.fragments();
+                let mut query_fragments = query.fragments();
                 if !query_fragments.is_empty() {
+                    query_fragments.sort_by(|a, b| a.name.cmp(&b.name));
                     formatter.add_line(3, "Fragment Spreads:");
                     for fragment in &query_fragments {
                         let mut fragment_text = fragment.name.clone();
                         if !fragment.directives.is_empty() {
-                            let directive_strs: Vec<String> = fragment.directives.iter().map(|d| {
+                            let mut sorted_fragment_directives = fragment.directives.clone();
+                            sorted_fragment_directives.sort_by(|a, b| {
+                                format!("{:?}", a.directive_type)
+                                    .cmp(&format!("{:?}", b.directive_type))
+                            });
+                            let directive_strs: Vec<String> = sorted_fragment_directives.iter().map(|d| {
                                 let emoji = match d.directive_type {
                                     crate::parsers::graphql_parser::DirectiveType::Catch => "🧤",
-                                    crate::parsers::graphql_parser::DirectiveType::ThrowOnFieldError => "⚠️",
+                                    crate::parsers::graphql_parser::DirectiveType::ThrowOnFieldError |
+                                    crate::parsers::graphql_parser::DirectiveType::RequiredThrow => "☄️",
                                 };
                                 format!("{:?} {}", d.directive_type, emoji)
                             }).collect();
@@ -277,28 +294,38 @@ mod tests {
                 // Fragment directives
                 if !fragment.directives.is_empty() {
                     formatter.add_line(3, "Directives:");
-                    for directive in &fragment.directives {
+                    let mut sorted_directives = fragment.directives.clone();
+                    sorted_directives.sort_by(|a, b| {
+                        format!("{:?}", a.directive_type).cmp(&format!("{:?}", b.directive_type))
+                    });
+                    for directive in &sorted_directives {
                         let emoji = match directive.directive_type {
                             crate::parsers::graphql_parser::DirectiveType::Catch => "🧤",
-                            crate::parsers::graphql_parser::DirectiveType::ThrowOnFieldError => {
-                                "⚠️"
-                            }
+                            crate::parsers::graphql_parser::DirectiveType::ThrowOnFieldError
+                            | crate::parsers::graphql_parser::DirectiveType::RequiredThrow => "☄️",
                         };
                         formatter.add_line(4, &format!("{:?} {}", directive.directive_type, emoji));
                     }
                 }
 
                 // Fragment fields
-                let fragment_fields = fragment.fields();
+                let mut fragment_fields = fragment.fields();
                 if !fragment_fields.is_empty() {
+                    fragment_fields.sort_by(|a, b| a.name.cmp(&b.name));
                     formatter.add_line(3, "Fields:");
                     for field in &fragment_fields {
                         let mut field_text = field.name.clone();
                         if !field.directives.is_empty() {
-                            let directive_strs: Vec<String> = field.directives.iter().map(|d| {
+                            let mut sorted_field_directives = field.directives.clone();
+                            sorted_field_directives.sort_by(|a, b| {
+                                format!("{:?}", a.directive_type)
+                                    .cmp(&format!("{:?}", b.directive_type))
+                            });
+                            let directive_strs: Vec<String> = sorted_field_directives.iter().map(|d| {
                                 let emoji = match d.directive_type {
                                     crate::parsers::graphql_parser::DirectiveType::Catch => "🧤",
-                                    crate::parsers::graphql_parser::DirectiveType::ThrowOnFieldError => "⚠️",
+                                    crate::parsers::graphql_parser::DirectiveType::ThrowOnFieldError |
+                                    crate::parsers::graphql_parser::DirectiveType::RequiredThrow => "☄️",
                                 };
                                 format!("{:?} {}", d.directive_type, emoji)
                             }).collect();
@@ -309,16 +336,23 @@ mod tests {
                 }
 
                 // Fragment spreads
-                let fragment_spreads = fragment.fragments();
+                let mut fragment_spreads = fragment.fragments();
                 if !fragment_spreads.is_empty() {
+                    fragment_spreads.sort_by(|a, b| a.name.cmp(&b.name));
                     formatter.add_line(3, "Fragment Spreads:");
                     for spread in &fragment_spreads {
                         let mut spread_text = spread.name.clone();
                         if !spread.directives.is_empty() {
-                            let directive_strs: Vec<String> = spread.directives.iter().map(|d| {
+                            let mut sorted_spread_directives = spread.directives.clone();
+                            sorted_spread_directives.sort_by(|a, b| {
+                                format!("{:?}", a.directive_type)
+                                    .cmp(&format!("{:?}", b.directive_type))
+                            });
+                            let directive_strs: Vec<String> = sorted_spread_directives.iter().map(|d| {
                                 let emoji = match d.directive_type {
                                     crate::parsers::graphql_parser::DirectiveType::Catch => "🧤",
-                                    crate::parsers::graphql_parser::DirectiveType::ThrowOnFieldError => "⚠️",
+                                    crate::parsers::graphql_parser::DirectiveType::ThrowOnFieldError |
+                                    crate::parsers::graphql_parser::DirectiveType::RequiredThrow => "☄️",
                                 };
                                 format!("{:?} {}", d.directive_type, emoji)
                             }).collect();
@@ -388,19 +422,6 @@ mod tests {
     fn test_registry_from_edge_case_fixtures() {
         let files = collect_fixture_files("edge_cases");
         let registry = process_files(&files);
-        let formatted = format_registry_with_tree_formatter(&registry);
-        insta::assert_snapshot!(formatted);
-    }
-
-    // Full integration test across all GraphQL patterns
-    #[test]
-    fn test_registry_from_all_fixtures() {
-        let mut all_files = Vec::new();
-        all_files.extend(collect_fixture_files("valid"));
-        all_files.extend(collect_fixture_files("invalid"));
-        all_files.extend(collect_fixture_files("edge_cases"));
-
-        let registry = process_files(&all_files);
         let formatted = format_registry_with_tree_formatter(&registry);
         insta::assert_snapshot!(formatted);
     }

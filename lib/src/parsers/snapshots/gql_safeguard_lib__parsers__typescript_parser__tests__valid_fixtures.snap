@@ -120,3 +120,67 @@ Content:
       email
     }
   }
+
+
+---
+
+File: fixtures/valid/required_throw.ts
+GraphQL strings found: 4
+
+=== GraphQL String 1 ===
+BytePos: 123
+Content:
+
+  query GetUserBasic($id: ID!) @catch {
+    user(id: $id) {
+      id
+      name @required(action: THROW)
+      email @required(action: THROW)
+    }
+  }
+
+
+=== GraphQL String 2 ===
+BytePos: 369
+Content:
+
+  query GetUserProfile($id: ID!) {
+    user(id: $id) @catch {
+      id
+      name @required(action: THROW)
+      avatar @required(action: THROW)
+      bio
+    }
+  }
+
+
+=== GraphQL String 3 ===
+BytePos: 646
+Content:
+
+  query GetUserMixed($id: ID!) @catch {
+    user(id: $id) {
+      id
+      name @required(action: THROW)
+      avatar @throwOnFieldError
+      email @required(action: THROW)
+    }
+  }
+
+
+=== GraphQL String 4 ===
+BytePos: 928
+Content:
+
+  query GetUserNested($id: ID!) {
+    user(id: $id) {
+      id
+      profile @catch {
+        displayName @required(action: THROW)
+        bio @required(action: THROW)
+        avatar {
+          url @throwOnFieldError
+        }
+      }
+    }
+  }

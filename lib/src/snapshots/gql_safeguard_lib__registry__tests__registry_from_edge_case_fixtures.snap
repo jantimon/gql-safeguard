@@ -3,55 +3,98 @@ source: lib/src/registry.rs
 expression: formatted
 ---
 GraphQL Registry
-├── Queries (6)
+├── Queries (11)
 |   ├── AdditionalQueryEdgeCase (fixtures/edge_cases/additional-queries.ts)
 |   |   └── Fields:
-|   |       ├── user
 |   |       ├── id
-|   |       └── importedField [ThrowOnFieldError ⚠️]
+|   |       ├── importedField [ThrowOnFieldError ☄️]
+|   |       └── user
 |   ├── BaseQueryDynamic (fixtures/edge_cases/dynamic_imports.tsx)
 |   |   ├── Directives:
 |   |   |   └── Catch 🧤
 |   |   └── Fields:
-|   |       ├── user
+|   |       ├── dynamicField [ThrowOnFieldError ☄️]
 |   |       ├── id
 |   |       ├── name
-|   |       └── dynamicField [ThrowOnFieldError ⚠️]
+|   |       └── user
 |   ├── CircularQueryTest (fixtures/edge_cases/circular_fragments.ts)
 |   |   ├── Fields:
 |   |   |   └── user
 |   |   └── Fragment Spreads:
 |   |       └── FragmentACircular
+|   ├── GetUserComplex (fixtures/edge_cases/required_variants.ts)
+|   |   ├── Directives:
+|   |   |   └── Catch 🧤
+|   |   └── Fields:
+|   |       ├── avatar [ThrowOnFieldError ☄️]
+|   |       ├── bio [Catch 🧤]
+|   |       ├── displayName [RequiredThrow ☄️]
+|   |       ├── id
+|   |       ├── lastModified
+|   |       ├── name
+|   |       ├── profile
+|   |       ├── text [RequiredThrow ☄️]
+|   |       └── user
+|   ├── GetUserLogAction (fixtures/edge_cases/required_variants.ts)
+|   |   └── Fields:
+|   |       ├── email [Catch 🧤, RequiredThrow ☄️]
+|   |       ├── id
+|   |       ├── name
+|   |       └── user
+|   ├── GetUserNoAction (fixtures/edge_cases/required_variants.ts)
+|   |   └── Fields:
+|   |       ├── email [Catch 🧤, RequiredThrow ☄️]
+|   |       ├── id
+|   |       ├── name
+|   |       └── user
+|   ├── GetUserOtherActions (fixtures/edge_cases/required_variants.ts)
+|   |   └── Fields:
+|   |       ├── bio [Catch 🧤, RequiredThrow ☄️]
+|   |       ├── email
+|   |       ├── id
+|   |       ├── name
+|   |       └── user
+|   ├── GetUserWithFragment (fixtures/edge_cases/required_variants.ts)
+|   |   ├── Fields:
+|   |   |   ├── id
+|   |   |   └── user [Catch 🧤]
+|   |   └── Fragment Spreads:
+|   |       └── UserInfo
 |   ├── GraphQLQuery (fixtures/edge_cases/additional-queries.ts)
 |   |   ├── Directives:
 |   |   |   └── Catch 🧤
 |   |   └── Fields:
-|   |       ├── user
 |   |       ├── id
-|   |       └── protectedField [ThrowOnFieldError ⚠️]
+|   |       ├── protectedField [ThrowOnFieldError ☄️]
+|   |       └── user
 |   ├── StaticDynamicQueryEdge (fixtures/edge_cases/dynamic_imports.tsx)
 |   |   └── Fields:
-|   |       ├── user
+|   |       ├── dynamicField [ThrowOnFieldError ☄️]
 |   |       ├── id
-|   |       └── dynamicField [ThrowOnFieldError ⚠️]
+|   |       └── user
 |   └── ValidQueryCommented (fixtures/edge_cases/commented_graphql.ts)
 |       ├── Directives:
 |       |   └── Catch 🧤
 |       └── Fields:
-|           ├── user
+|           ├── avatar [ThrowOnFieldError ☄️]
 |           ├── id
 |           ├── name
-|           └── avatar [ThrowOnFieldError ⚠️]
-└── Fragments (2)
+|           └── user
+└── Fragments (3)
     ├── FragmentACircular (fixtures/edge_cases/circular_fragments.ts)
     |   ├── Fields:
     |   |   ├── id
     |   |   └── name
     |   └── Fragment Spreads:
     |       └── FragmentBCircular
-    └── FragmentBCircular (fixtures/edge_cases/circular_fragments.ts)
-        ├── Fields:
-        |   ├── email
-        |   └── bio
-        └── Fragment Spreads:
-            └── FragmentACircular
+    ├── FragmentBCircular (fixtures/edge_cases/circular_fragments.ts)
+    |   ├── Fields:
+    |   |   ├── bio
+    |   |   └── email
+    |   └── Fragment Spreads:
+    |       └── FragmentACircular
+    └── UserInfo (fixtures/edge_cases/required_variants.ts)
+        └── Fields:
+            ├── avatar [ThrowOnFieldError ☄️]
+            ├── email [RequiredThrow ☄️]
+            └── name

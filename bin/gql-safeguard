@@ -31,7 +31,7 @@ function getBinaryPath() {
   
   try {
     // Try to resolve the platform-specific package
-    return require.resolve(`${pkg}/bin/${binaryName}`);
+    return require.resolve(pkg);
   } catch (error) {
     console.error(`Failed to find binary for platform: ${error.message}`);
     console.error('Make sure the platform-specific package is installed or try running: npm install');

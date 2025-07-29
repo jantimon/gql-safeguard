@@ -9,26 +9,46 @@ Dependency Graph
 |           └── Fragment: UserDetailsUnprotected
 |               ├── Fragment: UserBasicInfoUnprotected
 |               |   ├── Field: id
-|               |   ├── Field: name [ThrowOnFieldError ⚠️]
+|               |   ├── Field: name [ThrowOnFieldError ☄️]
 |               |   └── Field: email
-|               ├── Fragment: UserAvatarUnprotected [ThrowOnFieldError ⚠️]
+|               ├── Fragment: UserAvatarUnprotected [ThrowOnFieldError ☄️]
 |               |   ├── Field: avatar
 |               |   └── Field: avatarUrl
 |               └── Field: bio
+├── GetUserMixedUnprotected (fixtures/invalid/unprotected_required_throw.ts)
+|   └── Selections:
+|       └── Field: user
+|           ├── Field: id
+|           ├── Field: name [RequiredThrow ☄️]
+|           └── Field: avatar [ThrowOnFieldError ☄️]
+├── GetUserPartial (fixtures/invalid/unprotected_required_throw.ts)
+|   └── Selections:
+|       ├── Field: user [Catch 🧤]
+|       |   ├── Field: id
+|       |   ├── Field: name [RequiredThrow ☄️]
+|       |   └── Field: email
+|       └── Field: user
+|           └── Field: name [RequiredThrow ☄️]
 ├── GetUserProfileUnprotected (fixtures/invalid/missing_catch.tsx)
 |   └── Selections:
 |       └── Field: user
 |           ├── Field: id
 |           ├── Field: name
-|           ├── Field: avatar [ThrowOnFieldError ⚠️]
+|           ├── Field: avatar [ThrowOnFieldError ☄️]
+|           └── Field: email
+├── GetUserUnprotected (fixtures/invalid/unprotected_required_throw.ts)
+|   └── Selections:
+|       └── Field: user
+|           ├── Field: id
+|           ├── Field: name [RequiredThrow ☄️]
 |           └── Field: email
 └── MixedQuery (fixtures/invalid/partial_protection.ts)
     └── Selections:
         └── Field: user
             ├── Field: id
             ├── Fragment: ProtectedFragment [Catch 🧤]
-            |   ├── Field: sensitiveData [ThrowOnFieldError ⚠️]
+            |   ├── Field: sensitiveData [ThrowOnFieldError ☄️]
             |   └── Field: otherData
             └── Fragment: UnprotectedFragment
-                ├── Field: riskyField [ThrowOnFieldError ⚠️]
+                ├── Field: riskyField [ThrowOnFieldError ☄️]
                 └── Field: normalField

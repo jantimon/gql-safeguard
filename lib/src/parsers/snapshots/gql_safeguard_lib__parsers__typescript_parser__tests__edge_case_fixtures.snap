@@ -114,3 +114,91 @@ Content:
         dynamicField @throwOnFieldError  # This should be flagged as unprotected
       }
     }
+  
+
+---
+
+File: fixtures/edge_cases/required_variants.ts
+GraphQL strings found: 6
+
+=== GraphQL String 1 ===
+BytePos: 118
+Content:
+
+  query GetUserLogAction($id: ID!) {
+    user(id: $id) {
+      id
+      name @required(action: LOG)
+      email @required(action: THROW) @catch
+    }
+  }
+
+
+=== GraphQL String 2 ===
+BytePos: 359
+Content:
+
+  query GetUserNoAction($id: ID!) {
+    user(id: $id) {
+      id
+      name @required
+      email @required(action: THROW) @catch
+    }
+  }
+
+
+=== GraphQL String 3 ===
+BytePos: 591
+Content:
+
+  query GetUserOtherActions($id: ID!) {
+    user(id: $id) {
+      id
+      name @required(action: WARN)
+      email @required(action: NONE)
+      bio @required(action: THROW) @catch
+    }
+  }
+
+
+=== GraphQL String 4 ===
+BytePos: 867
+Content:
+
+  query GetUserComplex($id: ID!) @catch {
+    user(id: $id) {
+      id
+      profile {
+        name @required(action: LOG)
+        displayName @required(action: THROW)
+        avatar @throwOnFieldError
+        bio @catch {
+          text @required(action: THROW)
+          lastModified @required(action: WARN)
+        }
+      }
+    }
+  }
+
+
+=== GraphQL String 5 ===
+BytePos: 1278
+Content:
+
+  fragment UserInfo on User {
+    name @required(action: LOG)
+    email @required(action: THROW)
+    avatar @throwOnFieldError
+  }
+
+
+=== GraphQL String 6 ===
+BytePos: 1449
+Content:
+
+  query GetUserWithFragment($id: ID!) {
+    user(id: $id) @catch {
+      id
+      ...UserInfo
+    }
+  }

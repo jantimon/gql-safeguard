@@ -13,23 +13,47 @@ Dependency Graph
 |               |   └── Field: email
 |               ├── Fragment: UserAvatar [Catch 🧤]
 |               |   ├── Field: avatar
-|               |   └── Fragment: avatarImage [ThrowOnFieldError ⚠️]
+|               |   └── Fragment: avatarImage [ThrowOnFieldError ☄️]
 |               |       ├── Field: avatar
 |               |       └── Field: avatarUrl
 |               └── Field: details [Catch 🧤]
-|                   └── Field: bio [ThrowOnFieldError ⚠️]
+|                   └── Field: bio [ThrowOnFieldError ☄️]
 |                       └── Fragment: UserBio
 |                           ├── Field: bioText
-|                           └── Field: bioImage [ThrowOnFieldError ⚠️]
-├── GetUserProfile (fixtures/valid/query_with_catch.tsx)
+|                           └── Field: bioImage [ThrowOnFieldError ☄️]
+├── GetUserBasic (fixtures/valid/required_throw.ts)
 |   ├── Directives:
 |   |   └── Catch 🧤
 |   └── Selections:
 |       └── Field: user
 |           ├── Field: id
-|           ├── Field: name
-|           ├── Field: avatar [ThrowOnFieldError ⚠️]
-|           └── Field: email
+|           ├── Field: name [RequiredThrow ☄️]
+|           └── Field: email [RequiredThrow ☄️]
+├── GetUserMixed (fixtures/valid/required_throw.ts)
+|   ├── Directives:
+|   |   └── Catch 🧤
+|   └── Selections:
+|       └── Field: user
+|           ├── Field: id
+|           ├── Field: name [RequiredThrow ☄️]
+|           ├── Field: avatar [ThrowOnFieldError ☄️]
+|           └── Field: email [RequiredThrow ☄️]
+├── GetUserNested (fixtures/valid/required_throw.ts)
+|   └── Selections:
+|       └── Field: user
+|           ├── Field: id
+|           └── Field: profile [Catch 🧤]
+|               ├── Field: displayName [RequiredThrow ☄️]
+|               ├── Field: bio [RequiredThrow ☄️]
+|               └── Field: avatar
+|                   └── Field: url [ThrowOnFieldError ☄️]
+├── GetUserProfile (fixtures/valid/required_throw.ts)
+|   └── Selections:
+|       └── Field: user [Catch 🧤]
+|           ├── Field: id
+|           ├── Field: name [RequiredThrow ☄️]
+|           ├── Field: avatar [RequiredThrow ☄️]
+|           └── Field: bio
 └── GetUserWithRiskyData (fixtures/valid/fragment_level_catch.ts)
     ├── Directives:
     |   └── Catch 🧤
@@ -37,8 +61,8 @@ Dependency Graph
         └── Field: user
             ├── Field: id
             ├── Field: name
-            └── Field: friends [ThrowOnFieldError ⚠️]
+            └── Field: friends [ThrowOnFieldError ☄️]
                 └── Fragment: RiskyUserData [Catch 🧤]
-                    ├── Field: sensitiveInfo [ThrowOnFieldError ⚠️]
-                    ├── Field: backupEmail [ThrowOnFieldError ⚠️]
+                    ├── Field: sensitiveInfo [ThrowOnFieldError ☄️]
+                    ├── Field: backupEmail [ThrowOnFieldError ☄️]
                     └── Field: internalId

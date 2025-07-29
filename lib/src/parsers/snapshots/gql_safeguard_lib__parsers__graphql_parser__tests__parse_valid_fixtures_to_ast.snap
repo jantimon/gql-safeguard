@@ -147,3 +147,74 @@ Selections: 1
       - Field: name
       - Field: avatar [ThrowOnFieldError ☄️]
       - Field: email
+
+---
+
+File: fixtures/valid/required_throw.ts
+GraphQL AST items: 1
+
+=== AST Item 1 ===
+Type: Query
+Name: GetUserBasic
+File: fixtures/valid/required_throw.ts
+Directives: 1
+  - Catch 🧤
+Selections: 1
+    - Field: user
+      - Field: id
+      - Field: name [RequiredThrow ☄️]
+      - Field: email [RequiredThrow ☄️]
+
+---
+
+File: fixtures/valid/required_throw.ts
+GraphQL AST items: 1
+
+=== AST Item 1 ===
+Type: Query
+Name: GetUserProfile
+File: fixtures/valid/required_throw.ts
+Directives: 0
+Selections: 1
+    - Field: user [Catch 🧤]
+      - Field: id
+      - Field: name [RequiredThrow ☄️]
+      - Field: avatar [RequiredThrow ☄️]
+      - Field: bio
+
+---
+
+File: fixtures/valid/required_throw.ts
+GraphQL AST items: 1
+
+=== AST Item 1 ===
+Type: Query
+Name: GetUserMixed
+File: fixtures/valid/required_throw.ts
+Directives: 1
+  - Catch 🧤
+Selections: 1
+    - Field: user
+      - Field: id
+      - Field: name [RequiredThrow ☄️]
+      - Field: avatar [ThrowOnFieldError ☄️]
+      - Field: email [RequiredThrow ☄️]
+
+---
+
+File: fixtures/valid/required_throw.ts
+GraphQL AST items: 1
+
+=== AST Item 1 ===
+Type: Query
+Name: GetUserNested
+File: fixtures/valid/required_throw.ts
+Directives: 0
+Selections: 1
+    - Field: user
+      - Field: id
+      - Field: profile [Catch 🧤]
+        - Field: displayName [RequiredThrow ☄️]
+        - Field: bio [RequiredThrow ☄️]
+        - Field: avatar
+          - Field: url [ThrowOnFieldError ☄️]
