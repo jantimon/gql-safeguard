@@ -125,12 +125,13 @@ jobs:
 
       - name: Package Binary
         run: |
-          mkdir -p npm-package
+          mkdir -p npm-package/bin
           if [[ "${{ matrix.os_name }}" == "win32" ]]; then
-            cp target/${{ matrix.target }}/release/gql-safeguard.exe npm-package/
+            cp target/${{ matrix.target }}/release/gql-safeguard.exe npm-package/bin/
             EXE_SUFFIX=".exe"
           else
-            cp target/${{ matrix.target }}/release/gql-safeguard npm-package/
+            cp target/${{ matrix.target }}/release/gql-safeguard npm-package/bin/
+            chmod +x npm-package/bin/gql-safeguard
             EXE_SUFFIX=""
           fi
           
