@@ -1,8 +1,11 @@
 #!/usr/bin/env node
 
 import { execSync } from 'child_process';
-import { readFileSync, writeFileSync, existsSync, readdirSync } from 'fs';
-import { join } from 'path';
+import { existsSync, readdirSync, readFileSync, writeFileSync } from 'fs';
+import path from 'path';
+
+const __dirname = new URL('.', import.meta.url).pathname;
+process.chdir(path.join(__dirname, '..'));
 
 function hasChangesetFiles() {
   if (!existsSync('.changeset')) {
@@ -24,8 +27,17 @@ function main() {
   console.log('Changeset files found, updating optionalDependencies for PR creation');
 
   try {
+    const tempFileName = 'scripts/changeset-status.json';
+
     // Get the new version that changesets will use
-    const changesetStatus = JSON.parse(execSync('npx changeset status --output=json', { encoding: 'utf8' }));
+    execSync(`npx changeset status --output ${JSON.stringify(tempFileName)}`, { stdio: 'ignore' });
+    if (!existsSync(tempFileName)) {
+      console.error(`Temporary file ${tempFileName} not found after running changeset status`);
+      process.exit(1);
+    }
+    const changesetStatus = JSON.parse(readFileSync(tempFileName, 'utf8'));
+    execSync(`rm ${tempFileName}`);
+
     const newVersion = changesetStatus.releases?.[0]?.newVersion;
 
     if (!newVersion) {
