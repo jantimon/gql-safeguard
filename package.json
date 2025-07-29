@@ -1,6 +1,6 @@
 {
   "name": "gql-safeguard",
-  "version": "0.5.0",
+  "version": "0.6.0",
   "description": "A fast CLI tool for validating GraphQL @catch directive protection in your codebase",
   "keywords": [
     "graphql",
