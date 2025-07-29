@@ -1,0 +1,21 @@
+{
+  "name": "${PACKAGE_NAME}",
+  "version": "${VERSION}",
+  "description": "Platform-specific binary for gql-safeguard",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/jantimon/gql-safeguard.git"
+  },
+  "license": "MIT",
+  "os": ["${OS}"],
+  "cpu": ["${CPU}"],
+  "engines": {
+    "node": ">=16"
+  },
+  "files": [
+    "gql-safeguard${EXE_SUFFIX}"
+  ],
+  "publishConfig": {
+    "access": "public"
+  }
+}

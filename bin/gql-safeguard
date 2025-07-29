@@ -1,0 +1,67 @@
+#!/usr/bin/env node
+
+const { spawn } = require('child_process');
+const { join } = require('path');
+const { platform, arch } = require('os');
+
+// Platform mapping following esbuild pattern
+function getPlatformPackage() {
+  const platformKey = `${platform()} ${arch()}`;
+  
+  const packageMap = {
+    'darwin arm64': '@gql-safeguard/darwin-arm64',
+    'darwin x64': '@gql-safeguard/darwin-x64',
+    'linux arm64': '@gql-safeguard/linux-arm64',
+    'linux x64': '@gql-safeguard/linux-x64',
+    'win32 x64': '@gql-safeguard/win32-x64'
+  };
+  
+  const pkg = packageMap[platformKey];
+  if (!pkg) {
+    console.error(`Unsupported platform: ${platformKey}`);
+    process.exit(1);
+  }
+  
+  return pkg;
+}
+
+function getBinaryPath() {
+  const pkg = getPlatformPackage();
+  const binaryName = platform() === 'win32' ? 'gql-safeguard.exe' : 'gql-safeguard';
+  
+  try {
+    // Try to resolve the platform-specific package
+    return require.resolve(`${pkg}/${binaryName}`);
+  } catch (error) {
+    console.error(`Failed to find binary for platform: ${error.message}`);
+    console.error('Make sure the platform-specific package is installed or try running: npm install');
+    process.exit(1);
+  }
+}
+
+function main() {
+  const binaryPath = getBinaryPath();
+  const args = process.argv.slice(2);
+  
+  const child = spawn(binaryPath, args, {
+    stdio: 'inherit',
+    windowsHide: false
+  });
+  
+  child.on('error', (error) => {
+    console.error(`Failed to start gql-safeguard: ${error.message}`);
+    process.exit(1);
+  });
+  
+  child.on('exit', (code, signal) => {
+    if (signal) {
+      process.kill(process.pid, signal);
+    } else {
+      process.exit(code);
+    }
+  });
+}
+
+if (require.main === module) {
+  main();
+}

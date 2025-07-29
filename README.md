@@ -20,10 +20,11 @@ GQL Safeguard analyzes your TypeScript/TSX codebase to ensure every `@throwOnFie
 ## Installation
 
 ```bash
-# Install from source (requires Rust)
-git clone https://github.com/your-org/gql-safeguard
-cd gql-safeguard
-cargo install --path cli
+# Install globally via npm
+npm install -g gql-safeguard
+
+# Or use with npx (no installation required)
+npx gql-safeguard --help
 ```
 
 ## Quick Start
@@ -32,16 +33,16 @@ cargo install --path cli
 
 ```bash
 # Validate all GraphQL in current directory
-gql-safeguard . validate
+npx gql-safeguard . validate
 
 # Validate specific patterns
-gql-safeguard src/ validate --pattern "**/*.{ts,tsx}"
+npx gql-safeguard src/ validate --pattern "**/*.{ts,tsx}"
 
 # Show detailed processing information
-gql-safeguard . validate --verbose
+npx gql-safeguard . validate --verbose
 
 # Export GraphQL registry for external analysis  
-gql-safeguard . json > graphql-analysis.json
+npx gql-safeguard . json > graphql-analysis.json
 ```
 
 ### Example Validation
@@ -76,7 +77,7 @@ const query = gql`
 Validates GraphQL operations for proper `@catch` directive protection.
 
 ```bash
-gql-safeguard [PATH] validate [OPTIONS]
+npx gql-safeguard [PATH] validate [OPTIONS]
 ```
 
 **Options:**
@@ -90,7 +91,7 @@ gql-safeguard [PATH] validate [OPTIONS]
 Export extracted GraphQL registry in JSON format for external analysis.
 
 ```bash
-gql-safeguard [PATH] json [OPTIONS]
+npx gql-safeguard [PATH] json [OPTIONS]
 ```
 
 ### Configuration
@@ -152,33 +153,7 @@ user @catch {
 ### CI/CD Pipeline
 ```yaml
 - name: Validate GraphQL Safety
-  run: gql-safeguard . validate
-```
-
-### Pre-commit Hook
-```bash
-#!/bin/sh
-gql-safeguard . validate || exit 1
-```
-
-### Library Usage
-```rust
-use gql_safeguard_lib::*;
-
-// Extract GraphQL from codebase
-let registry = registry::process_glob(&path, &["**/*.tsx"], &["**/node_modules"])?;
-
-// Build dependency graph
-let graph = registry_to_graph::registry_to_dependency_graph(&registry)?;
-
-// Validate protection patterns
-let result = validate::validate_query_directives(&graph);
-
-if !result.is_valid() {
-    for error in result.errors {
-        println!("{}", error);
-    }
-}
+  run: npx gql-safeguard . validate
 ```
 
 ## Development

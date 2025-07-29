@@ -1,0 +1,37 @@
+{
+  "name": "gql-safeguard",
+  "version": "0.1.0",
+  "description": "A fast CLI tool for validating GraphQL @catch directive protection in your codebase",
+  "keywords": ["graphql", "relay", "catch", "validation", "cli", "rust"],
+  "author": "Jan Nicklas",
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/jantimon/gql-safeguard.git"
+  },
+  "bugs": {
+    "url": "https://github.com/jantimon/gql-safeguard/issues"
+  },
+  "homepage": "https://github.com/jantimon/gql-safeguard#readme",
+  "engines": {
+    "node": ">=16"
+  },
+  "bin": {
+    "gql-safeguard": "bin/gql-safeguard"
+  },
+  "scripts": {
+    "postinstall": "node install.js"
+  },
+  "files": [
+    "bin/",
+    "install.js",
+    "README.md"
+  ],
+  "optionalDependencies": {
+    "@gql-safeguard/darwin-arm64": "0.1.0",
+    "@gql-safeguard/darwin-x64": "0.1.0",
+    "@gql-safeguard/linux-arm64": "0.1.0",
+    "@gql-safeguard/linux-x64": "0.1.0",
+    "@gql-safeguard/win32-x64": "0.1.0"
+  }
+}
