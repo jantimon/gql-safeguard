@@ -1,5 +1,17 @@
 # gql-safeguard
 
+## 0.8.0
+
+### Minor Changes
+
+- 1c4e462: remove empty @catch detection
+- 1c4e462: improve performance of validation logic
+- 1c4e462: fix bug in ignore logic
+
+### Patch Changes
+
+- 85ddd33: fix the capitalization of directives
+
 ## 0.7.0
 
 ### Minor Changes
