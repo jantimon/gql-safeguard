@@ -27,6 +27,16 @@ pub enum DirectiveType {
     RequiredThrow,
 }
 
+impl std::fmt::Display for DirectiveType {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        match self {
+            DirectiveType::Catch => write!(f, "catch"),
+            DirectiveType::ThrowOnFieldError => write!(f, "throwOnFieldError"),
+            DirectiveType::RequiredThrow => write!(f, "requiredThrow"),
+        }
+    }
+}
+
 #[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
 pub struct Directive {
     pub directive_type: DirectiveType,
