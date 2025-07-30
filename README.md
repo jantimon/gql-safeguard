@@ -43,6 +43,9 @@ npx gql-safeguard . validate
 # Validate specific patterns
 npx gql-safeguard src/ validate --pattern "**/*.{ts,tsx}"
 
+# Output validation results in JSON format for Node.js integration
+npx gql-safeguard . validate --json
+
 # Show detailed processing information
 npx gql-safeguard . validate --verbose
 
@@ -110,6 +113,7 @@ npx gql-safeguard [PATH] validate [OPTIONS]
 ```
 
 **Options:**
+- `--json`: Output results in JSON format for programmatic use
 - `--show-trees`: Display fragment dependency trees in output
 - `--verbose`: Show detailed processing information
 - `--pattern <GLOB>`: File pattern to match (default: `**/*.{ts,tsx}`)
