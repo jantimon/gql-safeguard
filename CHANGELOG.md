@@ -1,5 +1,11 @@
 # gql-safeguard
 
+## 0.12.0
+
+### Minor Changes
+
+- 236b142: add line numbers for validate --json
+
 ## 0.11.0
 
 ### Minor Changes
