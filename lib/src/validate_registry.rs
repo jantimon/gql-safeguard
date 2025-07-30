@@ -88,6 +88,8 @@ pub struct JsonValidationError {
     pub field: String,
     #[serde(rename = "queryTree")]
     pub query_tree: String,
+    pub line: Option<u32>,
+    pub col: Option<u32>,
 }
 
 #[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
@@ -140,6 +142,8 @@ impl From<ValidationError> for JsonValidationError {
                 .unwrap_or(error.context.query_name),
             field,
             query_tree: error.tree_visualization,
+            line: error.context.line,
+            col: error.context.col,
         }
     }
 }

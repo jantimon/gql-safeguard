@@ -9,70 +9,90 @@ expression: json_output
       "reason": "@throwOnFieldError must not be used without @catch",
       "name": "UserBasicInfoUnprotected",
       "field": "name",
-      "queryTree": "📄 Query: GetFullUserUnprotected (fixtures/invalid/unprotected_nested.ts)\n└── 🔍 Selections:\n    └── 🔹 Field: user\n        └── 📋 FragmentSpread: UserDetailsUnprotected ❌\n            └── Fragment Content:\n                ├── 📋 FragmentSpread: UserBasicInfoUnprotected ❌\n                |   └── Fragment Content:\n                |       ├── 🔹 Field: id\n                |       ├── 🔹 Field: name [☄️ @throwOnFieldError]\n                |       └── 🔹 Field: email\n                ├── 📋 FragmentSpread: UserAvatarUnprotected\n                |   └── Fragment Content:\n                |       ├── 🔹 Field: avatar\n                |       └── 🔹 Field: avatarUrl\n                └── 🔹 Field: bio"
+      "queryTree": "📄 Query: GetFullUserUnprotected (fixtures/invalid/unprotected_nested.ts)\n└── 🔍 Selections:\n    └── 🔹 Field: user\n        └── 📋 FragmentSpread: UserDetailsUnprotected ❌\n            └── Fragment Content:\n                ├── 📋 FragmentSpread: UserBasicInfoUnprotected ❌\n                |   └── Fragment Content:\n                |       ├── 🔹 Field: id\n                |       ├── 🔹 Field: name [☄️ @throwOnFieldError]\n                |       └── 🔹 Field: email\n                ├── 📋 FragmentSpread: UserAvatarUnprotected\n                |   └── Fragment Content:\n                |       ├── 🔹 Field: avatar\n                |       └── 🔹 Field: avatarUrl\n                └── 🔹 Field: bio",
+      "line": 6,
+      "col": 10
     },
     {
       "fileName": "fixtures/invalid/unprotected_required_throw.ts",
       "reason": "@requiredThrow must not be used without @catch",
       "name": "GetUserMixedUnprotected",
       "field": "avatar",
-      "queryTree": "📄 Query: GetUserMixedUnprotected (fixtures/invalid/unprotected_required_throw.ts)\n└── 🔍 Selections:\n    └── 🔹 Field: user\n        ├── 🔹 Field: id\n        ├── 🔹 Field: name [☄️ @requiredThrow]\n        └── 🔹 Field: avatar ❌ [☄️ @throwOnFieldError]"
+      "queryTree": "📄 Query: GetUserMixedUnprotected (fixtures/invalid/unprotected_required_throw.ts)\n└── 🔍 Selections:\n    └── 🔹 Field: user\n        ├── 🔹 Field: id\n        ├── 🔹 Field: name [☄️ @requiredThrow]\n        └── 🔹 Field: avatar ❌ [☄️ @throwOnFieldError]",
+      "line": 34,
+      "col": 14
     },
     {
       "fileName": "fixtures/invalid/unprotected_required_throw.ts",
       "reason": "@requiredThrow must not be used without @catch",
       "name": "GetUserMixedUnprotected",
       "field": "name",
-      "queryTree": "📄 Query: GetUserMixedUnprotected (fixtures/invalid/unprotected_required_throw.ts)\n└── 🔍 Selections:\n    └── 🔹 Field: user\n        ├── 🔹 Field: id\n        ├── 🔹 Field: name ❌ [☄️ @requiredThrow]\n        └── 🔹 Field: avatar [☄️ @throwOnFieldError]"
+      "queryTree": "📄 Query: GetUserMixedUnprotected (fixtures/invalid/unprotected_required_throw.ts)\n└── 🔍 Selections:\n    └── 🔹 Field: user\n        ├── 🔹 Field: id\n        ├── 🔹 Field: name ❌ [☄️ @requiredThrow]\n        └── 🔹 Field: avatar [☄️ @throwOnFieldError]",
+      "line": 33,
+      "col": 12
     },
     {
       "fileName": "fixtures/invalid/unprotected_required_throw.ts",
       "reason": "@requiredThrow must not be used without @catch",
       "name": "GetUserPartial",
       "field": "name",
-      "queryTree": "📄 Query: GetUserPartial (fixtures/invalid/unprotected_required_throw.ts)\n└── 🔍 Selections:\n    ├── 🔹 Field: user [🧤 @catch]\n    |   ├── 🔹 Field: id\n    |   ├── 🔹 Field: name [☄️ @requiredThrow]\n    |   └── 🔹 Field: email\n    └── 🔹 Field: otherUser\n        └── 🔹 Field: name ❌ [☄️ @requiredThrow]"
+      "queryTree": "📄 Query: GetUserPartial (fixtures/invalid/unprotected_required_throw.ts)\n└── 🔍 Selections:\n    ├── 🔹 Field: user [🧤 @catch]\n    |   ├── 🔹 Field: id\n    |   ├── 🔹 Field: name [☄️ @requiredThrow]\n    |   └── 🔹 Field: email\n    └── 🔹 Field: otherUser\n        └── 🔹 Field: name ❌ [☄️ @requiredThrow]",
+      "line": 23,
+      "col": 12
     },
     {
       "fileName": "fixtures/invalid/missing_catch.tsx",
       "reason": "@throwOnFieldError must not be used without @catch",
       "name": "GetUserProfileUnprotected",
       "field": "avatar",
-      "queryTree": "📄 Query: GetUserProfileUnprotected (fixtures/invalid/missing_catch.tsx)\n└── 🔍 Selections:\n    └── 🔹 Field: user\n        ├── 🔹 Field: id\n        ├── 🔹 Field: name\n        ├── 🔹 Field: avatar ❌ [☄️ @throwOnFieldError]\n        └── 🔹 Field: email"
+      "queryTree": "📄 Query: GetUserProfileUnprotected (fixtures/invalid/missing_catch.tsx)\n└── 🔍 Selections:\n    └── 🔹 Field: user\n        ├── 🔹 Field: id\n        ├── 🔹 Field: name\n        ├── 🔹 Field: avatar ❌ [☄️ @throwOnFieldError]\n        └── 🔹 Field: email",
+      "line": 8,
+      "col": 14
     },
     {
       "fileName": "fixtures/invalid/unprotected_required_throw.ts",
       "reason": "@requiredThrow must not be used without @catch",
       "name": "GetUserUnprotected",
       "field": "name",
-      "queryTree": "📄 Query: GetUserUnprotected (fixtures/invalid/unprotected_required_throw.ts)\n└── 🔍 Selections:\n    └── 🔹 Field: user\n        ├── 🔹 Field: id\n        ├── 🔹 Field: name ❌ [☄️ @requiredThrow]\n        └── 🔹 Field: email"
+      "queryTree": "📄 Query: GetUserUnprotected (fixtures/invalid/unprotected_required_throw.ts)\n└── 🔍 Selections:\n    └── 🔹 Field: user\n        ├── 🔹 Field: id\n        ├── 🔹 Field: name ❌ [☄️ @requiredThrow]\n        └── 🔹 Field: email",
+      "line": 8,
+      "col": 12
     },
     {
       "fileName": "fixtures/invalid/partial_protection.ts",
       "reason": "@throwOnFieldError must not be used without @catch",
       "name": "UnprotectedFragment",
       "field": "riskyField",
-      "queryTree": "📄 Query: MixedQuery (fixtures/invalid/partial_protection.ts)\n└── 🔍 Selections:\n    └── 🔹 Field: user\n        ├── 🔹 Field: id\n        ├── 📋 FragmentSpread: ProtectedFragment\n        |   └── Fragment Content:\n        |       ├── 🔹 Field: sensitiveData [☄️ @throwOnFieldError]\n        |       └── 🔹 Field: otherData\n        └── 📋 FragmentSpread: UnprotectedFragment ❌\n            └── Fragment Content:\n                ├── 🔹 Field: riskyField [☄️ @throwOnFieldError]\n                └── 🔹 Field: normalField"
+      "queryTree": "📄 Query: MixedQuery (fixtures/invalid/partial_protection.ts)\n└── 🔍 Selections:\n    └── 🔹 Field: user\n        ├── 🔹 Field: id\n        ├── 📋 FragmentSpread: ProtectedFragment\n        |   └── Fragment Content:\n        |       ├── 🔹 Field: sensitiveData [☄️ @throwOnFieldError]\n        |       └── 🔹 Field: otherData\n        └── 📋 FragmentSpread: UnprotectedFragment ❌\n            └── Fragment Content:\n                ├── 🔹 Field: riskyField [☄️ @throwOnFieldError]\n                └── 🔹 Field: normalField",
+      "line": 12,
+      "col": 16
     },
     {
       "fileName": "fixtures/invalid/query_level_throw_with_ignore.ts",
       "reason": "@throwOnFieldError must not be used without @catch",
       "name": "queryLevelThrowWithIgnore",
       "field": "query level",
-      "queryTree": "📄 Query: queryLevelThrowWithIgnore (fixtures/invalid/query_level_throw_with_ignore.ts)\n├── 🏷️  Query Directives:\n|   └── ☄️ @throwOnFieldError ❌\n└── 🔍 Selections:\n    └── 🔹 Field: customerOrderProductLineItemsGroupById\n        └── 🔹 Field: startWrongDeliveryRegistrationRelativeUrl"
+      "queryTree": "📄 Query: queryLevelThrowWithIgnore (fixtures/invalid/query_level_throw_with_ignore.ts)\n├── 🏷️  Query Directives:\n|   └── ☄️ @throwOnFieldError ❌\n└── 🔍 Selections:\n    └── 🔹 Field: customerOrderProductLineItemsGroupById\n        └── 🔹 Field: startWrongDeliveryRegistrationRelativeUrl",
+      "line": 8,
+      "col": 3
     },
     {
       "fileName": "fixtures/invalid/query_level_throw_with_ignore.ts",
       "reason": "@throwOnFieldError must not be used without @catch",
       "name": "queryLevelThrowWithQueryIgnore",
       "field": "query level",
-      "queryTree": "📄 Query: queryLevelThrowWithQueryIgnore (fixtures/invalid/query_level_throw_with_ignore.ts)\n├── 🏷️  Query Directives:\n|   └── ☄️ @throwOnFieldError ❌\n└── 🔍 Selections:\n    └── 🔹 Field: user\n        ├── 🔹 Field: id\n        └── 🔹 Field: name"
+      "queryTree": "📄 Query: queryLevelThrowWithQueryIgnore (fixtures/invalid/query_level_throw_with_ignore.ts)\n├── 🏷️  Query Directives:\n|   └── ☄️ @throwOnFieldError ❌\n└── 🔍 Selections:\n    └── 🔹 Field: user\n        ├── 🔹 Field: id\n        └── 🔹 Field: name",
+      "line": 34,
+      "col": 3
     },
     {
       "fileName": "fixtures/invalid/query_level_throw_with_ignore.ts",
       "reason": "@throwOnFieldError must not be used without @catch",
       "name": "unprotectedQueryLevelThrow",
       "field": "query level",
-      "queryTree": "📄 Query: unprotectedQueryLevelThrow (fixtures/invalid/query_level_throw_with_ignore.ts)\n├── 🏷️  Query Directives:\n|   └── ☄️ @throwOnFieldError ❌\n└── 🔍 Selections:\n    └── 🔹 Field: user\n        ├── 🔹 Field: id\n        ├── 🔹 Field: name\n        └── 🔹 Field: email"
+      "queryTree": "📄 Query: unprotectedQueryLevelThrow (fixtures/invalid/query_level_throw_with_ignore.ts)\n├── 🏷️  Query Directives:\n|   └── ☄️ @throwOnFieldError ❌\n└── 🔍 Selections:\n    └── 🔹 Field: user\n        ├── 🔹 Field: id\n        ├── 🔹 Field: name\n        └── 🔹 Field: email",
+      "line": 21,
+      "col": 3
     }
   ],
   "hint": "❌ @throwOnFieldError must not be used outside of @catch\nWithout @catch protection, field errors will throw exceptions that bubble up\nand will break the entire page during client and server-side rendering.\n\nThe reason why @catch is enforced instead of Error Boundaries is that\nError boundaries don't catch Errors during SSR\n\n🫵  Fix this by adding @catch to a field or parent fragment.\nLearn more: https://relay.dev/docs/next/guides/throw-on-field-error-directive/"
