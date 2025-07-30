@@ -1,5 +1,11 @@
 # gql-safeguard
 
+## 0.11.0
+
+### Minor Changes
+
+- 1d1de29: add line numbers
+
 ## 0.10.0
 
 ### Minor Changes
