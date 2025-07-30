@@ -1,5 +1,11 @@
 # gql-safeguard
 
+## 0.10.0
+
+### Minor Changes
+
+- 32639b5: add json output for validate
+
 ## 0.9.0
 
 ### Minor Changes
