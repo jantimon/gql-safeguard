@@ -6,8 +6,6 @@ edition = "2021"
 [dependencies]
 globset = { workspace = true }
 swc_core = { workspace = true }
-swc_ecma_parser = { workspace = true }
-swc_ecma_ast = { workspace = true }
 graphql-parser = { workspace = true }
 dashmap = { workspace = true }
 rustc-hash = { workspace = true }
@@ -15,7 +13,6 @@ rayon = { workspace = true }
 anyhow = { workspace = true }
 serde = { workspace = true }
 ignore = { workspace = true }
-walkdir = { workspace = true }
 
 [dev-dependencies]
 insta = { workspace = true }
