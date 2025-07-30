@@ -6,6 +6,7 @@
 
 use rayon::prelude::*;
 use rustc_hash::FxHashSet;
+use serde::{Deserialize, Serialize};
 use std::path::PathBuf;
 use std::sync::Mutex;
 
@@ -72,6 +73,98 @@ impl ValidationResult {
 
     pub fn is_valid(&self) -> bool {
         self.errors.is_empty()
+    }
+}
+
+// JSON-serializable error types for programmatic consumption
+#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
+pub struct JsonValidationError {
+    #[serde(rename = "fileName")]
+    pub file_name: String,
+    pub reason: String,
+    pub name: String,
+    pub field: String,
+    #[serde(rename = "queryTree")]
+    pub query_tree: String,
+}
+
+#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
+pub struct JsonValidationResult {
+    pub errors: Vec<JsonValidationError>,
+    pub hint: String,
+}
+
+impl From<ValidationError> for JsonValidationError {
+    fn from(error: ValidationError) -> Self {
+        // Extract field name from location path (e.g., "query.user.name" -> "name")
+        let field = error
+            .context
+            .location_path
+            .split('.')
+            .next_back()
+            .unwrap_or("")
+            .to_string();
+
+        // Generate appropriate reason based on error type
+        let reason = match error.error_type {
+            ValidationErrorType::UnprotectedThrowOnFieldError => {
+                // Check if this came from a RequiredThrow directive by examining the tree
+                if error.tree_visualization.contains("@requiredThrow") {
+                    "@requiredThrow must not be used without @catch".to_string()
+                } else {
+                    "@throwOnFieldError must not be used without @catch".to_string()
+                }
+            }
+        };
+
+        // Use relative path by stripping git root (same logic as Display impl)
+        let git_root = PathBuf::from(env!("CARGO_MANIFEST_DIR"))
+            .parent()
+            .unwrap()
+            .to_path_buf();
+
+        let relative_path = error
+            .context
+            .query_file
+            .strip_prefix(&git_root)
+            .unwrap_or(&error.context.query_file);
+
+        JsonValidationError {
+            file_name: relative_path.display().to_string(),
+            reason,
+            name: error
+                .context
+                .fragment_name
+                .unwrap_or(error.context.query_name),
+            field,
+            query_tree: error.tree_visualization,
+        }
+    }
+}
+
+impl From<ValidationResult> for JsonValidationResult {
+    fn from(result: ValidationResult) -> Self {
+        let hint = if result.is_valid() {
+            String::new()
+        } else {
+            "❌ @throwOnFieldError must not be used outside of @catch\n\
+            Without @catch protection, field errors will throw exceptions that bubble up\n\
+            and will break the entire page during client and server-side rendering.\n\n\
+            The reason why @catch is enforced instead of Error Boundaries is that\n\
+            Error boundaries don't catch Errors during SSR\n\n\
+            🫵  Fix this by adding @catch to a field or parent fragment.\n\
+            Learn more: https://relay.dev/docs/next/guides/throw-on-field-error-directive/"
+                .to_string()
+        };
+
+        JsonValidationResult {
+            errors: result
+                .errors
+                .into_iter()
+                .map(JsonValidationError::from)
+                .collect(),
+            hint,
+        }
     }
 }
 
@@ -854,5 +947,27 @@ mod tests {
             format!("Edge case validation result:\n{}", result)
         };
         insta::assert_snapshot!(result_message);
+    }
+
+    #[test]
+    fn test_json_validation_result_valid_fixtures() {
+        let files = collect_fixture_files("valid");
+        let registry = process_files(&files);
+
+        let result = validate_registry(&registry);
+        let json_result: JsonValidationResult = result.into();
+        let json_output = serde_json::to_string_pretty(&json_result).unwrap();
+        insta::assert_snapshot!(json_output);
+    }
+
+    #[test]
+    fn test_json_validation_result_invalid_fixtures() {
+        let files = collect_fixture_files("invalid");
+        let registry = process_files(&files);
+
+        let result = validate_registry(&registry);
+        let json_result: JsonValidationResult = result.into();
+        let json_output = serde_json::to_string_pretty(&json_result).unwrap();
+        insta::assert_snapshot!(json_output);
     }
 }

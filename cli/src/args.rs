@@ -38,6 +38,9 @@ pub enum Command {
         // Display fragment resolution for debugging
         #[arg(long)]
         show_trees: bool,
+        // Output results in JSON format for programmatic use
+        #[arg(long)]
+        json: bool,
     },
     // Export extracted GraphQL for external tools
     Json,

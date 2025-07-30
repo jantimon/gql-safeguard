@@ -3,7 +3,7 @@ mod args;
 use args::{Args, Command};
 use clap::Parser;
 use gql_safeguard_lib::registry::process_glob;
-use gql_safeguard_lib::validate_registry::validate_registry;
+use gql_safeguard_lib::validate_registry::{validate_registry, JsonValidationResult};
 use std::time::Instant;
 
 fn main() -> anyhow::Result<()> {
@@ -41,7 +41,7 @@ fn main() -> anyhow::Result<()> {
     let registry = process_glob(&args.path, &patterns, &ignore_patterns)?;
 
     match args.command {
-        Command::Validate { show_trees } => {
+        Command::Validate { show_trees, json } => {
             if args.verbose {
                 let elapsed = start_time.elapsed();
                 println!("Found {} files in {elapsed:.2?}", registry.file_count);
@@ -54,48 +54,57 @@ fn main() -> anyhow::Result<()> {
 
             // Use optimized registry-based validation for better performance
             let validation_result = validate_registry(&registry);
-            if validation_result.is_valid() {
-                let elapsed = start_time.elapsed();
-                println!("✅ All GraphQL queries pass validation! (took {elapsed:.2?})");
-                println!(
-                    "Found {} queries and {} fragments",
-                    registry.queries.len(),
-                    registry.fragments.len()
-                );
-            } else {
-                for error in &validation_result.errors {
-                    println!("{error}");
-                }
 
-                let elapsed = start_time.elapsed();
-                println!();
-                println!("❌ @throwOnFieldError must not be used outside of @catch");
-                println!(
-                    "Without @catch protection, field errors will throw exceptions that bubble up"
-                );
-                println!("and will break the entire page during client and server-side rendering.");
-                println!();
-                println!("The reason why @catch is enforced instead of Error Boundaries is that");
-                println!("Error boundaries don't catch Errors during SSR");
-                println!();
-                println!("🫵  Fix this by adding @catch to a field or parent fragment.");
-                println!("Learn more: https://relay.dev/docs/next/guides/throw-on-field-error-directive/");
-                println!();
-                println!("❌ Validation failed after {elapsed:.2?}!");
-                println!("━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━");
-                println!(
-                    "🔍 Found {} validation error{} across {} queries and {} fragments",
-                    validation_result.errors.len(),
-                    if validation_result.errors.len() == 1 {
-                        ""
-                    } else {
-                        "s"
-                    },
-                    registry.queries.len(),
-                    registry.fragments.len()
-                );
-                println!("━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━");
-                std::process::exit(1);
+            if json {
+                // Output JSON format for programmatic use
+                let json_result: JsonValidationResult = validation_result.into();
+                let json_output = serde_json::to_string_pretty(&json_result)?;
+                println!("{}", json_output);
+
+                if json_result.errors.is_empty() {
+                    return Ok(());
+                } else {
+                    std::process::exit(1);
+                }
+            } else {
+                // Human-readable output (existing logic)
+                if validation_result.is_valid() {
+                    let elapsed = start_time.elapsed();
+                    println!("✅ All GraphQL queries pass validation! (took {elapsed:.2?})");
+                    println!(
+                        "Found {} queries and {} fragments",
+                        registry.queries.len(),
+                        registry.fragments.len()
+                    );
+                } else {
+                    for error in &validation_result.errors {
+                        println!("{error}");
+                    }
+
+                    let elapsed = start_time.elapsed();
+                    println!();
+
+                    // Use the same hint message as JSON output for consistency
+                    let json_result: JsonValidationResult = validation_result.clone().into();
+                    println!("{}", json_result.hint);
+
+                    println!();
+                    println!("❌ Validation failed after {elapsed:.2?}!");
+                    println!("━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━");
+                    println!(
+                        "🔍 Found {} validation error{} across {} queries and {} fragments",
+                        validation_result.errors.len(),
+                        if validation_result.errors.len() == 1 {
+                            ""
+                        } else {
+                            "s"
+                        },
+                        registry.queries.len(),
+                        registry.fragments.len()
+                    );
+                    println!("━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━");
+                    std::process::exit(1);
+                }
             }
 
             if show_trees {

@@ -1,0 +1,8 @@
+---
+source: lib/src/validate_registry.rs
+expression: json_output
+---
+{
+  "errors": [],
+  "hint": ""
+}
