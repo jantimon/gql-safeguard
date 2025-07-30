@@ -6,7 +6,7 @@ File: fixtures/valid/fragment_level_catch.ts
 GraphQL strings found: 2
 
 === GraphQL String 1 ===
-BytePos: 58
+Line: 3
 Content:
 
   fragment RiskyUserData on User @catch {
@@ -17,7 +17,7 @@ Content:
 
 
 === GraphQL String 2 ===
-BytePos: 233
+Line: 11
 Content:
 
   query GetUserWithRiskyData($id: ID!) @catch{
@@ -37,7 +37,7 @@ File: fixtures/valid/ignore_comments.ts
 GraphQL strings found: 4
 
 === GraphQL String 1 ===
-BytePos: 64
+Line: 3
 Content:
 
   query GetUserFieldCatch($id: ID!) {
@@ -55,7 +55,7 @@ Content:
 
 
 === GraphQL String 2 ===
-BytePos: 430
+Line: 18
 Content:
 
   query GetUserFieldIgnoreWithFragment($id: ID!) {
@@ -66,7 +66,7 @@ Content:
 
 
 === GraphQL String 3 ===
-BytePos: 569
+Line: 26
 Content:
 
   fragment userFieldsWithIgnore on User {
@@ -84,7 +84,7 @@ Content:
 
 
 === GraphQL String 4 ===
-BytePos: 982
+Line: 41
 Content:
 
   # gql-safeguard-ignore
@@ -108,7 +108,7 @@ File: fixtures/valid/nested_fragments_protected.ts
 GraphQL strings found: 6
 
 === GraphQL String 1 ===
-BytePos: 58
+Line: 3
 Content:
 
   fragment UserBasicInfo on User {
@@ -119,7 +119,7 @@ Content:
 
 
 === GraphQL String 2 ===
-BytePos: 158
+Line: 11
 Content:
 
   fragment avatarImage on User @throwOnFieldError {
@@ -129,7 +129,7 @@ Content:
 
 
 === GraphQL String 3 ===
-BytePos: 268
+Line: 18
 Content:
 
   fragment UserAvatar on User @catch {
@@ -139,7 +139,7 @@ Content:
 
 
 === GraphQL String 4 ===
-BytePos: 367
+Line: 25
 Content:
 
   fragment UserBio on User {
@@ -149,7 +149,7 @@ Content:
 
 
 === GraphQL String 5 ===
-BytePos: 474
+Line: 32
 Content:
 
   fragment UserDetails on User {
@@ -164,7 +164,7 @@ Content:
 
 
 === GraphQL String 6 ===
-BytePos: 675
+Line: 44
 Content:
 
   query GetFullUser($id: ID!) {
@@ -180,7 +180,7 @@ File: fixtures/valid/query_with_catch.tsx
 GraphQL strings found: 1
 
 === GraphQL String 1 ===
-BytePos: 59
+Line: 3
 Content:
 
   query GetUserProfile($id: ID!) @catch {
@@ -199,7 +199,7 @@ File: fixtures/valid/required_throw.ts
 GraphQL strings found: 4
 
 === GraphQL String 1 ===
-BytePos: 123
+Line: 4
 Content:
 
   query GetUserBasic($id: ID!) @catch {
@@ -212,7 +212,7 @@ Content:
 
 
 === GraphQL String 2 ===
-BytePos: 369
+Line: 15
 Content:
 
   query GetUserProfileFieldCatch($id: ID!) {
@@ -226,7 +226,7 @@ Content:
 
 
 === GraphQL String 3 ===
-BytePos: 656
+Line: 27
 Content:
 
   query GetUserMixed($id: ID!) @catch {
@@ -240,7 +240,7 @@ Content:
 
 
 === GraphQL String 4 ===
-BytePos: 938
+Line: 39
 Content:
 
   query GetUserNested($id: ID!) {

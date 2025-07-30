@@ -10,11 +10,11 @@ Type: Fragment
 Name: RiskyUserData
 File: fixtures/valid/fragment_level_catch.ts
 Directives: 1
-  - Catch 🧤
+  - Catch 🧤 (4:34)
 Type Condition: on User
 Selections: 3
-    - Field: sensitiveInfo [ThrowOnFieldError ☄️]
-    - Field: backupEmail [ThrowOnFieldError ☄️]
+    - Field: sensitiveInfo [ThrowOnFieldError ☄️ (5:19)]
+    - Field: backupEmail [ThrowOnFieldError ☄️ (6:17)]
     - Field: internalId
 
 ---
@@ -27,12 +27,12 @@ Type: Query
 Name: GetUserWithRiskyData
 File: fixtures/valid/fragment_level_catch.ts
 Directives: 1
-  - Catch 🧤
+  - Catch 🧤 (12:40)
 Selections: 1
     - Field: user
       - Field: id
       - Field: name
-      - Field: friends [ThrowOnFieldError ☄️]
+      - Field: friends [ThrowOnFieldError ☄️ (16:15)]
         - FragmentSpread: RiskyUserData
 
 ---
@@ -128,7 +128,7 @@ Type: Fragment
 Name: avatarImage
 File: fixtures/valid/nested_fragments_protected.ts
 Directives: 1
-  - ThrowOnFieldError ☄️
+  - ThrowOnFieldError ☄️ (12:32)
 Type Condition: on User
 Selections: 2
     - Field: avatar
@@ -144,7 +144,7 @@ Type: Fragment
 Name: UserAvatar
 File: fixtures/valid/nested_fragments_protected.ts
 Directives: 1
-  - Catch 🧤
+  - Catch 🧤 (19:31)
 Type Condition: on User
 Selections: 2
     - Field: avatar
@@ -163,7 +163,7 @@ Directives: 0
 Type Condition: on User
 Selections: 2
     - Field: bioText
-    - Field: bioImage [ThrowOnFieldError ☄️]
+    - Field: bioImage [ThrowOnFieldError ☄️ (28:14)]
 
 ---
 
@@ -179,8 +179,8 @@ Type Condition: on User
 Selections: 3
     - FragmentSpread: UserBasicInfo
     - FragmentSpread: UserAvatar
-    - Field: details [Catch 🧤]
-      - Field: bio [ThrowOnFieldError ☄️]
+    - Field: details [Catch 🧤 (36:13)]
+      - Field: bio [ThrowOnFieldError ☄️ (37:11)]
         - FragmentSpread: UserBio
 
 ---
@@ -207,12 +207,12 @@ Type: Query
 Name: GetUserProfile
 File: fixtures/valid/query_with_catch.tsx
 Directives: 1
-  - Catch 🧤
+  - Catch 🧤 (4:34)
 Selections: 1
     - Field: user
       - Field: id
       - Field: name
-      - Field: avatar [ThrowOnFieldError ☄️]
+      - Field: avatar [ThrowOnFieldError ☄️ (8:14)]
       - Field: email
 
 ---
@@ -225,12 +225,12 @@ Type: Query
 Name: GetUserBasic
 File: fixtures/valid/required_throw.ts
 Directives: 1
-  - Catch 🧤
+  - Catch 🧤 (5:32)
 Selections: 1
     - Field: user
       - Field: id
-      - Field: name [RequiredThrow ☄️]
-      - Field: email [RequiredThrow ☄️]
+      - Field: name [RequiredThrow ☄️ (8:12)]
+      - Field: email [RequiredThrow ☄️ (9:13)]
 
 ---
 
@@ -243,10 +243,10 @@ Name: GetUserProfileFieldCatch
 File: fixtures/valid/required_throw.ts
 Directives: 0
 Selections: 1
-    - Field: user [Catch 🧤]
+    - Field: user [Catch 🧤 (17:19)]
       - Field: id
-      - Field: name [RequiredThrow ☄️]
-      - Field: avatar [RequiredThrow ☄️]
+      - Field: name [RequiredThrow ☄️ (19:12)]
+      - Field: avatar [RequiredThrow ☄️ (20:14)]
       - Field: bio
 
 ---
@@ -259,13 +259,13 @@ Type: Query
 Name: GetUserMixed
 File: fixtures/valid/required_throw.ts
 Directives: 1
-  - Catch 🧤
+  - Catch 🧤 (28:32)
 Selections: 1
     - Field: user
       - Field: id
-      - Field: name [RequiredThrow ☄️]
-      - Field: avatar [ThrowOnFieldError ☄️]
-      - Field: email [RequiredThrow ☄️]
+      - Field: name [RequiredThrow ☄️ (31:12)]
+      - Field: avatar [ThrowOnFieldError ☄️ (32:14)]
+      - Field: email [RequiredThrow ☄️ (33:13)]
 
 ---
 
@@ -280,8 +280,8 @@ Directives: 0
 Selections: 1
     - Field: user
       - Field: id
-      - Field: profile [Catch 🧤]
-        - Field: displayName [RequiredThrow ☄️]
-        - Field: bio [RequiredThrow ☄️]
+      - Field: profile [Catch 🧤 (43:15)]
+        - Field: displayName [RequiredThrow ☄️ (44:21)]
+        - Field: bio [RequiredThrow ☄️ (45:13)]
         - Field: avatar
-          - Field: url [ThrowOnFieldError ☄️]
+          - Field: url [ThrowOnFieldError ☄️ (47:15)]

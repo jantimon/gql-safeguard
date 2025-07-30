@@ -14,7 +14,7 @@ Selections: 1
     - Field: user
       - Field: id
       - Field: name
-      - Field: avatar [ThrowOnFieldError ☄️]
+      - Field: avatar [ThrowOnFieldError ☄️ (8:14)]
       - Field: email
 
 ---
@@ -27,10 +27,10 @@ Type: Fragment
 Name: ProtectedFragment
 File: fixtures/invalid/partial_protection.ts
 Directives: 1
-  - Catch 🧤
+  - Catch 🧤 (4:38)
 Type Condition: on User
 Selections: 2
-    - Field: sensitiveData [ThrowOnFieldError ☄️]
+    - Field: sensitiveData [ThrowOnFieldError ☄️ (5:19)]
     - Field: otherData
 
 ---
@@ -45,7 +45,7 @@ File: fixtures/invalid/partial_protection.ts
 Directives: 0
 Type Condition: on User
 Selections: 2
-    - Field: riskyField [ThrowOnFieldError ☄️]
+    - Field: riskyField [ThrowOnFieldError ☄️ (12:16)]
     - Field: normalField
 
 ---
@@ -74,7 +74,7 @@ Type: Query
 Name: queryLevelThrowWithIgnore
 File: fixtures/invalid/query_level_throw_with_ignore.ts
 Directives: 1
-  - ThrowOnFieldError ☄️
+  - ThrowOnFieldError ☄️ (8:3)
 Selections: 1
     - Field: customerOrderProductLineItemsGroupById
       - Field: startWrongDeliveryRegistrationRelativeUrl
@@ -89,7 +89,7 @@ Type: Query
 Name: unprotectedQueryLevelThrow
 File: fixtures/invalid/query_level_throw_with_ignore.ts
 Directives: 1
-  - ThrowOnFieldError ☄️
+  - ThrowOnFieldError ☄️ (21:3)
 Selections: 1
     - Field: user
       - Field: id
@@ -106,7 +106,7 @@ Type: Query
 Name: queryLevelThrowWithQueryIgnore
 File: fixtures/invalid/query_level_throw_with_ignore.ts
 Directives: 1
-  - ThrowOnFieldError ☄️
+  - ThrowOnFieldError ☄️ (34:3)
 Selections: 1
     - Field: user
       - Field: id
@@ -125,7 +125,7 @@ Directives: 0
 Type Condition: on User
 Selections: 3
     - Field: id
-    - Field: name [ThrowOnFieldError ☄️]
+    - Field: name [ThrowOnFieldError ☄️ (6:10)]
     - Field: email
 
 ---
@@ -138,7 +138,7 @@ Type: Fragment
 Name: UserAvatarUnprotected
 File: fixtures/invalid/unprotected_nested.ts
 Directives: 1
-  - ThrowOnFieldError ☄️
+  - ThrowOnFieldError ☄️ (12:42)
 Type Condition: on User
 Selections: 2
     - Field: avatar
@@ -187,7 +187,7 @@ Directives: 0
 Selections: 1
     - Field: user
       - Field: id
-      - Field: name [RequiredThrow ☄️]
+      - Field: name [RequiredThrow ☄️ (8:12)]
       - Field: email
 
 ---
@@ -201,12 +201,12 @@ Name: GetUserPartial
 File: fixtures/invalid/unprotected_required_throw.ts
 Directives: 0
 Selections: 2
-    - Field: user [Catch 🧤]
+    - Field: user [Catch 🧤 (17:19)]
       - Field: id
-      - Field: name [RequiredThrow ☄️]
+      - Field: name [RequiredThrow ☄️ (19:12)]
       - Field: email
     - Field: otherUser
-      - Field: name [RequiredThrow ☄️]
+      - Field: name [RequiredThrow ☄️ (23:12)]
 
 ---
 
@@ -221,5 +221,5 @@ Directives: 0
 Selections: 1
     - Field: user
       - Field: id
-      - Field: name [RequiredThrow ☄️]
-      - Field: avatar [ThrowOnFieldError ☄️]
+      - Field: name [RequiredThrow ☄️ (33:12)]
+      - Field: avatar [ThrowOnFieldError ☄️ (34:14)]

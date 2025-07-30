@@ -6,7 +6,7 @@ File: fixtures/edge_cases/additional-queries.ts
 GraphQL strings found: 2
 
 === GraphQL String 1 ===
-BytePos: 66
+Line: 3
 Content:
 
   query AdditionalQueryEdgeCase($id: ID!) {
@@ -18,7 +18,7 @@ Content:
 
 
 === GraphQL String 2 ===
-BytePos: 242
+Line: 12
 Content:
 
   query GraphQLQuery($id: ID!) @catch {
@@ -35,7 +35,7 @@ File: fixtures/edge_cases/circular_fragments.ts
 GraphQL strings found: 3
 
 === GraphQL String 1 ===
-BytePos: 53
+Line: 3
 Content:
 
   fragment FragmentACircular on User {
@@ -46,7 +46,7 @@ Content:
 
 
 === GraphQL String 2 ===
-BytePos: 165
+Line: 11
 Content:
 
   fragment FragmentBCircular on User {
@@ -57,7 +57,7 @@ Content:
 
 
 === GraphQL String 3 ===
-BytePos: 305
+Line: 19
 Content:
 
   query CircularQueryTest($id: ID!) {
@@ -73,7 +73,7 @@ File: fixtures/edge_cases/commented_graphql.ts
 GraphQL strings found: 1
 
 === GraphQL String 1 ===
-BytePos: 219
+Line: 14
 Content:
 
   query ValidQueryCommented($id: ID!) @catch {
@@ -92,7 +92,7 @@ File: fixtures/edge_cases/dynamic_imports.tsx
 GraphQL strings found: 2
 
 === GraphQL String 1 ===
-BytePos: 105
+Line: 4
 Content:
 
   query BaseQueryDynamic($id: ID!) @catch {
@@ -105,7 +105,7 @@ Content:
 
 
 === GraphQL String 2 ===
-BytePos: 978
+Line: 36
 Content:
 
     query StaticDynamicQueryEdge($id: ID!) {
@@ -122,7 +122,7 @@ File: fixtures/edge_cases/required_variants.ts
 GraphQL strings found: 6
 
 === GraphQL String 1 ===
-BytePos: 118
+Line: 4
 Content:
 
   query GetUserLogAction($id: ID!) {
@@ -135,7 +135,7 @@ Content:
 
 
 === GraphQL String 2 ===
-BytePos: 359
+Line: 15
 Content:
 
   query GetUserNoAction($id: ID!) {
@@ -148,7 +148,7 @@ Content:
 
 
 === GraphQL String 3 ===
-BytePos: 591
+Line: 26
 Content:
 
   query GetUserOtherActions($id: ID!) {
@@ -162,7 +162,7 @@ Content:
 
 
 === GraphQL String 4 ===
-BytePos: 867
+Line: 38
 Content:
 
   query GetUserComplex($id: ID!) @catch {
@@ -182,7 +182,7 @@ Content:
 
 
 === GraphQL String 5 ===
-BytePos: 1278
+Line: 56
 Content:
 
   fragment UserInfo on User {
@@ -193,7 +193,7 @@ Content:
 
 
 === GraphQL String 6 ===
-BytePos: 1449
+Line: 64
 Content:
 
   query GetUserWithFragment($id: ID!) {

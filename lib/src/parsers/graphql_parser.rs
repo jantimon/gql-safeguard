@@ -40,7 +40,8 @@ impl std::fmt::Display for DirectiveType {
 #[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
 pub struct Directive {
     pub directive_type: DirectiveType,
-    pub position: u32,
+    pub line: u32,
+    pub col: u32,
 }
 
 #[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
@@ -136,9 +137,9 @@ pub fn parse_graphql_to_ast(graphql_string: &GraphQLString) -> Result<Vec<GraphQ
             .unwrap_or(&graphql_string.file_path);
 
         anyhow::anyhow!(
-            "GraphQL syntax error in {} at position {}: {:?}",
+            "GraphQL syntax error in {} at line {}: {:?}",
             relative_path.display(),
-            graphql_string.position,
+            graphql_string.line_number,
             e
         )
     })?;
@@ -152,7 +153,7 @@ pub fn parse_graphql_to_ast(graphql_string: &GraphQLString) -> Result<Vec<GraphQ
                 if let Some(query) = convert_operation_to_query(
                     op,
                     &graphql_string.file_path,
-                    graphql_string.position,
+                    graphql_string.line_number,
                     &graphql_string.content,
                 )? {
                     items.push(GraphQLItem::Query(query));
@@ -162,7 +163,7 @@ pub fn parse_graphql_to_ast(graphql_string: &GraphQLString) -> Result<Vec<GraphQ
                 let fragment = convert_fragment_definition(
                     frag,
                     &graphql_string.file_path,
-                    graphql_string.position,
+                    graphql_string.line_number,
                     &graphql_string.content,
                 )?;
                 items.push(GraphQLItem::Fragment(fragment));
@@ -178,7 +179,7 @@ pub fn parse_graphql_to_ast(graphql_string: &GraphQLString) -> Result<Vec<GraphQ
 fn convert_operation_to_query(
     op: OperationDefinition<String>,
     file_path: &std::path::Path,
-    position: u32,
+    line_number: u32,
     graphql_content: &str,
 ) -> Result<Option<QueryOperation>> {
     match op {
@@ -189,12 +190,13 @@ fn convert_operation_to_query(
             // Query-level directives affect all nested selections
             let directives = extract_directives_from_directive_list(
                 &query.directives,
-                position,
+                line_number,
                 graphql_content,
             );
 
             // Maintain nesting for proper directive inheritance validation
-            let selections = convert_selection_set(&query.selection_set, position, graphql_content);
+            let selections =
+                convert_selection_set(&query.selection_set, line_number, graphql_content);
 
             Ok(Some(QueryOperation {
                 name,
@@ -219,15 +221,15 @@ fn convert_operation_to_query(
 fn convert_fragment_definition(
     frag: graphql_parser::query::FragmentDefinition<String>,
     file_path: &std::path::Path,
-    position: u32,
+    line_number: u32,
     graphql_content: &str,
 ) -> Result<FragmentDefinition> {
     // Fragment-level directives protect all contained selections
     let directives =
-        extract_directives_from_directive_list(&frag.directives, position, graphql_content);
+        extract_directives_from_directive_list(&frag.directives, line_number, graphql_content);
 
     // Maintain structure for nested directive validation
-    let selections = convert_selection_set(&frag.selection_set, position, graphql_content);
+    let selections = convert_selection_set(&frag.selection_set, line_number, graphql_content);
 
     Ok(FragmentDefinition {
         name: frag.name,
@@ -242,7 +244,7 @@ fn convert_fragment_definition(
 // Critical for validating @catch protection across nested selections
 fn convert_selection_set(
     selection_set: &SelectionSet<String>,
-    position: u32,
+    line_number: u32,
     graphql_content: &str,
 ) -> Vec<Selection> {
     let mut selections = Vec::new();
@@ -253,13 +255,13 @@ fn convert_selection_set(
                 // Field directives can provide or require protection
                 let directives = extract_directives_from_directive_list(
                     &field.directives,
-                    position,
+                    line_number,
                     graphql_content,
                 );
 
                 // Fields may contain nested selections needing validation
                 let nested_selections =
-                    convert_selection_set(&field.selection_set, position, graphql_content);
+                    convert_selection_set(&field.selection_set, line_number, graphql_content);
 
                 // Use alias if available, otherwise use field name
                 let effective_name = field.alias.as_ref().unwrap_or(&field.name).clone();
@@ -274,7 +276,7 @@ fn convert_selection_set(
                 // Spread directives can add protection before fragment expansion
                 let directives = extract_directives_from_directive_list(
                     &spread.directives,
-                    position,
+                    line_number,
                     graphql_content,
                 );
 
@@ -287,13 +289,13 @@ fn convert_selection_set(
                 // Inline fragments can provide @catch protection
                 let directives = extract_directives_from_directive_list(
                     &inline.directives,
-                    position,
+                    line_number,
                     graphql_content,
                 );
 
                 // Process inline fragment contents
                 let nested_selections =
-                    convert_selection_set(&inline.selection_set, position, graphql_content);
+                    convert_selection_set(&inline.selection_set, line_number, graphql_content);
 
                 selections.push(Selection::InlineFragment(InlineFragment {
                     type_condition: inline.type_condition.as_ref().map(|tc| tc.to_string()),
@@ -388,21 +390,23 @@ fn extract_fragment_spreads_from_selections(selections: &[Selection]) -> Vec<Fra
 // Only processes @catch, @throwOnFieldError, and @required(action: THROW) - ignores irrelevant directives
 fn extract_directives_from_directive_list(
     directives: &[graphql_parser::query::Directive<String>],
-    position: u32,
+    base_line_number: u32,
     graphql_content: &str,
 ) -> Vec<Directive> {
     directives
         .iter()
         .filter_map(|dir| {
-            // Extract the actual line number from the directive's position
-            let actual_directive_line = dir.position.line;
+            // Calculate absolute line and column from GraphQL AST position and base line
+            // GraphQL AST line is 1-based, base_line_number is 1-based, so we add them and subtract 1
+            let directive_line = base_line_number + (dir.position.line as u32) - 1;
+            let directive_col = dir.position.column as u32;
 
             // Skip directives that don't affect error handling safety
             let directive_type = match dir.name.as_str() {
                 "catch" => DirectiveType::Catch,
                 "throwOnFieldError" => {
-                    // Check if this directive should be ignored
-                    if should_ignore_directive(graphql_content, actual_directive_line) {
+                    // Check if this directive should be ignored (use GraphQL-relative line)
+                    if should_ignore_directive(graphql_content, dir.position.line) {
                         return None; // Skip ignored @throwOnFieldError
                     }
                     DirectiveType::ThrowOnFieldError
@@ -410,8 +414,8 @@ fn extract_directives_from_directive_list(
                 "required" => {
                     // Only process @required if it has action: THROW
                     if has_throw_action(&dir.arguments) {
-                        // Check if this directive should be ignored
-                        if should_ignore_directive(graphql_content, actual_directive_line) {
+                        // Check if this directive should be ignored (use GraphQL-relative line)
+                        if should_ignore_directive(graphql_content, dir.position.line) {
                             return None; // Skip ignored @required(action: THROW)
                         }
                         DirectiveType::RequiredThrow
@@ -424,7 +428,8 @@ fn extract_directives_from_directive_list(
 
             Some(Directive {
                 directive_type,
-                position,
+                line: directive_line,
+                col: directive_col,
             })
         })
         .collect()
@@ -465,7 +470,10 @@ mod tests {
                                     "☄️"
                                 }
                             };
-                            result.push_str(&format!("{:?} {}", directive.directive_type, emoji));
+                            result.push_str(&format!(
+                                "{:?} {} ({}:{})",
+                                directive.directive_type, emoji, directive.line, directive.col
+                            ));
                         }
                         result.push_str("]");
                     }
@@ -490,7 +498,10 @@ mod tests {
                                     "☄️"
                                 }
                             };
-                            result.push_str(&format!("{:?} {}", directive.directive_type, emoji));
+                            result.push_str(&format!(
+                                "{:?} {} ({}:{})",
+                                directive.directive_type, emoji, directive.line, directive.col
+                            ));
                         }
                         result.push_str("]");
                     }
@@ -513,7 +524,10 @@ mod tests {
                                     "☄️"
                                 }
                             };
-                            result.push_str(&format!("{:?} {}", directive.directive_type, emoji));
+                            result.push_str(&format!(
+                                "{:?} {} ({}:{})",
+                                directive.directive_type, emoji, directive.line, directive.col
+                            ));
                         }
                         result.push_str("]");
                     }
@@ -565,7 +579,10 @@ mod tests {
                             DirectiveType::Catch => "🧤",
                             DirectiveType::ThrowOnFieldError | DirectiveType::RequiredThrow => "☄️",
                         };
-                        result.push_str(&format!("  - {:?} {}\n", directive.directive_type, emoji));
+                        result.push_str(&format!(
+                            "  - {:?} {} ({}:{})\n",
+                            directive.directive_type, emoji, directive.line, directive.col
+                        ));
                     }
 
                     // Display complete query structure for debugging
@@ -590,7 +607,10 @@ mod tests {
                             DirectiveType::Catch => "🧤",
                             DirectiveType::ThrowOnFieldError | DirectiveType::RequiredThrow => "☄️",
                         };
-                        result.push_str(&format!("  - {:?} {}\n", directive.directive_type, emoji));
+                        result.push_str(&format!(
+                            "  - {:?} {} ({}:{})\n",
+                            directive.directive_type, emoji, directive.line, directive.col
+                        ));
                     }
 
                     // Display fragment target type for context

@@ -13,7 +13,7 @@ Directives: 0
 Selections: 1
     - Field: user
       - Field: id
-      - Field: importedField [ThrowOnFieldError ☄️]
+      - Field: importedField [ThrowOnFieldError ☄️ (7:21)]
 
 ---
 
@@ -25,11 +25,11 @@ Type: Query
 Name: GraphQLQuery
 File: fixtures/edge_cases/additional-queries.ts
 Directives: 1
-  - Catch 🧤
+  - Catch 🧤 (13:32)
 Selections: 1
     - Field: user
       - Field: id
-      - Field: protectedField [ThrowOnFieldError ☄️]
+      - Field: protectedField [ThrowOnFieldError ☄️ (16:22)]
 
 ---
 
@@ -87,12 +87,12 @@ Type: Query
 Name: ValidQueryCommented
 File: fixtures/edge_cases/commented_graphql.ts
 Directives: 1
-  - Catch 🧤
+  - Catch 🧤 (15:39)
 Selections: 1
     - Field: user
       - Field: id
       - Field: name
-      - Field: avatar [ThrowOnFieldError ☄️]
+      - Field: avatar [ThrowOnFieldError ☄️ (20:14)]
 
 ---
 
@@ -104,12 +104,12 @@ Type: Query
 Name: BaseQueryDynamic
 File: fixtures/edge_cases/dynamic_imports.tsx
 Directives: 1
-  - Catch 🧤
+  - Catch 🧤 (5:36)
 Selections: 1
     - Field: user
       - Field: id
       - Field: name
-      - Field: dynamicField [ThrowOnFieldError ☄️]
+      - Field: dynamicField [ThrowOnFieldError ☄️ (9:20)]
 
 ---
 
@@ -124,7 +124,7 @@ Directives: 0
 Selections: 1
     - Field: user
       - Field: id
-      - Field: dynamicField [ThrowOnFieldError ☄️]
+      - Field: dynamicField [ThrowOnFieldError ☄️ (40:22)]
 
 ---
 
@@ -140,7 +140,7 @@ Selections: 1
     - Field: user
       - Field: id
       - Field: name
-      - Field: email [RequiredThrow ☄️, Catch 🧤]
+      - Field: email [RequiredThrow ☄️ (9:13), Catch 🧤 (9:38)]
 
 ---
 
@@ -156,7 +156,7 @@ Selections: 1
     - Field: user
       - Field: id
       - Field: name
-      - Field: email [RequiredThrow ☄️, Catch 🧤]
+      - Field: email [RequiredThrow ☄️ (20:13), Catch 🧤 (20:38)]
 
 ---
 
@@ -173,7 +173,7 @@ Selections: 1
       - Field: id
       - Field: name
       - Field: email
-      - Field: bio [RequiredThrow ☄️, Catch 🧤]
+      - Field: bio [RequiredThrow ☄️ (32:11), Catch 🧤 (32:36)]
 
 ---
 
@@ -185,16 +185,16 @@ Type: Query
 Name: GetUserComplex
 File: fixtures/edge_cases/required_variants.ts
 Directives: 1
-  - Catch 🧤
+  - Catch 🧤 (39:34)
 Selections: 1
     - Field: user
       - Field: id
       - Field: profile
         - Field: name
-        - Field: displayName [RequiredThrow ☄️]
-        - Field: avatar [ThrowOnFieldError ☄️]
-        - Field: bio [Catch 🧤]
-          - Field: text [RequiredThrow ☄️]
+        - Field: displayName [RequiredThrow ☄️ (44:21)]
+        - Field: avatar [ThrowOnFieldError ☄️ (45:16)]
+        - Field: bio [Catch 🧤 (46:13)]
+          - Field: text [RequiredThrow ☄️ (47:16)]
           - Field: lastModified
 
 ---
@@ -210,8 +210,8 @@ Directives: 0
 Type Condition: on User
 Selections: 3
     - Field: name
-    - Field: email [RequiredThrow ☄️]
-    - Field: avatar [ThrowOnFieldError ☄️]
+    - Field: email [RequiredThrow ☄️ (59:11)]
+    - Field: avatar [ThrowOnFieldError ☄️ (60:12)]
 
 ---
 
@@ -224,6 +224,6 @@ Name: GetUserWithFragment
 File: fixtures/edge_cases/required_variants.ts
 Directives: 0
 Selections: 1
-    - Field: user [Catch 🧤]
+    - Field: user [Catch 🧤 (66:19)]
       - Field: id
       - FragmentSpread: UserInfo

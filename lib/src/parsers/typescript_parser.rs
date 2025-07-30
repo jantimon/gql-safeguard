@@ -5,7 +5,7 @@
 use anyhow::Result;
 use std::fs;
 use std::path::Path;
-use swc_core::common::BytePos;
+use swc_core::common::{BytePos, FileName, SourceMap};
 use swc_core::ecma::{
     ast::*,
     parser::{lexer::Lexer, Parser, StringInput, Syntax, TsSyntax},
@@ -16,7 +16,7 @@ use swc_core::ecma::{
 pub struct GraphQLString {
     pub content: String,
     pub file_path: std::path::PathBuf,
-    pub position: u32,
+    pub line_number: u32,
 }
 
 // Finds GraphQL in TS/TSX files while avoiding dynamic content that can't be validated
@@ -40,6 +40,12 @@ pub fn extract_graphql_from_file(file_path: &Path) -> Result<Vec<GraphQLString>>
         })
     };
 
+    let source_map = std::sync::Arc::new(SourceMap::default());
+    source_map.new_source_file(
+        FileName::Real(file_path.to_path_buf()).into(),
+        source_code.clone(),
+    );
+
     let lexer = Lexer::new(
         syntax,
         Default::default(),
@@ -52,7 +58,7 @@ pub fn extract_graphql_from_file(file_path: &Path) -> Result<Vec<GraphQLString>>
         anyhow::anyhow!("TypeScript parse error in {}: {:?}", file_path.display(), e)
     })?;
 
-    let mut visitor = GraphQLVisitor::new(file_path.to_path_buf());
+    let mut visitor = GraphQLVisitor::new(file_path.to_path_buf(), source_map);
     module.visit_with(&mut visitor);
 
     Ok(visitor.graphql_strings)
@@ -61,14 +67,16 @@ pub fn extract_graphql_from_file(file_path: &Path) -> Result<Vec<GraphQLString>>
 struct GraphQLVisitor {
     file_path: std::path::PathBuf,
     graphql_strings: Vec<GraphQLString>,
+    source_map: std::sync::Arc<SourceMap>,
 }
 
 impl GraphQLVisitor {
     // Initialize visitor state for file processing
-    fn new(file_path: std::path::PathBuf) -> Self {
+    fn new(file_path: std::path::PathBuf, source_map: std::sync::Arc<SourceMap>) -> Self {
         Self {
             file_path,
             graphql_strings: Vec::new(),
+            source_map,
         }
     }
 
@@ -82,13 +90,15 @@ impl GraphQLVisitor {
                     return;
                 }
 
-                // Capture static GraphQL string with position info for error reporting
+                // Capture static GraphQL string with line number info for error reporting
                 if let Some(first_quasi) = tpl.tpl.quasis.first() {
                     let content = first_quasi.raw.as_ref();
+                    let byte_pos = first_quasi.span.lo();
+                    let line_number = self.source_map.lookup_char_pos(byte_pos).line as u32;
                     self.graphql_strings.push(GraphQLString {
                         content: content.to_string(),
                         file_path: self.file_path.clone(),
-                        position: first_quasi.span.lo().0,
+                        line_number,
                     });
                 }
             }
@@ -131,7 +141,7 @@ mod tests {
 
         for (i, gql_string) in graphql_strings.iter().enumerate() {
             result.push_str(&format!("=== GraphQL String {} ===\n", i + 1));
-            result.push_str(&format!("BytePos: {}\n", gql_string.position));
+            result.push_str(&format!("Line: {}\n", gql_string.line_number));
             result.push_str("Content:\n");
             result.push_str(&gql_string.content);
             result.push_str("\n\n");
