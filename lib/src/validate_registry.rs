@@ -37,6 +37,8 @@ pub struct ErrorContext {
     pub location_path: String,
     pub fragment_file: Option<PathBuf>,
     pub fragment_name: Option<String>,
+    pub line: Option<u32>,
+    pub col: Option<u32>,
 }
 
 #[derive(Debug, Clone, PartialEq, Eq)]
@@ -185,12 +187,17 @@ impl std::fmt::Display for ValidationError {
             .query_file
             .strip_prefix(&git_root)
             .unwrap_or(&self.context.query_file);
-        writeln!(
-            f,
-            "Query: {} ({})",
-            self.context.query_name,
-            query_relative_path.display()
-        )?;
+        let query_path_str = query_relative_path.display().to_string();
+
+        if let (Some(line), Some(col)) = (self.context.line, self.context.col) {
+            writeln!(
+                f,
+                "query: {} {}:{}:{}",
+                self.context.query_name, query_path_str, line, col
+            )?;
+        } else {
+            writeln!(f, "query: {} {}", self.context.query_name, query_path_str)?;
+        }
         if let (Some(fragment_name), Some(fragment_file)) =
             (&self.context.fragment_name, &self.context.fragment_file)
         {
@@ -204,33 +211,7 @@ impl std::fmt::Display for ValidationError {
                 fragment_relative_path.display()
             )?;
         }
-        // Show simplified location (fragment.field format)
-        let simplified_location = if self.context.location_path.starts_with("query.") {
-            self.context
-                .location_path
-                .strip_prefix("query.")
-                .unwrap_or(&self.context.location_path)
-        } else {
-            &self.context.location_path
-        };
-
-        // Simplify to FRAGMENT_NAME.FIELD_NAME format only
-        let final_location = if let Some(last_dot_pos) = simplified_location.rfind('.') {
-            let field_name = &simplified_location[last_dot_pos + 1..];
-            // Look for the last fragment name (after the last "...")
-            let before_field = &simplified_location[..last_dot_pos];
-            if let Some(last_fragment_pos) = before_field.rfind("...") {
-                let fragment_name = &before_field[last_fragment_pos + 3..];
-                format!("{fragment_name}.{field_name}")
-            } else {
-                // No fragment found, just use the field name
-                field_name.to_string()
-            }
-        } else {
-            simplified_location.to_string()
-        };
-
-        writeln!(f, "Location: {final_location}")?;
+        // Location info is now included in the query line above
         writeln!(f)?;
 
         // Show tree visualization
@@ -291,6 +272,18 @@ struct RegistryValidationContext<'a> {
     visiting_fragments: FxHashSet<String>, // Cycle detection
 }
 
+// Helper function to find directive line and column information
+fn get_directive_position(
+    directives: &[crate::parsers::graphql_parser::Directive],
+    directive_type: &DirectiveType,
+) -> (Option<u32>, Option<u32>) {
+    directives
+        .iter()
+        .find(|d| d.directive_type == *directive_type)
+        .map(|d| (Some(d.line), Some(d.col)))
+        .unwrap_or((None, None))
+}
+
 // Entry point for optimized registry-based validation
 // Provides significant performance improvements over dependency graph approach
 pub fn validate_registry(registry: &GraphQLRegistry) -> ValidationResult {
@@ -333,12 +326,16 @@ pub fn validate_registry(registry: &GraphQLRegistry) -> ValidationResult {
             match directive.directive_type {
                 DirectiveType::ThrowOnFieldError | DirectiveType::RequiredThrow => {
                     if let ProtectionState::Unprotected = ctx.protection_state {
+                        let (line, col) =
+                            get_directive_position(&query.directives, &directive.directive_type);
                         let context = ErrorContext {
                             query_name: ctx.query_name.to_string(),
                             query_file: ctx.query_file.to_path_buf(),
                             location_path: "query level".to_string(),
                             fragment_file: None,
                             fragment_name: None,
+                            line,
+                            col,
                         };
 
                         let tree_visualization = create_optimized_tree_visualization(
@@ -476,12 +473,16 @@ fn validate_field_directives_optimized(
             DirectiveType::ThrowOnFieldError | DirectiveType::RequiredThrow => {
                 // OPTIMIZATION: Only validate if not protected
                 if let ProtectionState::Unprotected = ctx.protection_state {
+                    let (line, col) =
+                        get_directive_position(&field.directives, &directive.directive_type);
                     let context = ErrorContext {
                         query_name: ctx.query_name.to_string(),
                         query_file: ctx.query_file.to_path_buf(),
                         location_path: field_location.to_string(),
                         fragment_file: ctx.current_fragment_file.clone(),
                         fragment_name: ctx.current_fragment_name.clone(),
+                        line,
+                        col,
                     };
 
                     let tree_visualization = create_optimized_tree_visualization(
@@ -518,12 +519,16 @@ fn validate_fragment_spread_optimized(
         match directive.directive_type {
             DirectiveType::ThrowOnFieldError | DirectiveType::RequiredThrow => {
                 if let ProtectionState::Unprotected = ctx.protection_state {
+                    let (line, col) =
+                        get_directive_position(&spread.directives, &directive.directive_type);
                     let context = ErrorContext {
                         query_name: ctx.query_name.to_string(),
                         query_file: ctx.query_file.to_path_buf(),
                         location_path: spread_location.to_string(),
                         fragment_file: ctx.current_fragment_file.clone(),
                         fragment_name: Some(spread.name.clone()),
+                        line,
+                        col,
                     };
 
                     let tree_visualization = create_optimized_tree_visualization(
@@ -610,12 +615,16 @@ fn validate_inline_fragment_directives_optimized(
                         .and_then(|tc| tc.strip_suffix("Fragment"))
                         .map(|name| name.to_string());
 
+                    let (line, col) =
+                        get_directive_position(&inline.directives, &directive.directive_type);
                     let context = ErrorContext {
                         query_name: ctx.query_name.to_string(),
                         query_file: ctx.query_file.to_path_buf(),
                         location_path: inline_location.to_string(),
                         fragment_file: ctx.current_fragment_file.clone(),
                         fragment_name,
+                        line,
+                        col,
                     };
 
                     let tree_visualization = create_optimized_tree_visualization(

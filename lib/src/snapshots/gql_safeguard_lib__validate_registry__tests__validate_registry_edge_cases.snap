@@ -9,8 +9,7 @@ Edge case validation result:
 
 🚨 Unprotected @throwOnFieldError
 
-Query: AdditionalQueryEdgeCase (fixtures/edge_cases/additional-queries.ts)
-Location: importedField
+query: AdditionalQueryEdgeCase fixtures/edge_cases/additional-queries.ts:7:21
 
 Query Structure:
 📄 Query: AdditionalQueryEdgeCase (fixtures/edge_cases/additional-queries.ts)
@@ -23,8 +22,7 @@ Query Structure:
 
 🚨 Unprotected @throwOnFieldError
 
-Query: GetUserLogAction (fixtures/edge_cases/required_variants.ts)
-Location: email
+query: GetUserLogAction fixtures/edge_cases/required_variants.ts:9:13
 
 Query Structure:
 📄 Query: GetUserLogAction (fixtures/edge_cases/required_variants.ts)
@@ -38,8 +36,7 @@ Query Structure:
 
 🚨 Unprotected @throwOnFieldError
 
-Query: GetUserNoAction (fixtures/edge_cases/required_variants.ts)
-Location: email
+query: GetUserNoAction fixtures/edge_cases/required_variants.ts:20:13
 
 Query Structure:
 📄 Query: GetUserNoAction (fixtures/edge_cases/required_variants.ts)
@@ -53,8 +50,7 @@ Query Structure:
 
 🚨 Unprotected @throwOnFieldError
 
-Query: GetUserOtherActions (fixtures/edge_cases/required_variants.ts)
-Location: bio
+query: GetUserOtherActions fixtures/edge_cases/required_variants.ts:32:11
 
 Query Structure:
 📄 Query: GetUserOtherActions (fixtures/edge_cases/required_variants.ts)
@@ -69,8 +65,7 @@ Query Structure:
 
 🚨 Unprotected @throwOnFieldError
 
-Query: StaticDynamicQueryEdge (fixtures/edge_cases/dynamic_imports.tsx)
-Location: dynamicField
+query: StaticDynamicQueryEdge fixtures/edge_cases/dynamic_imports.tsx:40:22
 
 Query Structure:
 📄 Query: StaticDynamicQueryEdge (fixtures/edge_cases/dynamic_imports.tsx)

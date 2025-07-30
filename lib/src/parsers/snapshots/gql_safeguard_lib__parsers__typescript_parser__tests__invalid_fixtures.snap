@@ -6,7 +6,7 @@ File: fixtures/invalid/missing_catch.tsx
 GraphQL strings found: 1
 
 === GraphQL String 1 ===
-BytePos: 71
+Line: 3
 Content:
 
   query GetUserProfileUnprotected($id: ID!) {
@@ -25,7 +25,7 @@ File: fixtures/invalid/partial_protection.ts
 GraphQL strings found: 3
 
 === GraphQL String 1 ===
-BytePos: 61
+Line: 3
 Content:
 
   fragment ProtectedFragment on User @catch {
@@ -35,7 +35,7 @@ Content:
 
 
 === GraphQL String 2 ===
-BytePos: 200
+Line: 10
 Content:
 
   fragment UnprotectedFragment on User {
@@ -45,7 +45,7 @@ Content:
 
 
 === GraphQL String 3 ===
-BytePos: 324
+Line: 17
 Content:
 
   query MixedQuery($id: ID!) {
@@ -63,7 +63,7 @@ File: fixtures/invalid/query_level_throw_with_ignore.ts
 GraphQL strings found: 3
 
 === GraphQL String 1 ===
-BytePos: 327
+Line: 6
 Content:
 
   query queryLevelThrowWithIgnore($groupId: ID!)
@@ -78,7 +78,7 @@ Content:
 
 
 === GraphQL String 2 ===
-BytePos: 723
+Line: 19
 Content:
 
   query unprotectedQueryLevelThrow($id: ID!)
@@ -92,7 +92,7 @@ Content:
 
 
 === GraphQL String 3 ===
-BytePos: 987
+Line: 31
 Content:
 
   # gql-safeguard-ignore
@@ -111,7 +111,7 @@ File: fixtures/invalid/unprotected_nested.ts
 GraphQL strings found: 4
 
 === GraphQL String 1 ===
-BytePos: 70
+Line: 3
 Content:
 
   fragment UserBasicInfoUnprotected on User {
@@ -122,7 +122,7 @@ Content:
 
 
 === GraphQL String 2 ===
-BytePos: 206
+Line: 11
 Content:
 
   fragment UserAvatarUnprotected on User @throwOnFieldError {
@@ -132,7 +132,7 @@ Content:
 
 
 === GraphQL String 3 ===
-BytePos: 339
+Line: 18
 Content:
 
   fragment UserDetailsUnprotected on User {
@@ -143,7 +143,7 @@ Content:
 
 
 === GraphQL String 4 ===
-BytePos: 499
+Line: 26
 Content:
 
   query GetFullUserUnprotected($id: ID!) {
@@ -159,7 +159,7 @@ File: fixtures/invalid/unprotected_required_throw.ts
 GraphQL strings found: 3
 
 === GraphQL String 1 ===
-BytePos: 132
+Line: 4
 Content:
 
   query GetUserUnprotected($id: ID!) {
@@ -172,7 +172,7 @@ Content:
 
 
 === GraphQL String 2 ===
-BytePos: 345
+Line: 15
 Content:
 
   query GetUserPartial($id: ID!) {
@@ -188,7 +188,7 @@ Content:
 
 
 === GraphQL String 3 ===
-BytePos: 667
+Line: 29
 Content:
 
   query GetUserMixedUnprotected($id: ID!) {
