@@ -469,9 +469,6 @@ dependencies = [
  "rustc-hash",
  "serde",
  "swc_core",
- "swc_ecma_ast",
- "swc_ecma_parser 22.0.2",
- "walkdir",
 ]
 
 [[package]]
@@ -1208,7 +1205,7 @@ dependencies = [
  "swc_atoms",
  "swc_common",
  "swc_ecma_ast",
- "swc_ecma_parser 21.0.1",
+ "swc_ecma_parser",
  "swc_ecma_transforms_base",
  "swc_ecma_visit",
  "vergen",
@@ -1258,29 +1255,6 @@ dependencies = [
 ]
 
 [[package]]
-name = "swc_ecma_lexer"
-version = "22.0.2"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "69ec39d3c46e3a76129ad5b7032d509240fb150cf1a2e8a57b368bfd5ec3f9cd"
-dependencies = [
- "arrayvec",
- "bitflags",
- "either",
- "num-bigint",
- "phf",
- "rustc-hash",
- "seq-macro",
- "serde",
- "smallvec",
- "smartstring",
- "stacker",
- "swc_atoms",
- "swc_common",
- "swc_ecma_ast",
- "tracing",
-]
-
-[[package]]
 name = "swc_ecma_parser"
 version = "21.0.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -1292,23 +1266,7 @@ dependencies = [
  "swc_atoms",
  "swc_common",
  "swc_ecma_ast",
- "swc_ecma_lexer 21.0.1",
- "tracing",
-]
-
-[[package]]
-name = "swc_ecma_parser"
-version = "22.0.2"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "4d61d0b6ecfdf633595d41a730da0c44195cf292e8417a3e77226be9d6e99653"
-dependencies = [
- "either",
- "num-bigint",
- "serde",
- "swc_atoms",
- "swc_common",
- "swc_ecma_ast",
- "swc_ecma_lexer 22.0.2",
+ "swc_ecma_lexer",
  "tracing",
 ]
 
@@ -1328,7 +1286,7 @@ dependencies = [
  "swc_atoms",
  "swc_common",
  "swc_ecma_ast",
- "swc_ecma_parser 21.0.1",
+ "swc_ecma_parser",
  "swc_ecma_utils",
  "swc_ecma_visit",
  "tracing",
