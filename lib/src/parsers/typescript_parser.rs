@@ -5,6 +5,7 @@
 use anyhow::Result;
 use std::fs;
 use std::path::Path;
+use std::rc::Rc;
 use swc_core::common::{BytePos, FileName, SourceMap};
 use swc_core::ecma::{
     ast::*,
@@ -40,7 +41,7 @@ pub fn extract_graphql_from_file(file_path: &Path) -> Result<Vec<GraphQLString>>
         })
     };
 
-    let source_map = std::sync::Arc::new(SourceMap::default());
+    let source_map = Rc::new(SourceMap::default());
     source_map.new_source_file(
         FileName::Real(file_path.to_path_buf()).into(),
         source_code.clone(),
@@ -67,12 +68,12 @@ pub fn extract_graphql_from_file(file_path: &Path) -> Result<Vec<GraphQLString>>
 struct GraphQLVisitor {
     file_path: std::path::PathBuf,
     graphql_strings: Vec<GraphQLString>,
-    source_map: std::sync::Arc<SourceMap>,
+    source_map: Rc<SourceMap>,
 }
 
 impl GraphQLVisitor {
     // Initialize visitor state for file processing
-    fn new(file_path: std::path::PathBuf, source_map: std::sync::Arc<SourceMap>) -> Self {
+    fn new(file_path: std::path::PathBuf, source_map: Rc<SourceMap>) -> Self {
         Self {
             file_path,
             graphql_strings: Vec::new(),
