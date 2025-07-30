@@ -5,6 +5,7 @@
 use anyhow::Result;
 use std::fs;
 use std::path::Path;
+use swc_core::common::BytePos;
 use swc_core::ecma::{
     ast::*,
     parser::{lexer::Lexer, Parser, StringInput, Syntax, TsSyntax},
@@ -42,7 +43,7 @@ pub fn extract_graphql_from_file(file_path: &Path) -> Result<Vec<GraphQLString>>
     let lexer = Lexer::new(
         syntax,
         Default::default(),
-        StringInput::new(&source_code, Default::default(), Default::default()),
+        StringInput::new(&source_code, BytePos(0), BytePos(source_code.len() as u32)),
         None,
     );
 

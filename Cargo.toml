@@ -4,9 +4,9 @@ resolver = "2"
 
 [workspace.dependencies]
 globset = "0.4.10"
-swc_core = { version = "28", features = ["ecma_parser", "ecma_ast", "ecma_visit", "common"] }
-swc_ecma_parser = "21.0.1"
-swc_ecma_ast = "13.0.1"
+swc_core = { version = "33", features = ["ecma_parser", "ecma_ast", "ecma_visit", "common"] }
+swc_ecma_parser = "22.0.2"
+swc_ecma_ast = "14.0.0"
 graphql-parser = "0.4"
 dashmap = "6.1.0"
 rustc-hash = "2.1.1"
