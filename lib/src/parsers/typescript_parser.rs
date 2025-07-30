@@ -7,7 +7,7 @@ use std::fs;
 use std::path::Path;
 use swc_core::ecma::{
     ast::*,
-    parser::{lexer::Lexer, Parser, StringInput, Syntax, TsConfig},
+    parser::{lexer::Lexer, Parser, StringInput, Syntax, TsSyntax},
     visit::{Visit, VisitWith},
 };
 
@@ -28,12 +28,12 @@ pub fn extract_graphql_from_file(file_path: &Path) -> Result<Vec<GraphQLString>>
     }
 
     let syntax = if file_path.extension().and_then(|s| s.to_str()) == Some("tsx") {
-        Syntax::Typescript(TsConfig {
+        Syntax::Typescript(TsSyntax {
             tsx: true,
             ..Default::default()
         })
     } else {
-        Syntax::Typescript(TsConfig {
+        Syntax::Typescript(TsSyntax {
             tsx: false,
             ..Default::default()
         })
