@@ -1,5 +1,11 @@
 # gql-safeguard
 
+## 0.9.0
+
+### Minor Changes
+
+- 2c52ba8: update crates
+
 ## 0.8.0
 
 ### Minor Changes
