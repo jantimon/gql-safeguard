@@ -59,7 +59,7 @@ fn main() -> anyhow::Result<()> {
                 // Output JSON format for programmatic use
                 let json_result: JsonValidationResult = validation_result.into();
                 let json_output = serde_json::to_string_pretty(&json_result)?;
-                println!("{}", json_output);
+                println!("{json_output}");
 
                 if json_result.errors.is_empty() {
                     return Ok(());
